@@ -1,0 +1,62 @@
+{
+  "skill_name": "ideate",
+  "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout. Default target is this skills repo (my-claude-code) so ideation has concrete code to ground against. To benchmark against a different codebase, set the subagent's working directory accordingly.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "what-next-casual",
+      "prompt": "been grinding on this for months and kinda running out of ideas, what would you build next if this were yours?",
+      "expected_output": "A markdown report at ./ideas/<date>-ideate.md containing: codebase characterisation, interview summary, market landscape, premises confirmed with user, desired outcome, 5-8 tiered ideas grouped under opportunities, and a recommended next step with concrete build steps.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "Report contains a Codebase Characterisation section with answers to 'What is this?', 'Who is it for?', and an implicit thesis"},
+        {"text": "Report contains a Premises section with at least 2 numbered premise statements"},
+        {"text": "Report contains a Market Landscape section naming at least 2 distinct competitors or adjacent tools"},
+        {"text": "Report contains a Desired Outcome section"},
+        {"text": "Report contains at least 5 distinct idea entries under Opportunities, each with a title and tier label"},
+        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
+        {"text": "Every idea has a non-empty 'Why this codebase is uniquely positioned' (or equivalent) field that references specific observed code, modules, or architecture — not generic aspiration"},
+        {"text": "Report ends with a Recommended Next Step section containing at least 2 concrete build steps (not validation tasks like 'interview users')"},
+        {"text": "The agent invoked AskUserQuestion at least once during the run (for interview and/or premise confirmation)"},
+        {"text": "The agent invoked WebSearch at least once during the run (for market scan)"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "competitive-gap-hunt",
+      "prompt": "i want to understand where this sits in the market and where it could actually differentiate vs what's already out there — feels like a lot of tools in this space and i don't want to build something that already exists",
+      "expected_output": "A markdown report emphasising competitive analysis: market landscape with 2-3 direct competitors and explicit gap identification, Eureka moments where first-principles thinking contradicts conventional wisdom, and ideas whose 'uniquely positioned' field is grounded in competitive gaps.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "Report contains a Market Landscape section naming at least 3 distinct tools (direct competitors and/or adjacent tools)"},
+        {"text": "Each competitor entry in the Market Landscape includes an explicit weakness or gap — not just a feature summary"},
+        {"text": "Report contains at least 5 distinct idea entries"},
+        {"text": "At least 2 ideas' 'uniquely positioned' justifications explicitly reference a gap or weakness identified in the market scan"},
+        {"text": "Report contains a Premises section with at least 2 numbered premise statements"},
+        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
+        {"text": "Report ends with concrete build steps, not business validation tasks"},
+        {"text": "The agent invoked WebSearch at least twice (non-trivial market scan)"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "personal-to-product",
+      "prompt": "this started as a personal project but i'm wondering if there's a version of it other people would actually want to use. where would i take it to make that real?",
+      "expected_output": "A report with strong premise challenge around audience expansion, distribution considered as part of at least one idea's feasibility, and the Desired Outcome framed around broader adoption.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "Report contains a Premises section where at least one premise concerns target audience, adoption, or distribution"},
+        {"text": "At least one idea's 'Architectural leverage' or 'Risks' field explicitly discusses distribution (how users would get the thing — package manager, releases, install flow, etc.)"},
+        {"text": "Desired Outcome section is framed around broader use or adoption, not purely internal improvement"},
+        {"text": "Report contains at least 5 distinct idea entries"},
+        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
+        {"text": "Every idea has a non-empty 'uniquely positioned' field grounded in observed code, not generic aspiration"},
+        {"text": "Report ends with concrete build steps for the recommended next idea"},
+        {"text": "The agent invoked AskUserQuestion at least twice (interview + premise confirmation)"}
+      ]
+    }
+  ]
+}
