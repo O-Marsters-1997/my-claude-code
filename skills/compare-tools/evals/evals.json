@@ -1,0 +1,47 @@
+{
+  "skill_name": "compare-tools",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add a job queue to this project so I can run skill eval tasks in the background without blocking the main process. Help me pick the right library.",
+      "expected_output": "A ./ideas/YYYY-MM-DD-tech-*.md report containing: (1) a context section characterising the project, (2) a priorities & rubric section derived from user input with weights summing to 100, (3) per-option sub-sections with doc URLs, (4) a comparison table with per-priority scores and a final /100 column, (5) ranked recommendations with scores tied to codebase facts.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file was written to the ./ideas/ directory"},
+        {"text": "The report contains a Priorities & Rubric section with weights that sum to 100"},
+        {"text": "The report contains a markdown comparison table with a Score column"},
+        {"text": "Every option has at least one documentation URL"},
+        {"text": "The report ends with a clear top recommendation"},
+        {"text": "The codebase characterisation reflects the actual project (mentions Claude Code, skills, or agent tooling)"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We're thinking about adding structured logging to the skill runner. What are my options and which should I go with?",
+      "expected_output": "A ./ideas/YYYY-MM-DD-tech-*.md report. The skill should detect the project language from manifests, surface 4-6 relevant logging libraries, align on priorities, produce a comparison table with compatibility scores, and recommend one clearly.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file was written to the ./ideas/ directory"},
+        {"text": "The skill detected the project's primary language and surfaced language-appropriate options"},
+        {"text": "The report contains a Priorities & Rubric section with weights that sum to 100"},
+        {"text": "The report contains a markdown comparison table with a Score column"},
+        {"text": "Every option has at least one documentation URL"},
+        {"text": "The report ends with a clear top recommendation"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need a lightweight key-value store for caching skill metadata between runs — doesn't need to persist across machine restarts. What should I use? I care most about not adding operational burden and staying vendor-neutral.",
+      "expected_output": "A ./ideas/YYYY-MM-DD-tech-*.md report. Stated priorities (operational burden, vendor neutrality) should top the rubric. Should consider in-process options alongside external ones. Recommendations grounded in observed project language.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file was written to the ./ideas/ directory"},
+        {"text": "The rubric reflects the user's stated priorities (operational burden and vendor-neutrality score highest)"},
+        {"text": "The report includes at least one in-process or embedded option (not only external stores)"},
+        {"text": "The report contains a markdown comparison table with a Score column"},
+        {"text": "Every option has at least one documentation URL"},
+        {"text": "The report ends with a clear top recommendation"}
+      ]
+    }
+  ]
+}
