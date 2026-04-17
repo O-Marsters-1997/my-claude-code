@@ -39,6 +39,30 @@ isn't concrete and grounded in observed code, the idea gets dropped.
 
 ---
 
+## Phase 0 — Load canonical context
+
+Before anything else, check whether `./ideas/CONTEXT.md` exists in the target repo.
+
+**If it exists:**
+1. Read it in full.
+2. Tell the user in two lines: *"Loaded ideation context (last updated [date]). My current
+   read: [one-sentence positioning from CONTEXT.md]. [N] ideas implemented, [M] proposed."*
+3. Ask via `AskUserQuestion`: *"Does this still look right, or anything to correct before we
+   continue?"* — update your working model with any corrections before proceeding.
+4. With CONTEXT.md loaded:
+   - **Phase 1** skips re-derivation of characterisation — use the `## Positioning` section
+     as the starting point, verify it isn't contradicted by very recent commits, note deltas.
+   - **Phase 3** uses CONTEXT.md's `## Competitive landscape` as the starting point unless
+     the user requests a refresh or `last_updated` is more than 6 months ago — if stale, do
+     a targeted refresh of only what looks outdated.
+   - **Phase 5** dedupes against `## Implemented ideas` and `## Proposed ideas (pending)` —
+     do not re-propose these. You may iterate on a pending idea (extend, split, combine) but
+     name that explicitly.
+
+**If it does not exist**, proceed to Phase 1 as normal. Phase 7 handles the bootstrap offer.
+
+---
+
 ## Phase 1 — Explore the codebase
 
 Build a real understanding of what this tool is, who it's for, and what it's trying to do.
@@ -52,10 +76,10 @@ Gather context in roughly this order:
 3. **Prior ideation.** Surface any existing design / ideas / RFC docs so you don't duplicate
    ground the user has already covered. Run:
    ```bash
-   ls -t ./ideas/*.md ./docs/design-*.md ./docs/rfc/*.md 2>/dev/null
+   ls -t ./ideas/reports/*.md ./docs/design-*.md ./docs/rfc/*.md 2>/dev/null
    ```
-   For each hit, note title + date in the draft report so the user can see you've accounted
-   for them.
+   For each hit, note title + date in the draft report. (`./ideas/CONTEXT.md` is handled
+   separately in Phase 0 — do not include it here.)
 4. **The code.** Use the Agent tool (`subagent_type=Explore`) to map entry points, public
    interfaces, top-level modules, and what the product actually exposes to its users. You're
    not doing a code review — you're answering: what does this thing *do*?
@@ -85,6 +109,10 @@ If an answer changes your Phase 1 characterisation, update the draft report befo
 ---
 
 ## Phase 3 — Search Before Building
+
+*If `./ideas/CONTEXT.md` was loaded in Phase 0, start from its `## Competitive landscape`
+section rather than a blank canvas. Verify the entries look current, then augment or refresh
+as needed — don't redo work that's already done.*
 
 Before inventing, search. Most good ideas already partially exist somewhere — the question is
 whether the existing answers are any good, and where they fall short.
@@ -138,6 +166,11 @@ momentum.
 
 ## Phase 5 — Generate ideas
 
+*If `./ideas/CONTEXT.md` was loaded in Phase 0, check `## Implemented ideas` and
+`## Proposed ideas (pending)` before generating. Do not re-propose either list. You may
+iterate on a pending idea — extend, split, or combine it — but label it "iteration on [title]"
+so the user knows.*
+
 Structure ideation as outcome → opportunities → solutions (opportunity-solution tree framing):
 
 - **Desired outcome**: what this tool should enable that it doesn't fully enable today.
@@ -163,14 +196,14 @@ Feasibility is expressed as observed architectural leverage: "extends the existi
 
 ## Phase 6 — Write the report
 
-Write to `./ideas/YYYY-MM-DD-ideate.md` using `references/report-template.md`.
+Write to `./ideas/reports/YYYY-MM-DD-ideate.md` using `references/report-template.md`.
 
 Resolve the path deterministically:
 
 ```bash
-mkdir -p ./ideas
+mkdir -p ./ideas/reports
 DATE=$(date -u +%Y-%m-%d)
-BASE="./ideas/${DATE}-ideate"
+BASE="./ideas/reports/${DATE}-ideate"
 OUT="${BASE}.md"
 N=2
 while [ -e "$OUT" ]; do OUT="${BASE}-${N}.md"; N=$((N+1)); done
@@ -185,6 +218,44 @@ steps** — the single idea to start on, the tracer-bullet first slice, and a po
 
 ---
 
+## Phase 7 — Update canonical context
+
+After writing the report, update `./ideas/CONTEXT.md` if it exists, or offer to bootstrap it
+if it doesn't.
+
+**If `./ideas/CONTEXT.md` exists:**
+1. Ask the user via `AskUserQuestion`: *"Before I update the context file — were any previously
+   proposed ideas actually shipped since our last session? I'll move them to Implemented."*
+   Update `## Implemented ideas` and `## Proposed ideas (pending)` accordingly.
+2. Bump `last_updated` in the YAML frontmatter.
+3. Append any new competitor weaknesses or Eureka moments to `## Competitive landscape` and
+   `## First-principles insights`.
+4. Append the run's recommended idea to `## Proposed ideas (pending)`:
+   `- [YYYY-MM-DD] [Idea title] — [one-sentence summary]`
+
+**If `./ideas/CONTEXT.md` does not exist**, ask the user via `AskUserQuestion`:
+
+*"Want me to save a canonical ideation context for this repo? Future runs will start with full
+context — positioning, competitive landscape, and idea history — instead of from scratch."*
+
+If they agree:
+1. Run:
+   ```bash
+   mkdir -p ./ideas
+   gh pr list --state merged --limit 30 --json title,mergedAt,body 2>/dev/null \
+     || git log --merges --since=6.months --pretty=format:"- %s (%ad)" --date=short
+   ```
+2. Write `./ideas/CONTEXT.md` using `references/context-template.md` as the skeleton,
+   populated with:
+   - Phase 1 characterisation → `## Positioning`
+   - Phase 3 competitive findings → `## Competitive landscape`
+   - Phase 4 Eureka moments → `## First-principles insights`
+   - Plausible feature-work PRs/merges from the output above → `## Implemented ideas`
+     (conservative: only items that clearly look like feature work; skip chores and fixes)
+   - This run's recommended idea → `## Proposed ideas (pending)`
+
+---
+
 ## Quality bar (self-check before finalising)
 
 - [ ] Every idea has a non-generic "uniquely positioned" field grounded in observed code
@@ -196,3 +267,5 @@ steps** — the single idea to start on, the tracer-bullet first slice, and a po
 - [ ] The characterisation in the report matches what you actually found
 - [ ] The recommended next step is a concrete build, not a validation task
 - [ ] Any Eureka moments (first-principles beats convention) are named explicitly
+- [ ] If CONTEXT.md existed: it was read in Phase 0 and the user confirmed the characterisation
+- [ ] CONTEXT.md was updated (or bootstrap was offered) at the end of the run

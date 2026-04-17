@@ -1,7 +1,11 @@
 # Report Template
 
-Use this skeleton when writing `./ideas/YYYY-MM-DD-ideate.md`. Adapt headings as the content
-demands — the goal is a report someone can scan in 5 minutes and act on.
+Use this skeleton when writing `./ideas/reports/YYYY-MM-DD-ideate.md`. Adapt headings as the
+content demands — the goal is a report someone can scan in 5 minutes and act on.
+
+*If `./ideas/CONTEXT.md` was loaded: the Codebase Characterisation below can be a one-line
+delta ("Same as CONTEXT.md — no material changes") rather than a full re-statement, unless
+the characterisation changed during this run.*
 
 ---
 
