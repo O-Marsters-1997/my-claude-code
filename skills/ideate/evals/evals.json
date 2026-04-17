@@ -6,10 +6,10 @@
       "id": 1,
       "name": "what-next-casual",
       "prompt": "been grinding on this for months and kinda running out of ideas, what would you build next if this were yours?",
-      "expected_output": "A markdown report at ./ideas/<date>-ideate.md containing: codebase characterisation, interview summary, market landscape, premises confirmed with user, desired outcome, 5-8 tiered ideas grouped under opportunities, and a recommended next step with concrete build steps.",
+      "expected_output": "A markdown report at ./ideas/reports/<date>-ideate.md containing: codebase characterisation, interview summary, market landscape, premises confirmed with user, desired outcome, 5-8 tiered ideas grouped under opportunities, and a recommended next step with concrete build steps.",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
         {"text": "Report contains a Codebase Characterisation section with answers to 'What is this?', 'Who is it for?', and an implicit thesis"},
         {"text": "Report contains a Premises section with at least 2 numbered premise statements"},
         {"text": "Report contains a Market Landscape section naming at least 2 distinct competitors or adjacent tools"},
@@ -29,7 +29,7 @@
       "expected_output": "A markdown report emphasising competitive analysis: market landscape with 2-3 direct competitors and explicit gap identification, Eureka moments where first-principles thinking contradicts conventional wisdom, and ideas whose 'uniquely positioned' field is grounded in competitive gaps.",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
         {"text": "Report contains a Market Landscape section naming at least 3 distinct tools (direct competitors and/or adjacent tools)"},
         {"text": "Each competitor entry in the Market Landscape includes an explicit weakness or gap — not just a feature summary"},
         {"text": "Report contains at least 5 distinct idea entries"},
@@ -47,7 +47,7 @@
       "expected_output": "A report with strong premise challenge around audience expansion, distribution considered as part of at least one idea's feasibility, and the Desired Outcome framed around broader adoption.",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
         {"text": "Report contains a Premises section where at least one premise concerns target audience, adoption, or distribution"},
         {"text": "At least one idea's 'Architectural leverage' or 'Risks' field explicitly discusses distribution (how users would get the thing — package manager, releases, install flow, etc.)"},
         {"text": "Desired Outcome section is framed around broader use or adoption, not purely internal improvement"},
@@ -56,6 +56,40 @@
         {"text": "Every idea has a non-empty 'uniquely positioned' field grounded in observed code, not generic aspiration"},
         {"text": "Report ends with concrete build steps for the recommended next idea"},
         {"text": "The agent invoked AskUserQuestion at least twice (interview + premise confirmation)"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "context-file-respected",
+      "prompt": "what should i build next?",
+      "expected_output": "When ./ideas/CONTEXT.md exists, the skill reads it in Phase 0, surfaces the loaded context to the user for confirmation, skips redundant characterisation and competitive re-derivation, dedupes ideas against the implemented/proposed lists, and updates the file at the end.",
+      "files": [
+        {
+          "path": "./ideas/CONTEXT.md",
+          "content": "---\nlast_updated: 2025-11-01\n---\n\n# TestRepo — Ideation Context\n\n## Positioning\n\n**What is this?** A CLI tool for generating structured project docs from code.\n\n**Who is it for?** Solo developers and small teams.\n\n**Implicit thesis** Developers write better docs when the tool meets them in the terminal.\n\n## Problems it solves\n\n- Doc drift between code and docs\n- Onboarding friction\n\n## Competitive landscape\n\n**Docusaurus**\nStrong at: polished static sites\nWeak at: keeping docs in sync with code automatically\n\n## First-principles insights\n\n- 2025-10-15 **Docs-as-tests** — the market assumes docs are a writing problem; this codebase treats it as a diffing problem\n\n## Implemented ideas\n\n- 2025-09-01 Auto-codemap generation — generates architecture codemaps from code analysis\n\n## Proposed ideas (pending)\n\n- 2025-11-01 Diff-based doc freshness score — surface stale sections as a CLI warning\n"
+        }
+      ],
+      "assertions": [
+        {"text": "The agent reads ./ideas/CONTEXT.md in Phase 0 (before Phase 1 characterisation)"},
+        {"text": "The agent surfaces the loaded context to the user in Phase 0 — e.g. mentions last_updated date and current positioning"},
+        {"text": "The agent does NOT re-propose 'Auto-codemap generation' (already in Implemented ideas) or 'Diff-based doc freshness score' (already in Proposed ideas)"},
+        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "The agent updates ./ideas/CONTEXT.md at the end of the run (Phase 7) — bumps last_updated and appends the new recommended idea to Proposed ideas (pending)"},
+        {"text": "The agent asks the user if any previously proposed ideas shipped (Phase 7 question) before updating the context file"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "context-file-bootstrap-offer",
+      "prompt": "any ideas for this project?",
+      "expected_output": "When ./ideas/CONTEXT.md does not exist, the skill runs normal ideation and at the end offers to bootstrap the context file from Phase 1 characterisation, Phase 3 competitive findings, and a best-guess implemented-ideas list from merged PRs/git history.",
+      "files": [],
+      "assertions": [
+        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "After writing the report, the agent asks the user whether they want to save a canonical ideation context (./ideas/CONTEXT.md)"},
+        {"text": "If the user agrees to bootstrap, the agent runs git log --merges or gh pr list to infer previously shipped ideas"},
+        {"text": "If the user agrees to bootstrap, the resulting ./ideas/CONTEXT.md contains Positioning, Competitive landscape, and Proposed ideas (pending) sections populated from this run"},
+        {"text": "The agent does NOT create ./ideas/CONTEXT.md without asking the user first"}
       ]
     }
   ]
