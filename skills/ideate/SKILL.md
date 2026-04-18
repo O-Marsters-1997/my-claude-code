@@ -173,17 +173,19 @@ so the user knows.*
 
 Structure ideation as outcome → opportunities → solutions (opportunity-solution tree framing):
 
-- **Desired outcome**: what this tool should enable that it doesn't fully enable today.
+- **Desired outcome**: what this tool should enable that it doesn't fully enable today — *and* what it already does that could be done better, tighter, or more reliably.
 - **Opportunities**: unmet needs, pain points, or friction observed — each a distinct angle.
 - **Solutions**: concrete ideas that address the opportunities.
 
 Produce 5–8 solution ideas total, tiered:
 
-- **Adjacent** — small extensions to existing surface, low risk, fast to ship
+- **Adjacent** — small extensions to existing surface, low risk, fast to ship; *also* refinement work: tightening existing functionality, reducing technical debt, better defaults, removing friction in existing commands. "Finish what's 60% there" and "make this right" are adjacent ideas, not a lower tier.
 - **Expansion** — new surface, builds on existing architecture, medium lift
 - **Moonshot** — significant bet, requires investment, high upside if it lands
 
 Aim for at least one of each tier. Strong ideas beat a padded list.
+
+**Core focus check.** Before finalising each idea, check it against the `## Positioning → Thesis` in `CONTEXT.md` (or the Phase 1 characterisation if CONTEXT.md doesn't exist). Ideas that advance the thesis are preferred. Ideas orthogonal to the thesis must carry a stronger "why now" justification or be flagged `scope risk: high` in the idea's risks section — don't let them pass silently.
 
 Each idea follows `references/idea-template.md`. The mandatory field is **why this codebase is
 uniquely positioned** — real observed architecture, not aspiration. If that field is weak,
@@ -269,5 +271,6 @@ If they agree:
 - [ ] Any Eureka moments (first-principles beats convention) are named explicitly
 - [ ] If CONTEXT.md existed: it was read in Phase 0 and the user confirmed the characterisation
 - [ ] CONTEXT.md was updated (or bootstrap was offered) at the end of the run
+- [ ] Each idea either advances the core thesis or carries an explicit `scope risk: high` callout
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
