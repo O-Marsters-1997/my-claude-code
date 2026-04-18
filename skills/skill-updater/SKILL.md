@@ -1,11 +1,28 @@
 ---
 name: skill-updater
-description: Update an existing skill with new context, patterns, or improvements. Use when user wants to update a skill, modify a skill, add a pattern to a skill, improve an existing skill, edit a SKILL.md, tweak skill instructions, change skill behaviour, or mentions "update skill", "edit skill", "change skill", "add to skill". Do NOT use for creating new skills from scratch — use write-a-skill or skill-creator for that.
+description: Update an existing skill with new context, patterns, or improvements. Use when user wants to update a skill, modify a skill, add a pattern to a skill, improve an existing skill, edit a SKILL.md, tweak skill instructions, change skill behaviour, or mentions "update skill", "edit skill", "change skill", "add to skill". Also use when invoked programmatically with a skill name, path, and improvement_suggestions[] payload from skill-feedback-collector. Do NOT use for creating new skills from scratch — use write-a-skill or skill-creator for that.
 ---
 
 # Skill Updater
 
 Lightweight, in-place updates to an existing skill's SKILL.md. For creating new skills or running evals/benchmarks, use write-a-skill or skill-creator instead.
+
+## Programmatic input path
+
+When invoked with a structured payload — `skill_name`, `skill_path`, and `improvement_suggestions[]` — skip the discovery and selection steps (Steps 1 and the prompt "Which skill do you want to update?") and go straight to applying the suggestions.
+
+Each suggestion in `improvement_suggestions[]` has this shape:
+
+```
+{ priority: "high" | "medium" | "low",
+  category: "instructions" | "tools" | "examples" | "error_handling" | "structure" | "references",
+  suggestion: string,
+  expected_impact: string }
+```
+
+Apply suggestions in priority order (high first). For each one, use `category` to locate the relevant section in SKILL.md (e.g. `"instructions"` → the main workflow section, `"examples"` → an Examples section, `"references"` → the references/ directory). Apply the same voice/style/lean rules as Step 3 below.
+
+Even on the programmatic path, run the "tell the user what you intend to change and wait for confirmation" step before writing. Batch edits can still be wrong — a quick preview prevents surprises. Show all intended changes together so the user can approve or redirect in one pass.
 
 ## Process
 
@@ -36,6 +53,7 @@ Ask: "Which skill do you want to update?"
 Read the target SKILL.md in full. Also read any bundled reference files relevant to the requested change.
 
 Before editing, tell the user:
+
 - What the skill currently does (one sentence)
 - Which section(s) the requested change affects
 - Your proposed edit
@@ -54,13 +72,13 @@ Make the requested changes with these constraints:
 
 Common update types:
 
-| Request | What to do |
-|---|---|
-| Add a pattern or rule | Add to the relevant section, or create a new section if none fits |
-| Broaden triggers | Add new trigger phrases to the `description` frontmatter |
-| Add a workflow step | Insert a numbered step in the existing sequence |
+| Request                | What to do                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Add a pattern or rule  | Add to the relevant section, or create a new section if none fits                      |
+| Broaden triggers       | Add new trigger phrases to the `description` frontmatter                               |
+| Add a workflow step    | Insert a numbered step in the existing sequence                                        |
 | Fix incorrect guidance | Replace the wrong content; add a brief note on why if it would help prevent regression |
-| Add reference material | Create a file in `references/` and add a pointer from SKILL.md |
+| Add reference material | Create a file in `references/` and add a pointer from SKILL.md                         |
 
 ### 4. Confirm and report
 
