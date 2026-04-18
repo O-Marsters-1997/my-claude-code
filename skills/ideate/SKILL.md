@@ -269,3 +269,5 @@ If they agree:
 - [ ] Any Eureka moments (first-principles beats convention) are named explicitly
 - [ ] If CONTEXT.md existed: it was read in Phase 0 and the user confirmed the characterisation
 - [ ] CONTEXT.md was updated (or bootstrap was offered) at the end of the run
+
+When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
