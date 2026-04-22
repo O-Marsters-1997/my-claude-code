@@ -9,7 +9,7 @@ Captures feedback immediately after a skill runs, while recall is fresh. Appends
 
 **Hard constraints — do not break these:**
 
-- This skill never creates a ledger inside its own directory. Ledgers live next to each opted-in skill's SKILL.md, never here.
+- This skill never creates a ledger inside its own directory. Ledgers live next to each opted-in skill's SKILL.md, never here. (Exception: when collecting feedback on skill-feedback-collector itself, the ledger necessarily lives in its own directory — this is intentional.)
 - Never call `skill-creator` at runtime. Diagnosis reasoning is embedded in this skill.
 - Never run evals or benchmarks.
 
@@ -47,14 +47,13 @@ If it doesn't exist: copy `skill-feedback-ledger-template.md` from this skill's 
 
 ---
 
-## Step 3 — Ask four questions, one at a time
+## Step 3 — Ask three questions, one at a time
 
 Wait for each answer before asking the next. Use these exact phrasings:
 
-1. "What were you trying to accomplish?"
-2. "What worked well?"
-3. "What was clunky or missing?"
-4. "On a scale of 1–100, how well did the skill fit your workflow?"
+1. "What worked well?"
+2. "What was clunky or missing?"
+3. "On a scale of 1–100, how well did the skill fit your workflow?"
 
 Don't rush or bundle them — asking one at a time invites better answers.
 
