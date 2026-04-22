@@ -97,9 +97,18 @@ off the wrong premise.
 
 ## Phase 2 — Interview
 
-Pick 3–5 questions from `references/interview-questions.md` that are genuinely unresolved after
-Phase 1. Good picks are questions where different answers would meaningfully change which ideas
-are worth generating.
+**Invocation focus check.** Before picking any questions: if the user included a specific focus
+in the invocation (e.g. `/ideate ui`, `/ideate performance`, or any args), capture it as the
+working focus and skip the interview entirely — proceed directly to Phase 3 with that focus set.
+
+If no focus was stated, run the interview. Pick 3–5 questions from
+`references/interview-questions.md` that are genuinely unresolved after Phase 1. Good picks are
+questions where different answers would meaningfully change which ideas are worth generating.
+
+When asking about scope or focus area, use a free-form optional question ("Is there a specific
+area or command you'd like to focus on?") with an explicit default of "No — explore broadly".
+Do not offer pre-named pain-point options as a multi-select; listing specific options anchors
+ideation toward the selected one and lets other areas of the codebase slide.
 
 **Ask one question at a time** via `AskUserQuestion`. Never batch. Each answer can shift what you
 ask next — batching wastes that signal and makes the user feel interrogated rather than heard.
