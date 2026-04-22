@@ -194,6 +194,11 @@ Produce 5–8 solution ideas total, tiered:
 
 Aim for at least one of each tier. Strong ideas beat a padded list.
 
+**Surface distribution check.** Before finalising the idea list, verify that ideas span at least
+2–3 distinct areas of the codebase surface (different commands, subsystems, or workflows). If
+ideas cluster around one area, generate at least one idea from a different part of the surface
+before continuing.
+
 **Core focus check.** Before finalising each idea, check it against the `## Positioning → Thesis` in `CONTEXT.md` (or the Phase 1 characterisation if CONTEXT.md doesn't exist). Ideas that advance the thesis are preferred. Ideas orthogonal to the thesis must carry a stronger "why now" justification or be flagged `scope risk: high` in the idea's risks section — don't let them pass silently.
 
 Each idea follows `references/idea-template.md`. The mandatory field is **why this codebase is
@@ -281,5 +286,6 @@ If they agree:
 - [ ] If CONTEXT.md existed: it was read in Phase 0 and the user confirmed the characterisation
 - [ ] CONTEXT.md was updated (or bootstrap was offered) at the end of the run
 - [ ] Each idea either advances the core thesis or carries an explicit `scope risk: high` callout
+- [ ] Ideas span at least 2–3 distinct areas of the codebase surface (no clustering around one subsystem)
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
