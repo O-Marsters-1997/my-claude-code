@@ -1,11 +1,15 @@
 ---
 name: tdd
-description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
+description: Use when implementing any feature or fixing any bug. TDD is the default — not an optional approach. Trigger on any implementation work, not just when the user explicitly mentions TDD.
 ---
 
 # Test-Driven Development
 
 ## Philosophy
+
+> Examples in this skill use TypeScript and Go interchangeably. The principles are language-agnostic — apply them in whatever language you write.
+>
+> If a dedicated testing skill exists for your language (e.g. `golang-testing` for Go), use it alongside this one. This skill owns the workflow and philosophy; the language skill owns idiomatic test patterns.
 
 **Core principle**: Tests should verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't.
 
@@ -57,6 +61,17 @@ Ask: "What should the public interface look like? Which behaviors are most impor
 
 **You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
 
+### The Iron Law
+
+```
+NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.
+```
+
+- Write code before test? Delete it. Start over. No keeping it as "reference."
+- After writing the test, **run it. Watch it fail.** Confirm the failure is because the feature is missing — not a typo, wrong import, or test mistake. If you didn't watch it fail, you don't know if it tests the right thing.
+- Test passes immediately? You're testing existing behaviour. Fix the test.
+- Never refactor while RED. Get to GREEN first.
+
 ### 2. Tracer Bullet
 
 Write ONE test that confirms ONE thing about the system:
@@ -77,12 +92,7 @@ RED:   Write next test → fails
 GREEN: Minimal code to pass → passes
 ```
 
-Rules:
-
-- One test at a time
-- Only enough code to pass current test
-- Don't anticipate future tests
-- Keep tests focused on observable behavior
+Apply the checklist below after each cycle.
 
 ### 4. Refactor
 
@@ -93,8 +103,6 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - [ ] Apply SOLID principles where natural
 - [ ] Consider what new code reveals about existing code
 - [ ] Run tests after each refactor step
-
-**Never refactor while RED.** Get to GREEN first.
 
 ## Checklist Per Cycle
 
