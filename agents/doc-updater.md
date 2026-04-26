@@ -1,6 +1,6 @@
 ---
 name: doc-updater
-description: Documentation and codemap specialist. Use PROACTIVELY for updating codemaps and documentation. Generates docs/CODEMAPS/*, updates READMEs and guides to reflect actual codebase state.
+description: Documentation and codemap specialist. Use PROACTIVELY when changing or adding functionality that might require a doc update and also trigger on phrases: "update docs", "sync documentation", "refresh README", "regenerate runbook", "generate codemaps", "update architecture docs", "/update-docs", "/update-codemaps". Generates docs/CODEMAPS/*, updates READMEs, runbooks, and contributing guides from source. SKIP for: comment-only edits, internal refactors that don't change public interfaces, cosmetic CSS/HTML, single-file bug fixes.
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 model: haiku
 ---
