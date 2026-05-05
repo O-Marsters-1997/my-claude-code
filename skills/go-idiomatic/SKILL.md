@@ -23,12 +23,13 @@ questions.
 
 Route to the right reference before reading further:
 
-| If you're working on…                                        | Load this                        |
-| ------------------------------------------------------------ | -------------------------------- |
-| Error handling, concurrency, interface design, anti-patterns | `references/patterns.md`         |
-| Writing or reviewing tests, benchmarks, fuzzing, HTTP tests  | `references/testing.md`          |
-| Optional fields or return values — when to use `Option[T]`   | `references/optional.md`         |
-| Pointer vs value receivers, mutation vs optionality          | `references/value-vs-pointer.md` |
+| If you're working on…                                                          | Load this                        |
+| ------------------------------------------------------------------------------ | -------------------------------- |
+| Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
+| Error handling, interface design, anti-patterns                                | `references/patterns.md`         |
+| Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
+| Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
+| Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
 
 ---
 
