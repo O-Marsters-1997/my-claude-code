@@ -1,5 +1,6 @@
 {
   "model": "opusplan",
+  "largeModelName": "claude-opus-4-6",
   "hooks": {
     "PreToolUse": [
       {

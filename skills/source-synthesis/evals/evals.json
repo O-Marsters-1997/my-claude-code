@@ -1,0 +1,47 @@
+{
+  "skill_name": "source-synthesis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm about to build a job queue system in Go using Redis. Here are some articles I've gathered:\n\nhttps://redis.io/docs/latest/develop/use/patterns/bulk-loading/\nhttps://pkg.go.dev/github.com/hibiken/asynq\nhttps://www.opsdash.com/blog/job-queues-in-go.html\n\nCan you synthesise these for my use case? I specifically need to understand reliability guarantees and how to handle retries.",
+      "expected_output": "A synthesised document covering: key concepts for job queues in Go/Redis, consensus on reliability patterns, tensions between approaches (e.g. at-least-once vs at-most-once delivery), practical patterns for retries relevant to the user's goal, gotchas, and gaps. Should NOT be three separate summaries — must be cross-source synthesis tailored to the reliability/retry angle.",
+      "files": [],
+      "expectations": [
+        "Output contains a 'mental model' or key concepts section with Go/Redis-specific concepts",
+        "Output addresses retry patterns specifically (user's explicit ask)",
+        "Output identifies at least one tension or trade-off (e.g. delivery guarantees, persistence options)",
+        "Output does NOT structure itself as 'Source 1 says... Source 2 says...' — it synthesises across sources",
+        "Output contains a practical patterns section relevant to the job queue use case",
+        "Output includes a gaps or watch-out section"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I want to build a small RAG system. I don't know much about embeddings or vector DBs. Here's my reading list:\n\nhttps://www.pinecone.io/learn/retrieval-augmented-generation/\nhttps://simonwillison.net/2023/Oct/23/embeddings/\nhttps://www.llamaindex.ai/blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-21801f1579bc\n\nMy use case: I'm building a customer support bot that answers from a knowledge base of markdown docs. Keep it practical, I just need to get something working.",
+      "expected_output": "Synthesis tailored to: small-scale RAG for markdown docs / customer support. Should distil key concepts (embeddings, chunking, retrieval, augmentation), surface practical patterns for a simple implementation, flag common beginner mistakes, and identify gaps. Should be opinionated about where to start rather than covering all options.",
+      "files": [],
+      "expectations": [
+        "Output explains chunking as a key concept (it's a common confusion point for RAG beginners)",
+        "Output is tailored to the customer support / markdown docs use case, not generic RAG theory",
+        "Output gives concrete recommended next steps the user can act on immediately",
+        "Output identifies at least one tension or trade-off (e.g. chunk size, embedding model choice)",
+        "Output does not just summarise each source in sequence",
+        "Use-case frame section restates the user's goal accurately"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm learning how to set up observability for a FastAPI service — logs, metrics, traces. Never done this before. Here are some links I've been given:\n\nhttps://opentelemetry.io/docs/languages/python/getting-started/\nhttps://betterstack.com/community/guides/logging/python-logging-best-practices/\nhttps://www.datadoghq.com/blog/python-logging-best-practices/\n\nI'm deploying to Kubernetes and shipping logs/traces to Grafana stack (Loki + Tempo + Prometheus). Synthesise these for me.",
+      "expected_output": "Synthesis tailored to: FastAPI observability on Kubernetes with Grafana stack. Key concepts: the three pillars of observability, OpenTelemetry, structured logging. Practical patterns for FastAPI + Grafana stack. Tensions: between Python's logging module and OTEL, between structured and unstructured logs. Gaps: sources may not cover Kubernetes-specific concerns or Grafana integration specifically.",
+      "files": [],
+      "expectations": [
+        "Output covers all three pillars (logs, metrics, traces) since that is the user's explicit scope",
+        "Output is tailored to Grafana stack (Loki/Tempo/Prometheus) not just generic observability",
+        "Output mentions OpenTelemetry as a key concept given the source provided",
+        "Output identifies at least one tension or trade-off between the approaches in the sources",
+        "Output contains a 'watch out for' or gotchas section",
+        "Output does not structure itself as source-by-source summaries"
+      ]
+    }
+  ]
+}
