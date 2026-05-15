@@ -43,5 +43,8 @@
     "skill-creator@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true
   },
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "permissions": {
+    "allow": ["WebFetch(*)", "WebSearch(*)"]
+  }
 }
