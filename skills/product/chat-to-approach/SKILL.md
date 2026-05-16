@@ -11,6 +11,8 @@ If `./docs/approach.md` already exists, it is treated as prior settled truth. On
 
 Once this doc exists, run `approach-to-roadmap` to generate a kanban board without repeating the grilling.
 
+**Optional: Background Research section.** `approach.md` may contain a `## Background Research` section at the top, produced by the `source-synthesis` skill, containing a lit-review synthesis of existing documentation and prior art. This skill does not create or modify that section — it is out of scope here. If the section exists, preserve it verbatim when writing or updating the file.
+
 Solo/indie-builder scale throughout.
 
 ---
@@ -124,6 +126,9 @@ Write or update the file. If `./docs/` doesn't exist, create it.
 # Approach
 
 _Last updated: <YYYY-MM-DD> · Canonical alignment doc — what we are building and why._
+
+## Background Research
+<!-- Optional. Produced by source-synthesis, not this skill. Preserve verbatim if present. -->
 
 ## Problem
 

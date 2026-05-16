@@ -94,6 +94,22 @@ Match depth to the source material and the complexity of the use case:
 - 6–10 varied sources on a complex topic → 1000–1800 words
 - Longer is not better. A tight 800-word synthesis beats a padded 2000-word one every time.
 
+## Output destination
+
+Write the completed synthesis to `./docs/approach.md` under a `## Background Research` section. This file is the canonical alignment document for the project — the synthesis lives as the first substantive section, before any alignment content (Problem, Goals, Features, etc.) that the `chat-to-approach` skill adds later.
+
+**If `./docs/approach.md` does not exist:**
+- Create `./docs/` if needed
+- Write a minimal file: the `# Approach` header, the `_Last updated_` line, and the `## Background Research` section containing the synthesis
+- Leave a placeholder comment after the section: `<!-- Alignment content (Problem, Goals, Features, etc.) to be added via chat-to-approach -->`
+
+**If `./docs/approach.md` already exists:**
+- Replace the content of the `## Background Research` section with the new synthesis
+- If the section doesn't exist yet, insert it immediately after the `_Last updated_` line, before any other sections
+- Do not touch any other sections
+
+After writing, tell the user the file has been saved to `./docs/approach.md` and that they can run `chat-to-approach` to add or update the alignment content (features, goals, constraints, etc.) below the research section.
+
 ## What not to do
 
 - Don't summarise each source in turn (source 1 says… source 2 says…). That's a list of summaries, not a synthesis.
