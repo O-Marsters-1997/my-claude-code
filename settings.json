@@ -1,6 +1,11 @@
 {
-  "model": "opusplan",
-  "largeModelName": "claude-opus-4-6",
+  "permissions": {
+    "allow": [
+      "WebFetch(*)",
+      "WebSearch(*)"
+    ]
+  },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -44,7 +49,5 @@
     "gopls-lsp@claude-plugins-official": true
   },
   "effortLevel": "high",
-  "permissions": {
-    "allow": ["WebFetch(*)", "WebSearch(*)"]
-  }
+  "largeModelName": "claude-opus-4-6"
 }

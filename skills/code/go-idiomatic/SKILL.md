@@ -30,6 +30,7 @@ Route to the right reference before reading further:
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
+| Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
 
 ---
 
