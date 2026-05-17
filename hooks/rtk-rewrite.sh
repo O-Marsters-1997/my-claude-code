@@ -51,6 +51,12 @@ if [ -z "$CMD" ]; then
   exit 0
 fi
 
+# Let git push pass through unchanged — rtk's CI gate blocks branches that have
+# never been pushed (GitHub status "none"), creating a bootstrap deadlock.
+if [[ "$CMD" =~ ^git[[:space:]]+push ]]; then
+  exit 0
+fi
+
 # Delegate all rewrite + permission logic to the Rust binary.
 REWRITTEN=$(rtk rewrite "$CMD" 2>/dev/null)
 EXIT_CODE=$?

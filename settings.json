@@ -1,20 +1,13 @@
 {
   "permissions": {
-    "allow": ["WebFetch(*)", "WebSearch(*)"]
+    "allow": [
+      "WebFetch(*)",
+      "WebSearch(*)"
+    ]
   },
   "model": "opusplan",
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-staged-comments.sh",
-            "statusMessage": "Checking staged files for comment cleanup..."
-          }
-        ]
-      },
       {
         "matcher": "Bash",
         "hooks": [
