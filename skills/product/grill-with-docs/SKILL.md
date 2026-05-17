@@ -7,9 +7,11 @@ description: Grilling session that challenges your plan against the existing dom
 
 Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 
-Ask the questions one at a time, waiting for feedback on each question before continuing.
+Ask one question at a time via `AskUserQuestion`. Never batch — each answer may change what you ask next. For each question:
 
-If a question can be answered by exploring the codebase, explore the codebase instead.
+- Include 2–4 concrete options based on your analysis of the codebase and the plan. Single-select for decisions where the choices are mutually exclusive; multi-select when they aren't.
+- `AskUserQuestion` automatically provides an "Other" option for free-form input — don't add one manually.
+- If a question can be answered by exploring the codebase, explore the codebase instead of asking.
 
 </what-to-do>
 
@@ -80,9 +82,9 @@ When a term is resolved, update `CONTEXT.md` right there. Don't batch these up �
 Only offer to create an ADR when all three are true:
 
 1. **Hard to reverse** — the cost of changing your mind later is meaningful
-2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
+2. **Surprising without context** — a future reader will look at the code and wonder "why on earth did they do it this way?"
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
-If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+If any of the three is missing, skip the ADR. Use the format in [adr-format.md](../../shared/adr-format.md).
 
 </supporting-info>
