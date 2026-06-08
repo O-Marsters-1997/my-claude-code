@@ -1,0 +1,56 @@
+{
+  "skill_name": "tailwind-shadcn",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a settings page for a Next.js app using shadcn/ui. I need to add a notification preferences section where users can toggle email, SMS, and push notification alerts on or off. Build the React component for this section.",
+      "expected_output": "A composed component using existing shadcn/ui primitives (Switch/Card/form controls), semantic color tokens, flex+gap spacing, Base UI APIs (render prop not asChild), and a demonstration of the reusability ladder — checking existing components before writing custom code.",
+      "files": [],
+      "expectations": [
+        "Uses semantic color tokens (bg-primary, text-muted-foreground etc.) — no raw Tailwind palette values like text-gray-500 or bg-white",
+        "Uses flex + gap-* for spacing — no space-y-* or space-x-*",
+        "Composes with existing shadcn/ui components (e.g. Card, Switch, Label) rather than building from scratch with raw divs",
+        "Does not use asChild — uses render prop pattern for Base UI or omits it correctly",
+        "className props are used for layout only (max-w, mx-auto, mt-4 etc.), not color/typography overrides"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Refactor this React component to follow our shadcn/ui + Tailwind styling standards:\n\n```tsx\nfunction UserCard({ user }: { user: { name: string; email: string; avatar: string; active: boolean } }) {\n  return (\n    <div className=\"space-y-4 p-6 bg-white border rounded-lg shadow\">\n      <div className=\"flex items-center space-x-3\">\n        <img src={user.avatar} className=\"w-8 h-8 rounded-full\" />\n        <div className=\"space-y-1\">\n          <h3 className=\"font-semibold text-gray-900\">{user.name}</h3>\n          <p className=\"text-sm text-gray-500\">{user.email}</p>\n        </div>\n      </div>\n      <div className=\"flex space-x-2\">\n        {user.active ? (\n          <span className=\"bg-green-100 text-green-800 px-2 py-1 rounded text-xs\">Active</span>\n        ) : (\n          <span className=\"bg-red-100 text-red-800 px-2 py-1 rounded text-xs\">Inactive</span>\n        )}\n      </div>\n    </div>\n  )\n}\n```",
+      "expected_output": "Refactored component that: replaces space-y-*/space-x-* with flex+gap-*, replaces w-8 h-8 with size-8, removes raw palette colors (text-gray-*, bg-green-*, bg-red-*, bg-white), uses semantic tokens or Badge component for status, and uses cn() for any conditional classes.",
+      "files": [],
+      "expectations": [
+        "Removes space-y-4, space-y-1, space-x-3, space-x-2 — replaced with flex + gap-* equivalents",
+        "Replaces w-8 h-8 with size-8",
+        "Removes raw palette colors: text-gray-900, text-gray-500, bg-green-100, text-green-800, bg-red-100, text-red-800, bg-white",
+        "Uses semantic tokens for text and background (e.g. text-foreground, text-muted-foreground, bg-card)",
+        "Status indicator uses Badge component or semantic tokens, not raw color spans",
+        "Conditional className uses cn() not a ternary string inside className"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our Tailwind v4 + shadcn/ui design system needs a 'success' state. I want to be able to use bg-success and text-success-foreground as Tailwind utility classes in my components. Walk me through how to add this.",
+      "expected_output": "Step-by-step: (1) define --success and --success-foreground in :root in globals.css using OKLCH format, (2) register them in the @theme inline block as --color-success and --color-success-foreground, (3) usage examples. Should also note to edit tailwindCssFile from project context, not create a new file.",
+      "files": [],
+      "expectations": [
+        "Defines CSS variables in :root using OKLCH format — not HSL or hex",
+        "Adds --color-success: var(--success) and --color-success-foreground: var(--success-foreground) in the @theme inline block",
+        "Instructs to edit the existing global CSS file (tailwindCssFile), not create a new one",
+        "Shows a usage example with bg-success and text-success-foreground in JSX"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'm working on a SolidJS app with shadcn-solid. I need a component that shows a notification count badge — green when the count is normal, red when it's over 99. Build this for me.",
+      "expected_output": "Solid mode: uses class (not className), checks for existing Badge component first, extends with a cva variant only if reused (not a one-off), uses semantic color tokens (not raw greens/reds), and uses For/Index for lists rather than .map(). Should demonstrate the reusability ladder.",
+      "files": [],
+      "expectations": [
+        "Uses class attribute instead of className (Solid mode)",
+        "Considers or uses the existing Badge component rather than building a custom div from scratch",
+        "Uses semantic color tokens for the green/red states — not raw values like text-green-600 or bg-red-500",
+        "Does not use asChild — uses Kobalte/Base UI render pattern or composes correctly for Solid"
+      ]
+    }
+  ]
+}
