@@ -1,6 +1,16 @@
 ---
 name: tailwind-shadcn
-description: shadcn/ui + Tailwind CSS discipline. Auto-detects the framework — React projects use the official shadcn CLI + Base UI primitives; SolidJS projects use the shadcn-solid CLI + Kobalte primitives (Zaidan components). Use proactively whenever building new UI or refactoring existing UI — component styling, class/className props, CSS variables, design tokens, responsive layouts, component variants, or any time you're about to reach for an arbitrary Tailwind value. Triggers on: "style this component", "add a color", "make this responsive", "refactor the styling", "add a variant", any use of class/className or Tailwind classes, or whenever you are about to reach for an arbitrary Tailwind value like [24px].
+description: >-
+  shadcn/ui + Tailwind CSS discipline. Auto-detects the framework — React
+  projects use the official shadcn CLI + Base UI primitives; SolidJS projects
+  use the shadcn-solid CLI + Kobalte primitives (Zaidan components). Use
+  proactively whenever building new UI or refactoring existing UI — component
+  styling, class/className props, CSS variables, design tokens, responsive
+  layouts, component variants, or any time you're about to reach for an
+  arbitrary Tailwind value. Triggers on: "style this component", "add a color",
+  "make this responsive", "refactor the styling", "add a variant", any use of
+  class/className or Tailwind classes, or whenever you are about to reach for an
+  arbitrary Tailwind value like [24px].
 allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(bunx --bun shadcn@latest *), Bash(npx shadcn-solid@latest *), Bash(pnpm dlx shadcn-solid@latest *), Bash(bunx --bun shadcn-solid@latest *)
 ---
 
