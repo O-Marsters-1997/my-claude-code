@@ -207,6 +207,7 @@ The shadcn-solid CLI is thin — **only `init`, `add`, and `diff`**. There is **
 5. **Install** — `npx shadcn@latest add <component>` (React) or `npx shadcn-solid@latest add <component>` (Solid).
 6. **Review added files** — read every added file; fix composition issues, icon imports, and alias paths. _Solid:_ also run the bundle-weight check ([references/primitives-solid.md](./references/primitives-solid.md)) — hand-roll or trim components that pull Kobalte without an a11y payoff.
 7. **Apply styling rules** — use semantic tokens, `cn()`, the `cva` variant pattern, and mobile-first responsive styles per the Critical Rules above.
+8. **Format & lint** — detect the project formatter from `package.json` scripts and run it on every changed file. A non-zero exit is a blocking failure — do not declare the task done until it passes. See [references/formatting.md](./references/formatting.md) for the detection heuristic and per-tool commands.
 
 ---
 
@@ -267,3 +268,7 @@ See [references/responsive.md](./references/responsive.md) for breakpoint refere
 
 - [references/primitives-solid.md](./references/primitives-solid.md) — Kobalte/Zaidan authoring idioms, primitive APIs, and the bundle-weight selective-adoption discipline
 - [references/cli-shadcn-solid.md](./references/cli-shadcn-solid.md) — `npx shadcn-solid@latest`: the thin CLI surface, Zaidan delivery, browser-docs workflow
+
+**Tooling:**
+
+- [references/formatting.md](./references/formatting.md) — Formatter detection heuristic and per-tool commands (Biome, Prettier+ESLint, ESLint-only)
