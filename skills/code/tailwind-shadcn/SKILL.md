@@ -21,13 +21,13 @@ This skill serves two ecosystems. Before doing anything, read `package.json` to 
 
 ## Framework mode
 
-| Concern | React mode | Solid mode |
-|---|---|---|
-| Primitive layer | Base UI — see "Primitive layer APIs" below | Kobalte (Zaidan) — see [references/primitives-solid.md](./references/primitives-solid.md) |
-| CLI | `npx shadcn@latest` — see [references/cli.md](./references/cli.md) | `npx shadcn-solid@latest` — see [references/cli-shadcn-solid.md](./references/cli-shadcn-solid.md) |
-| JSX class attribute | `className` | `class` |
-| Component composition | `asChild` + `Slot` | `<Dynamic>` / Kobalte polymorphic `as` |
-| Lists | `.map(... key={})` | `<For each>` / `<Index>` |
+| Concern               | React mode                                                         | Solid mode                                                                                         |
+| --------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Primitive layer       | Base UI — see "Primitive layer APIs" below                         | Kobalte (Zaidan) — see [references/primitives-solid.md](./references/primitives-solid.md)          |
+| CLI                   | `npx shadcn@latest` — see [references/cli.md](./references/cli.md) | `npx shadcn-solid@latest` — see [references/cli-shadcn-solid.md](./references/cli-shadcn-solid.md) |
+| JSX class attribute   | `className`                                                        | `class`                                                                                            |
+| Component composition | `asChild` + `Slot`                                                 | `<Dynamic>` / Kobalte polymorphic `as`                                                             |
+| Lists                 | `.map(... key={})`                                                 | `<For each>` / `<Index>`                                                                           |
 
 **Normalization note (Solid mode):** the styling discipline below and the shared references (`theming.md`, `responsive.md`, `cva.md`) use React (`className`) syntax in their examples. In Solid mode, **read every `className` as `class`**, read `.map(...)`+`key` as `<For each>`, and ignore React-only constructs (`React.*` types, `asChild`, `Slot`). See [references/primitives-solid.md](./references/primitives-solid.md) for the Solid equivalents. The Tailwind/token discipline itself is identical in both modes.
 
@@ -85,12 +85,12 @@ All color tokens are CSS custom properties on `:root` in the global CSS file (`t
 
 ```css
 :root {
-  --background:          oklch(1 0 0);
-  --foreground:          oklch(0.145 0 0);
-  --primary:             oklch(0.205 0 0);
-  --primary-foreground:  oklch(0.985 0 0);
-  --muted:               oklch(0.97 0 0);
-  --muted-foreground:    oklch(0.556 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
   /* ... see references/theming.md for the full token set */
 }
 ```
@@ -103,15 +103,15 @@ With **Tailwind v4**, register every CSS variable via `@theme inline`:
 
 ```css
 @theme inline {
-  --color-background:         var(--background);
-  --color-foreground:         var(--foreground);
-  --color-primary:            var(--primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   /* ... see references/theming.md for the full mapping */
-  --radius-sm:  calc(var(--radius) - 4px);
-  --radius-md:  calc(var(--radius) - 2px);
-  --radius-lg:  var(--radius);
-  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 ```
 
@@ -119,8 +119,12 @@ With **Tailwind v4**, register every CSS variable via `@theme inline`:
 
 ```css
 @layer base {
-  * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 ```
 
@@ -176,7 +180,7 @@ The shadcn-solid CLI is thin — **only `init`, `add`, and `diff`**. There is **
 - **ToggleGroup / Accordion:** use `multiple` boolean instead of `type="multiple"`; `defaultValue` is always an array.
 - **Slider:** accepts a plain number for a single thumb (`defaultValue={50}`), not an array.
 
-**Solid mode — Kobalte.** The primitive APIs, composition (`as` prop), and the bundle-weight discipline that governs *when* to reach for a Kobalte primitive at all are covered in [references/primitives-solid.md](./references/primitives-solid.md). Read it before adding any interactive Solid component.
+**Solid mode — Kobalte.** The primitive APIs, composition (`as` prop), and the bundle-weight discipline that governs _when_ to reach for a Kobalte primitive at all are covered in [references/primitives-solid.md](./references/primitives-solid.md). Read it before adding any interactive Solid component.
 
 ---
 
@@ -185,13 +189,13 @@ The shadcn-solid CLI is thin — **only `init`, `add`, and `diff`**. There is **
 1. **Detect framework & get project context** — read `package.json` (React vs Solid), then gather context per "Detect framework first" above (React: `npx shadcn@latest info --json`; Solid: read `ui.config.json` + `package.json`).
 2. **Check installed components first** — before running `add`, check what's already in the UI directory (`resolvedPaths.ui` in React; the components dir from `ui.config.json` in Solid). Don't import components that haven't been added, and don't re-add ones already installed.
 3. **Find the component** —
-   - *React:* `npx shadcn@latest search` to discover components (community registries too).
-   - *Solid:* no `search` — browse zaidan.carere.dev / shadcn-solid.com in the browser.
+   - _React:_ `npx shadcn@latest search` to discover components (community registries too).
+   - _Solid:_ no `search` — browse zaidan.carere.dev / shadcn-solid.com in the browser.
 4. **Get docs and examples** —
-   - *React:* `npx shadcn@latest docs <component>` for URLs, then fetch; use `--dry-run` / `--diff` to preview.
-   - *Solid:* no `docs`/preview flags — read the docs site, and preview via `diff` or by reading the copy-paste source after `add`.
+   - _React:_ `npx shadcn@latest docs <component>` for URLs, then fetch; use `--dry-run` / `--diff` to preview.
+   - _Solid:_ no `docs`/preview flags — read the docs site, and preview via `diff` or by reading the copy-paste source after `add`.
 5. **Install** — `npx shadcn@latest add <component>` (React) or `npx shadcn-solid@latest add <component>` (Solid).
-6. **Review added files** — read every added file; fix composition issues, icon imports, and alias paths. *Solid:* also run the bundle-weight check ([references/primitives-solid.md](./references/primitives-solid.md)) — hand-roll or trim components that pull Kobalte without an a11y payoff.
+6. **Review added files** — read every added file; fix composition issues, icon imports, and alias paths. _Solid:_ also run the bundle-weight check ([references/primitives-solid.md](./references/primitives-solid.md)) — hand-roll or trim components that pull Kobalte without an a11y payoff.
 7. **Apply styling rules** — use semantic tokens, `cn()`, the `cva` variant pattern, and mobile-first responsive styles per the Critical Rules above.
 
 ---
@@ -201,6 +205,7 @@ The shadcn-solid CLI is thin — **only `init`, `add`, and `diff`**. There is **
 See [references/cva.md](./references/cva.md) for the full guide.
 
 **Quick rule:**
+
 - `cva` lives in component definitions — it encodes what variants a component supports.
 - `cn` lives at call sites — it merges incoming `className` with cva output and handles conditionals.
 
@@ -208,10 +213,12 @@ See [references/cva.md](./references/cva.md) for the full guide.
 const buttonVariants = cva("inline-flex items-center ...", {
   variants: { variant: { default: "bg-primary ...", outline: "border ..." } },
   defaultVariants: { variant: "default" },
-})
+});
 
 function Button({ className, variant, ...props }) {
-  return <button className={cn(buttonVariants({ variant }), className)} {...props} />
+  return (
+    <button className={cn(buttonVariants({ variant }), className)} {...props} />
+  );
 }
 ```
 
@@ -222,9 +229,10 @@ function Button({ className, variant, ...props }) {
 See [references/responsive.md](./references/responsive.md) for breakpoint reference and patterns.
 
 **Key rules:**
+
 - Write **base (mobile) styles first**, then layer breakpoint modifiers upward: `sm:`, `md:`, `lg:`.
 - **Flex by default.** `flex flex-col` for vertical stacks, `flex` for horizontal.
-- **Grid only when genuinely two-dimensional** — real rows *and* columns (data tables, calendar grids). Never use grid as a substitute for flex on a single axis.
+- **Grid only when genuinely two-dimensional** — real rows _and_ columns (data tables, calendar grids). Never use grid as a substitute for flex on a single axis.
 
 ```tsx
 // Good: flex column on mobile, row on desktop
@@ -236,13 +244,16 @@ See [references/responsive.md](./references/responsive.md) for breakpoint refere
 ## References
 
 **Shared (both modes):**
+
 - [references/theming.md](./references/theming.md) — Full OKLCH token table, `@theme inline` mapping, adding custom tokens
 - [references/cva.md](./references/cva.md) — `cva` vs `cn`, variant patterns, compound variants
 - [references/responsive.md](./references/responsive.md) — Breakpoints, flex/grid decision guide, common responsive patterns
 
 **React mode:**
+
 - [references/cli.md](./references/cli.md) — `npx shadcn@latest`: adding, previewing, searching registries, docs, project info
 
 **Solid mode:**
+
 - [references/primitives-solid.md](./references/primitives-solid.md) — Kobalte/Zaidan authoring idioms, primitive APIs, and the bundle-weight selective-adoption discipline
 - [references/cli-shadcn-solid.md](./references/cli-shadcn-solid.md) — `npx shadcn-solid@latest`: the thin CLI surface, Zaidan delivery, browser-docs workflow
