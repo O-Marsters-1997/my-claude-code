@@ -70,7 +70,11 @@ Knowledge should first be gathered from trusted resources. Use `RESOURCES.md` to
 
 #### Searching
 
-Use WebSearch to find publicly available video content. YouTube is the primary source; also consider other public, high-trust platforms (conference talk archives, official documentation channels, reputable educational platforms). Search with terms scoped tightly to the lesson topic — verify that a candidate video actually exists and matches before including it.
+Use WebSearch to find publicly available video content. YouTube is the primary source; also consider other public, high-trust platforms (conference talk archives, official documentation channels, reputable educational platforms).
+
+**Scope the search to the lesson, never the subject.** Derive your search terms from _this lesson's one specific topic_ (e.g. "Italian Game"), not from the broad subject or mission the user is learning (e.g. "chess openings"). Searching at the subject level is too broad by definition: it surfaces generic overview content you will be forced to reject against the quality bar, and you will miss the tightly-scoped video that genuinely exists for the lesson's actual topic. This is the most common failure mode here — guard against it explicitly.
+
+Verify a candidate actually exists and matches before including it. Before concluding that no high-quality video exists, try **at least two lesson-scoped query phrasings** (e.g. the specific topic name, then the topic name plus "explained" / "for beginners" / "main ideas"). Omit a video only after lesson-level search is genuinely exhausted — not after a single search.
 
 #### Quality bar
 
