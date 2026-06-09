@@ -66,6 +66,16 @@ Lessons should be designed around a skill the user is going to learn. The knowle
 
 Knowledge should first be gathered from trusted resources. Use `RESOURCES.md` to keep track of them. Lessons should be littered with citations - links to external resources to back up any claim made. This increases the trustworthiness of the lesson, and gives the user a path to acquire more knowledge if they want to go deeper.
 
+### Video Content
+
+#### Searching
+
+Use WebSearch to find publicly available video content. YouTube is the primary source; also consider other public, high-trust platforms (conference talk archives, official documentation channels, reputable educational platforms). Search with terms scoped tightly to the lesson topic — verify that a candidate video actually exists and matches before including it.
+
+#### Quality bar
+
+Include a video only when it is genuinely high-quality and highly relevant to the specific thing the lesson teaches. If no such video exists, omit entirely — never substitute loosely-related content as a best effort. Prefer short, tightly-scoped videos over long general ones. When included, embed it as an iframe styled to match the lesson's design — responsive, well-proportioned, and visually integrated rather than dropped in raw. Cite it like any other resource and prompt the user for feedback on it. Record any feedback (rejected creator, irrelevant video, etc.) in `RESOURCES.md` so future sessions don't resurface it.
+
 Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
 
 ### Skills

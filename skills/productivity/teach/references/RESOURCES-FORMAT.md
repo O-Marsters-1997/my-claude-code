@@ -13,6 +13,8 @@
   Foundational text on programming and adaptation. Use for: anything to do with periodisation, recovery, intensity zones.
 - [Article: "How Much Should I Train?" — Greg Nuckols (Stronger By Science)](https://example.com)
   Evidence-based review of volume landmarks. Use for: weekly set targets per muscle group.
+- [Video: "Title" — Channel Name](https://example.com) _(12 min)_
+  Precise scope of what the video covers. Use for: the specific lesson or concept it maps to.
 
 ## Wisdom (Communities)
 
@@ -30,3 +32,4 @@
 - **Surface gaps explicitly.** If no good resource exists for an area the mission needs, write a `## Gaps` section listing what is missing. This drives future search.
 - **Prune ruthlessly.** A resource that turned out to be wrong, shallow, or off-mission should be removed, not buried. Better five sharp sources than thirty mediocre ones.
 - **Record community preferences.** If the user has opted out of joining communities, note it here so future sessions don't keep proposing them.
+- **Track video feedback.** If the user rejects a video (wrong scope, low quality, disliked creator), remove it and add a line to an `## Avoid` section with the reason. Future sessions must not resurface avoided creators or videos.
