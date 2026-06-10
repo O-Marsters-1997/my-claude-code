@@ -80,6 +80,19 @@ Verify a candidate actually exists and matches before including it. Before concl
 
 Include a video only when it is genuinely high-quality and highly relevant to the specific thing the lesson teaches. If no such video exists, omit entirely — never substitute loosely-related content as a best effort. Prefer short, tightly-scoped videos over long general ones. When included, embed it as an iframe styled to match the lesson's design — responsive, well-proportioned, and visually integrated rather than dropped in raw. Cite it like any other resource and prompt the user for feedback on it. Record any feedback (rejected creator, irrelevant video, etc.) in `RESOURCES.md` so future sessions don't resurface it.
 
+#### Embedding videos so they actually play
+
+Lessons are HTML files the user opens directly from disk (`file://`). This silently breaks naive embeds — guard against it, or the user sees a dead player ("Video unavailable", "playback configuration error", etc.):
+
+1. **Verify the video is embeddable _before_ you embed it.** A video that exists is not necessarily embeddable — owners can disable it. Check programmatically with the YouTube oEmbed endpoint and only embed on success:
+   ```
+   curl -s -o /dev/null -w "%{http_code}" \
+     "https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=VIDEO_ID"
+   ```
+   `200` = embeddable. `401`/`404` = embedding disabled or video gone — **do not embed it**; pick another candidate or link out only.
+2. **Use the standard embed domain, not `youtube-nocookie.com`.** The privacy-nocookie domain frequently refuses to play from a `null` (`file://`) origin and is a common cause of player-configuration errors. Use `https://www.youtube.com/embed/VIDEO_ID?rel=0`. Do **not** pass an `origin=` parameter (there is no real origin on `file://`).
+3. **Always render a visible fallback link** directly beneath the player — e.g. a styled "▶ Watch on YouTube ↗" linking to the `watch?v=` URL. If any embed problem still slips through, the user is one click from the video instead of stuck. Mandatory, not optional.
+
 Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
 
 ### Skills
@@ -91,6 +104,17 @@ Skills should be taught through interactive lessons. There are several tools at 
 - In-agent quizzes, where you ask the user scenario-based questions about what they've learned
 
 Each of these should be based on a **feedback loop**, where the user receives feedback on their performance. This feedback loop should be as tight as possible, giving feedback immediately - and ideally automatically.
+
+### Drills (homework)
+
+Every lesson MUST end with an explicit **Drill** section — a short, numbered list of concrete tasks the user performs *between sessions*, out in the real world. The Drill is the bridge from the tight in-lesson feedback loop (where you grade them) to genuine wisdom (where reality grades them). Without it a lesson is inert knowledge; with it the user leaves with unambiguous homework that compounds. This is consistently one of the highest-value parts of a lesson — never omit it.
+
+A good Drill:
+
+- **Is doable now** with only what the lesson just taught — no new knowledge required.
+- **Is concrete and checkable** ("play 5 games steering for X, then note where you first deviated"), never vague ("practise more").
+- **Points outward** to the real arena and, where relevant, a community from `RESOURCES.md` — this is how a Drill graduates into wisdom.
+- **Loops back**: ask the user to bring a result (a game, a recording, a sticking point) into the next session, so it informs the next zone-of-proximal-development call.
 
 ## Acquiring Wisdom
 
