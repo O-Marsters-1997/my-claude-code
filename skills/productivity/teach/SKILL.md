@@ -12,6 +12,7 @@ The user has asked you to teach them something. This is a stateful request - the
 Treat the current directory as a teaching workspace. The state of their learning is captured in this directory in several files:
 
 - `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./references/MISSION-FORMAT.md).
+- `CURRICULUM.md`: A provisional table of contents for the course — the ordered list of planned lessons, each with a one-line summary, plus the chosen depth level. Created when a subject is first taught and revised as the course evolves. Use the format in [CURRICULUM-FORMAT.md](./references/CURRICULUM-FORMAT.md).
 - `./reference/*.html`: A directory of reference materials. These are the compressed learnings from the lessons - cheat sheets, reference algorithms, syntax, yoga poses, glossaries. They are the raw units of learning. They should be beautiful documents which print out well, and are designed for quick reference.
 - `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./references/RESOURCES-FORMAT.md).
 - `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. These are loosely equivalent to architectural decision records in software development - they capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions. These should be used to calculate the zone of proximal development. They are titled `0001-<dash-case-name>.md`, where the number increments each time. Use the format in [LEARNING-RECORD-FORMAT.md](./references/LEARNING-RECORD-FORMAT.md).
@@ -38,7 +39,15 @@ A lesson should be **beautiful** — clean, readable typography and layout — s
 
 The lesson should teach ONE THING only. It should be completable very quickly - but give the user a tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
 
-Make opening a lesson as easy as possible — ideally a single CLI command the user can run to open the HTML file in their browser.
+Make opening a lesson as easy as possible. Serve the workspace over a local HTTP server and open lessons at `http://localhost:PORT/...` rather than via `file://` — a real origin is what lets embedded video play (see Video Content). Give the user one simple command to open a lesson by its number in the series — e.g. a small `open-lesson` script run as `./open-lesson 3` that starts the server (`python3 -m http.server`) if it isn't already running and opens that lesson. (Local dev server only — not hosting.)
+
+### Curriculum first, then batch
+
+The first time you teach a subject, produce a provisional `CURRICULUM.md` — an ordered table of contents, one line per planned lesson — and offer the user a depth level (overview → fewer, grouped lessons; deep → many tightly-scoped ones) that sets the lesson count and scope. See [CURRICULUM-FORMAT.md](./references/CURRICULUM-FORMAT.md). Let the user confirm or amend before building anything.
+
+Then build **lesson 1 alone** as a reference template and have the user confirm its structure and styling (fix issues like a mis-rendered diagram here, once). Once confirmed, batch-create the remaining lessons to that template in a single pass — more token-efficient, and it propagates the agreed styling. Don't make the user wait for each lesson to be authored in turn.
+
+Feedback on a generated lesson updates `NOTES.md` and may be applied across the batch at once, so one correction propagates to every lesson that shares the issue.
 
 ## The Mission
 
@@ -59,6 +68,8 @@ The user may specify an exact thing they want to learn. If they don't, figure ou
 - Teach the most relevant thing that fits in their zone of proximal development
 
 A user may tell you that they already know about that topic. If so, record it in their `learning-records`.
+
+**Always close with a concrete next step.** End each lesson (and each session) by naming the _specific_ next lesson you will create by default — drawn from `CURRICULUM.md` — not an open-ended menu of possibilities. The user can redirect, but never leave "what's next" unspecified.
 
 ## Acquiring Knowledge & Skills
 
@@ -82,16 +93,15 @@ Include a video only when it is genuinely high-quality and highly relevant to th
 
 #### Embedding videos so they actually play
 
-Lessons are HTML files the user opens directly from disk (`file://`). This silently breaks naive embeds — guard against it, or the user sees a dead player ("Video unavailable", "playback configuration error", etc.):
+Because lessons are served over the local HTTP server (see Lessons) rather than opened from `file://`, embeds have a real origin and play normally — provided you guard two things:
 
-1. **Verify the video is embeddable _before_ you embed it.** A video that exists is not necessarily embeddable — owners can disable it. Check programmatically with the YouTube oEmbed endpoint and only embed on success:
+1. **Verify the video is embeddable _before_ you embed it.** A video that exists is not necessarily embeddable — owners can disable it. Check with the YouTube oEmbed endpoint and only embed on a `200`:
    ```
    curl -s -o /dev/null -w "%{http_code}" \
      "https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=VIDEO_ID"
    ```
-   `200` = embeddable. `401`/`404` = embedding disabled or video gone — **do not embed it**; pick another candidate or link out only.
-2. **Use the standard embed domain, not `youtube-nocookie.com`.** The privacy-nocookie domain frequently refuses to play from a `null` (`file://`) origin and is a common cause of player-configuration errors. Use `https://www.youtube.com/embed/VIDEO_ID?rel=0`. Do **not** pass an `origin=` parameter (there is no real origin on `file://`).
-3. **Always render a visible fallback link** directly beneath the player — e.g. a styled "▶ Watch on YouTube ↗" linking to the `watch?v=` URL. If any embed problem still slips through, the user is one click from the video instead of stuck. Mandatory, not optional.
+   `401`/`404` = embedding disabled or video gone — pick another candidate or link out only. Use the standard embed URL `https://www.youtube.com/embed/VIDEO_ID?rel=0`.
+2. **Always render a visible fallback link** directly beneath the player — e.g. a styled "▶ Watch on YouTube ↗" linking to the `watch?v=` URL. If any embed problem still slips through, the user is one click from the video instead of stuck. Mandatory, not optional.
 
 Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
 
