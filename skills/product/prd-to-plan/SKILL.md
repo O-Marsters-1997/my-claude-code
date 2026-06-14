@@ -5,29 +5,34 @@ description: Turn a PRD into a multi-phase implementation plan using tracer-bull
 
 # PRD to Plan
 
+This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that plan-to-issues can derive independently-grabbable tickets from it without re-deriving the design.
+
 Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./plans/`.
 
 ## Process
 
 ### 1. Confirm the PRD is in context
 
-The PRD should already be in the conversation. If it isn't, ask the user to paste it or point you to the file.
+The PRD should already be in the conversation. If it isn't, ask the user to paste it or point you to the file or GitHub issue.
 
 ### 2. Explore the codebase
 
 If you have not already explored the codebase, do so to understand the current architecture, existing patterns, and integration layers.
 
-### 3. Identify durable architectural decisions
+### 3. Identify durable technical design decisions
 
-Before slicing, identify high-level decisions that are unlikely to change throughout implementation:
+Before slicing, identify technical decisions that are unlikely to change throughout implementation. This is the core of the plan as a technical design document. Capture:
 
-- Route structures / URL patterns
-- Database schema shape
-- Key data models
-- Authentication / authorization approach
-- Third-party service boundaries
+- **Route structures / URL patterns**
+- **Database schema shape** — table names, key columns, relationships
+- **Key data models** — names, fields, and their responsibilities
+- **Module boundaries** — what each module owns and exposes. Prefer **deep modules**: substantial functionality behind a simple, stable interface that can be tested in isolation (as opposed to a shallow module, whose interface is complex relative to what it does). Note which modules warrant isolated tests.
+- **API / interface contracts** — endpoint shapes, function signatures (at the module boundary level, not internal implementation)
+- **Integration points** — third-party services, async boundaries, storage adapters
+- **Key flows / algorithms** — non-trivial logic described at the level of "what calls what"
+- **Authentication / authorization approach**
 
-These go in the plan header so every phase can reference them.
+These go in the plan header so every phase can reference them. Be concrete.
 
 ### 4. Draft vertical slices
 
@@ -37,8 +42,8 @@ Break the PRD into **tracer bullet** phases. Each phase is a thin vertical slice
 - Each slice delivers a narrow but COMPLETE path through every layer (schema, API, UI, tests)
 - A completed slice is demoable or verifiable on its own
 - Prefer many thin slices over few thick ones
-- Do NOT include specific file names, function names, or implementation details that are likely to change as later phases are built
-- DO include durable decisions: route paths, schema shapes, data model names
+- INCLUDE durable technical design: schema shapes, route paths, model and module names, contract shapes — the details a developer needs to implement the slice
+- AVOID volatile line-level detail: exact function names or internal file paths that are likely to change as later phases are built
 </vertical-slice-rules>
 
 ### 5. Quiz the user
@@ -62,15 +67,18 @@ Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named a
 <plan-template>
 # Plan: <Feature Name>
 
-> Source PRD: <brief identifier or link>
+> Source PRD: <issue URL or brief identifier>
 
-## Architectural decisions
+## Technical design decisions
 
-Durable decisions that apply across all phases:
+Durable decisions that apply across all phases. Be concrete — this section is the technical design document:
 
 - **Routes**: ...
 - **Schema**: ...
-- **Key models**: ...
+- **Key models**: (names, fields, responsibilities)
+- **Module boundaries**: (what each module owns and exposes)
+- **API / interface contracts**: (endpoint or function shapes at the boundary level)
+- **Integration points**: ...
 - (add/remove sections as appropriate)
 
 ---
@@ -81,7 +89,7 @@ Durable decisions that apply across all phases:
 
 ### What to build
 
-A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation.
+A concise description of this vertical slice. Describe the end-to-end technical behaviour — what gets created, called, stored, and returned. Reference the technical design decisions above rather than repeating them.
 
 ### Acceptance criteria
 
