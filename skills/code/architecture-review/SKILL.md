@@ -9,18 +9,15 @@ Critical architectural assessment. Judge system design — boundaries,
 responsibilities, coupling, data flow, failure modes, evolvability, information hiding. Read-only; produces a written assessment and prioritised recommendations,
 does not edit source files.
 
-**Stance.** This is an adversarial review, not a balanced scorecard. Default to
-scepticism: hunt for what is wrong, weak, or risky. Do not manufacture strengths for the
-sake of balance — praise is earned, not owed, and a dimension (or the whole system) is
-allowed to come back net-negative. Counterbalance: stay high-signal. A long list of minor
-findings is noise; surface the issues that actually matter and go *deep* on each — root
-cause, blast radius, concrete evidence — rather than broad and shallow.
+**Stance.** Adversarial, not a balanced scorecard. Hunt for what is wrong, weak, or risky.
+Never manufacture strengths for balance — praise is earned, and any dimension (or the whole
+system) may come back net-negative. Stay high-signal: surface the issues that matter and go
+*deep* on each (root cause, blast radius, evidence), not a long list of shallow nitpicks.
 
-**Agnostic vocabulary, stack-specific probes.** The architectural vocabulary is
-technology-agnostic (a god object is a god object in any language). Formatting, naming, and
-language idioms stay out of scope. But the *probes* adapt to the stack: a frontend has
-architectural concerns (design-system/theming architecture, UI/UX consistency, component-API
-consistency) that a generic review misses. See
+**Agnostic vocabulary, stack-specific probes.** The vocabulary is technology-agnostic (a god
+object is a god object in any language); formatting, naming, and idiom stay out of scope. But
+probes adapt to the stack — a frontend's design-system/theming, UI/UX, and component-API
+consistency are architectural, and a generic review misses them. See
 [`references/domain-probes.md`](references/domain-probes.md).
 
 ## Capabilities
@@ -56,12 +53,11 @@ Use the Agent tool with `subagent_type=Explore` to build a **system map**:
 - External dependencies
 - Deployment / runtime shape
 
-Also **detect the stack** (frontend, backend service, data/ML, infra/IaC, library, or a
-mix) and note which build/analysis tooling the repo already provides — bundlers, dependency
-analysers, test/coverage runners, profilers, linters with architectural rules. Both feed
-Phase 2: the stack selects which stack-specific probes to inject (see
-[`references/domain-probes.md`](references/domain-probes.md)), and the tooling list tells
-reviewers what they can measure rather than estimate.
+Also **detect the stack** (frontend, backend, data/ML, infra, library, or a mix) and list
+the build/analysis tooling the repo provides (bundlers, dependency analysers, coverage
+runners, profilers). The stack selects which stack-specific probes to inject (see
+[`references/domain-probes.md`](references/domain-probes.md)); the tooling tells reviewers
+what to measure rather than estimate.
 
 Record navigational friction — if understanding one concept requires bouncing between
 many files, note it. The system map is both this phase's output and the shared context
@@ -89,23 +85,20 @@ listed for their lens in the **Lens → domains mapping** table at the end of
 Phase 1. Subagents do not share your context.
 
 **Measure, don't estimate.** `Explore` agents can run read-only shell commands. Where Phase
-1 found analysis tooling, tell the relevant reviewer to run it and cite the output — e.g. a
-bundle/size report for Performance, a dependency-graph/cycle tool for Modularity, a coverage
-report for Maintainability. This is stack-agnostic: use whatever the project already
-provides. Prefer measured numbers over reasoning from reading; say so plainly when a claim is
-an estimate because no tooling existed.
+1 found tooling, tell the reviewer to run it and cite the output (bundle report → Performance,
+dependency/cycle graph → Modularity, coverage → Maintainability). Flag any claim that is an
+estimate because no tooling existed.
 
-**Subagent prompt template** — fill the five `{{...}}` slots per reviewer:
+**Subagent prompt template** — fill the seven `{{...}}` slots per reviewer:
 
 ```
 You are a staff engineer performing a focused architecture review of the codebase at
 {{REPO_PATH}}. Your lens: {{DIMENSION NAME}}.
 
 Assess system design, not code style — boundaries, responsibilities, coupling, data flow,
-failure modes, evolvability, information hiding. Formatting, naming, and language idioms are
-out of scope unless they reveal a structural problem — but stack-specific *architectural*
-concerns (e.g. for a frontend: design-system/theming architecture, UI/UX consistency,
-component-API consistency) are in scope.
+failure modes, evolvability, information hiding. Formatting, naming, and idiom are out of
+scope unless they reveal a structural problem; stack-specific *architectural* concerns (e.g.
+a frontend's design-system/theming, UI/UX, and component-API consistency) are in scope.
 
 System map (your ground truth — read the real code to confirm or challenge it):
 {{SYSTEM MAP}}
@@ -126,24 +119,19 @@ Name patterns from this vocabulary precisely where they apply, are misapplied, o
 conspicuously absent. Do not force-fit — a pattern named where it does not belong is noise,
 not insight.
 
-Method: explore the codebase read-only (you may run read-only shell commands and the
-tooling above). Ground every finding in concrete evidence — cite file paths (and line ranges
-where useful) and measured output where you have it.
+Method: explore read-only (you may run read-only shell commands and the tooling above).
+Ground every finding in file paths (with line ranges where useful) and measured output where
+you have it.
 
-Stance: be critical. Your job is to find what is wrong, weak, or risky on this lens, not to
-reassure. Do NOT invent strengths for balance — mention something positive only if it is
-genuinely well-built and load-bearing to the assessment. Stay high-signal: a pile of minor
-nitpicks is noise. Surface the issues that matter and go deep on each (root cause, blast
-radius), rather than listing many shallow ones.
+Stance: be critical — find what is wrong, weak, or risky, do not reassure. Mention a strength
+only if it is genuinely well-built and material. Stay high-signal: surface the issues that
+matter and go deep on each (root cause, blast radius), not a pile of nitpicks.
 
 Return narrative prose, no scores or severity tags. Structure:
-- A 2–3 sentence overall verdict for this dimension — blunt, and allowed to be net-negative
-  (e.g. "this dimension is in poor health because…"). Only note strengths here if they are real.
-- Findings list, ranked most-serious first. For each: (a) what, (b) where — file-path/measured
-  evidence, (c) why it matters architecturally, (d) a direction for remediation (direction,
-  not implementation).
-If the system is genuinely healthy on your lens, say so plainly — but only if the evidence
-supports it, not as a default.
+- A 2–3 sentence overall verdict — blunt, allowed to be net-negative. Note strengths only if real.
+- Findings, ranked most-serious first. Each: (a) what, (b) where — file-path/measured evidence,
+  (c) why it matters architecturally, (d) a direction for remediation (direction, not implementation).
+Say the dimension is healthy only if the evidence supports it — not as a default.
 ```
 
 ### Phase 3 — Synthesise
