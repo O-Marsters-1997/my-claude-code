@@ -9,11 +9,17 @@ recommendations section, expressed as ranking and prose.
 
 _Read-only assessment. Date: [YYYY-MM-DD]. Scope: [what was and wasn't covered]._
 
+## Verdict
+
+One blunt paragraph: what overall architectural health is this system in? This is allowed
+to be net-negative ("structurally unsound in its current form because…") and must not be
+softened for balance. State the single most important thing the reader should take away.
+
 ## Executive summary
 
 The 2–3 biggest architectural risks, in plain language. What they are, why they matter.
-One or two sentences on what the system does *well* architecturally — so deliberate
-design is distinguishable from accident.
+Note genuine strengths *only* where they exist and are material — so deliberate design is
+distinguishable from accident. Do not manufacture positives to balance the risks.
 
 ## System map
 
@@ -26,9 +32,11 @@ design is distinguishable from accident.
 
 ## Findings by dimension
 
-One subsection per lens. Short overall read (including what's healthy), then findings.
-Each finding: **what**, **where** (file-path evidence), **why it matters** architecturally,
-**direction** for remediation. If a dimension is healthy, say so plainly.
+One subsection per lens. Short overall verdict (blunt, may be net-negative; note strengths
+only where genuine), then findings ranked most-serious first. Each finding: **what**,
+**where** (file-path / measured evidence), **why it matters** architecturally, **direction**
+for remediation. If a dimension is genuinely healthy, say so plainly — but only if the
+evidence supports it.
 
 ### Simplicity & understandability
 ### Maintainability
@@ -36,6 +44,7 @@ Each finding: **what**, **where** (file-path evidence), **why it matters** archi
 ### Security
 ### Performance & scalability
 ### Modularity (deep modules + coupling & cohesion)
+### Deployability
 
 ## Cross-cutting themes
 
