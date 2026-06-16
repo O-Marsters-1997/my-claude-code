@@ -1,6 +1,6 @@
 # Review Dimensions
 
-The six lenses an architecture review fans out across. Each reviewer subagent owns one.
+The seven lenses an architecture review fans out across. Each reviewer subagent owns one.
 Every section has the same shape:
 
 - **What it means** — the staff-engineer framing of the dimension.
@@ -39,14 +39,22 @@ things obvious and the dangerous things hard.
 - How much hidden/implicit behaviour (global state, conventions, side effects on import)
   must you know that isn't visible at the call site?
 - Does understanding one concept require bouncing between many small files?
+- **Pattern consistency:** is the same problem solved the same way throughout, or several
+  inconsistent ways? Are conventions (error handling, data fetching, state, file layout)
+  applied uniformly or ad hoc? Inconsistency forces a reader to re-learn each corner.
 
 **Architectural anti-patterns.**
 - **Accidental complexity** — structure that makes a simple change ripple widely.
 - **Configurability sprawl** — endless flags/options where a sensible default belongs.
 - **Implicit/temporal coupling** — call B must follow call A but nothing says so.
 - **Mystery action at a distance** — behaviour driven by hidden global/shared state.
-- **Premature generalisation** — abstractions built for use cases that don't exist,
-  adding layers the reader must traverse for no current benefit.
+- **Premature generalisation / over-abstraction** — abstractions built for use cases that
+  don't exist, adding layers the reader must traverse for no current benefit. Weight this by
+  its *testability and change cost*: generic multi-tenant / template / heavily-parameterised
+  code that is hard to test in isolation or hard to change safely is a ranked finding, not a
+  footnote — the abstraction is costing more than it saves.
+- **Pattern inconsistency** — the same concern implemented several different ways, so there
+  is no single mental model to carry from one part of the system to the next.
 
 ---
 
@@ -71,6 +79,9 @@ one place.
 - Is the same business rule encoded in several places that must change together?
 - How risky is a dependency upgrade — is there a seam, or does it leak everywhere?
 - Where would a six-months-later engineer get stuck for lack of recorded rationale?
+- **Convention consistency:** is there one established way to do a recurring task, or do
+  several coexist (competing data-fetching layers, two state patterns, parallel v1/v2
+  implementations)? Each inconsistent variant is extra surface to learn and maintain.
 
 **Architectural anti-patterns.**
 - **Shotgun surgery** — one logical change forces edits across many modules.
@@ -111,6 +122,8 @@ change and closed against churn on the stable ones. The goal is not maximal flex
 - **Leaky abstractions** — interfaces that expose implementation detail, so callers couple
   to *how* not *what*, and the implementation can't evolve.
 - **Speculative generality** — extension points and plug-in machinery no requirement uses.
+  Judge it by its carrying cost: machinery that is hard to test or that every change must
+  route through is a net liability, not future-proofing — flag and rank it accordingly.
 - **Stable-depends-on-volatile** — core modules depending on details that change often.
 
 ---
@@ -232,3 +245,41 @@ don't restate it, apply it.
   (should be inverted).
 - **Distributed monolith** — physically separated services so tightly coupled they must be
   changed and deployed together; the cost of distribution without the independence.
+
+---
+
+## 7. Deployability
+
+**What it means.** Whether the system can be *released and operated* safely and
+independently — distinct from whether the code is well-structured. A clean module graph can
+still ship as one indivisible, high-risk release. This lens looks at the units of deployment,
+how coupled their releases are, and the blast radius when one goes wrong.
+
+**What good looks like.**
+- Deploy units can be released independently; one team/app/service shipping does not force a
+  lockstep release of others.
+- The build/release pipeline scales sub-linearly with the number of units — adding the Nth
+  app/service doesn't multiply CI cost or coordination.
+- Rollout is incremental and reversible: feature flags, canaries, a real rollback path.
+- A failed or bad deploy of one unit is contained; it doesn't cascade to unrelated units.
+- Release-time configuration and secrets flow through a managed, environment-specific path.
+
+**Assessment checklist.**
+- What are the actual units of deployment, and can each ship on its own? Or does a change to
+  one shared package/contract force everything to rebuild and redeploy together?
+- Is the CI/build matrix coupled — does one config (brand/region/service) per-axis multiply,
+  and does a change touch every cell? How long is the critical path to production?
+- What is the operational blast radius of a bad deploy — one unit, or the whole estate?
+- Is there a rollback/canary/flagging story, or is every release all-or-nothing?
+- Do shared contracts (schemas, generated types, shared libs) version independently, or must
+  producers and consumers deploy in lockstep?
+
+**Architectural anti-patterns.**
+- **Release lockstep / distributed monolith** — separately-deployed units that must be built
+  and shipped together because they share pinned versions or tightly-coupled contracts.
+- **CI-matrix explosion** — per-brand/region/service build cells that multiply, so cost and
+  coordination grow with every axis and a one-line change rebuilds the world.
+- **All-or-nothing release** — no canary, flagging, or rollback; every deploy bets the estate.
+- **Unbounded operational blast radius** — one unit's bad deploy cascades to unrelated units.
+- **Deploy-time config sprawl** — release configuration/secrets scattered across the pipeline
+  with no single managed source per environment.

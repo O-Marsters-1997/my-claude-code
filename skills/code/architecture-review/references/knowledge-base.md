@@ -183,3 +183,4 @@ Use this table when constructing reviewer briefs in Phase 2. Paste only the list
 | Security | §7 Security architecture · §4 Messaging & integration (contract versioning) · §10 Quality attributes |
 | Performance & scalability | §6 Scalability & performance · §5 Resilience & failure · §3 Distributed systems & data · §4 Messaging & integration |
 | Modularity | §8 Modularity & design principles · §1 Architectural styles · §2 Domain & boundaries · §3 Distributed systems (data ownership) |
+| Deployability | §1 Architectural styles · §5 Resilience & failure · §9 Evolution & change · §4 Messaging & integration (contract versioning) |
