@@ -1,0 +1,46 @@
+{
+  "skill_name": "frontend",
+  "evals": [
+    {
+      "id": 0,
+      "name": "react-prop-drilling-and-async-states",
+      "prompt": "Refactor this component to drop the prop drilling and add proper loading/error states. The file is UserDashboard.tsx and package.json shows the project's deps.",
+      "expected_output": "Detects React from package.json/imports and loads references/react.md. Removes prop drilling (context or restructuring), and adds explicit loading + error (+ ideally empty) states instead of rendering against a possibly-null user. Suggests a query library or at least race-safe effect fetching. Flags the `any` types.",
+      "files": ["fixtures/UserDashboard.tsx", "fixtures/package.react.json"],
+      "assertions": [
+        {"text": "Detects the framework as React (from package.json deps and/or react imports) and loads references/react.md", "type": "manual"},
+        {"text": "Removes prop drilling — lifts/shares user via context or restructures, rather than threading `user` through Header/Sidebar/Nav/Content", "type": "manual"},
+        {"text": "Adds explicit loading AND error handling instead of rendering against a possibly-null/undefined user", "type": "manual"},
+        {"text": "Recommends a server-state/query approach or makes the effect fetch race-safe (cleanup/ignore/abort)", "type": "manual"},
+        {"text": "Does NOT introduce styling/Tailwind changes or a test-runner tutorial (out of scope)", "type": "manual"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "solid-list-wont-update-in-place",
+      "prompt": "My SolidJS list won't update when I edit an item in place — what's wrong? See TodoList.tsx; package.json has the deps.",
+      "expected_output": "Detects SolidJS and loads references/solidjs.md. Identifies the root cause: mutating the store object in place (todo.title = ...) plus setting the same array reference does not trigger fine-grained reactivity — must update through the store setter path (setTodos(i => i.id === id, \"title\", value)) or use produce. Explains Solid's once-only / fine-grained signal model rather than React's re-render model.",
+      "files": ["fixtures/TodoList.tsx", "fixtures/package.solid.json"],
+      "assertions": [
+        {"text": "Detects the framework as SolidJS and loads references/solidjs.md (not the React reference)", "type": "manual"},
+        {"text": "Identifies the root cause as in-place mutation + reusing the same reference bypassing fine-grained store reactivity", "type": "manual"},
+        {"text": "Fixes it via the store setter path (setTodos(...path...)) or produce/reconcile, not a React-style state replacement workaround", "type": "manual"},
+        {"text": "Explains the cause in Solid's model (components run once, fine-grained signals/stores) rather than React's re-render/deps model", "type": "manual"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "agnostic-hook-typesafety-and-a11y",
+      "prompt": "Review this hook for type safety and accessibility problems. It's in useToggleSearch.tsx.",
+      "expected_output": "Type safety: flags `any[]`/`as any` (use generics with constraints, infer types), the unsafe `results[0]` access (noUncheckedIndexedAccess — first may be undefined, selectFirst can crash), and the loosely-typed return tuple. Accessibility: flags the clickable <div> that should be a <button> (not keyboard accessible / no role), missing label association on the input. Stays principle-level / loads React reference since file uses hooks.",
+      "files": ["fixtures/useToggleSearch.tsx", "fixtures/package.react.json"],
+      "assertions": [
+        {"text": "Flags the `any[]` / `as any` and recommends generics with constraints or schema-inferred types", "type": "manual"},
+        {"text": "Flags the unsafe indexed access (results[0] may be undefined; selectFirst() can crash) tied to noUncheckedIndexedAccess / strictness", "type": "manual"},
+        {"text": "Identifies the a11y problem: clickable <div> should be a real <button> (keyboard operable, has role)", "type": "manual"},
+        {"text": "Identifies the missing label/association on the search input", "type": "manual"},
+        {"text": "Addresses both type safety AND accessibility (does not cover only one)", "type": "manual"}
+      ]
+    }
+  ]
+}
