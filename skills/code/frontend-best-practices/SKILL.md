@@ -1,5 +1,5 @@
 ---
-name: frontend
+name: frontend-best-practices
 description: >
   Framework-agnostic frontend engineering best practices. Fire this skill whenever building,
   reviewing, or refactoring any frontend component, hook, state, form, or UI logic — even when
