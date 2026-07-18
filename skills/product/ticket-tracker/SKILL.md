@@ -5,8 +5,8 @@ description: Live triage board over GitHub issues — reads the current tickets 
 
 # Ticket Tracker
 
-The live state-machine layer over GitHub issues. Where `approach-to-roadmap` renders a
-static `./roadmap.html` snapshot and `triage-issue`/`prd-to-issues` *create* tickets, this
+The live state-machine layer over GitHub issues. Where `to-roadmap` renders a
+static `./roadmap.html` snapshot and `triage-issue`/`to-tickets` *create* tickets, this
 skill is the ongoing surface that reads and moves them. State lives on GitHub, not in a file,
 so it is never stale.
 
@@ -76,7 +76,7 @@ This skill tracks tickets; it does not investigate or file them. To add new work
 
 - Bugs / reported problems → defer to **triage-issue** (investigate + file), then the new issue
   lands in **backlog**.
-- Planned work → defer to **prd-to-issues** / **plan-to-issues**, then label the batch
+- Planned work → defer to **to-tickets**, then label the batch
   **ready**.
 
 Do not duplicate those flows. When a ticket-tracker request implies creating an issue, hand off,

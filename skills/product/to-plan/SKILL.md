@@ -1,11 +1,11 @@
 ---
-name: prd-to-plan
-description: Turn a PRD — or an approach doc, roadmap, or raw conversation — into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
+name: to-plan
+description: Turn a PRD — or an approach doc, roadmap, or raw conversation — into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
 ---
 
 # PRD to Plan
 
-This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that plan-to-issues can derive independently-grabbable tickets from it without re-deriving the design.
+This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design.
 
 Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./plans/`.
 

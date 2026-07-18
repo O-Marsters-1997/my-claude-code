@@ -1,6 +1,6 @@
 ---
 name: chat-to-approach
-description: Convert a pasted AI conversation summary or transcript into a canonical alignment document at ./docs/approach.md — the single source of truth for what we are building and why. Grills for alignment on ambiguities and conflicts, then writes or merges the result. If approach.md already exists, reads it first and only grills on deltas and conflicts, not settled decisions. Downstream skills (approach-to-roadmap, prd-to-plan, prd-to-issues) consume this doc without re-grilling. Use this skill when the user pastes a summary and wants to capture alignment, extract decisions, write an approach doc, or record what was agreed on. Trigger on phrases like "turn this chat into an approach", "extract our alignment", "write an approach doc from this", "what did we decide (save it)", "convert this summary into approach.md", "capture our decisions", or "create an alignment doc". Use it even if the user just pastes a conversation summary and says "save this" or "let's capture this".
+description: Convert a pasted AI conversation summary or transcript into a canonical alignment document at ./docs/approach.md — the single source of truth for what we are building and why. Grills for alignment on ambiguities and conflicts, then writes or merges the result. If approach.md already exists, reads it first and only grills on deltas and conflicts, not settled decisions. Downstream skills (to-roadmap, to-plan, to-tickets) consume this doc without re-grilling. Use this skill when the user pastes a summary and wants to capture alignment, extract decisions, write an approach doc, or record what was agreed on. Trigger on phrases like "turn this chat into an approach", "extract our alignment", "write an approach doc from this", "what did we decide (save it)", "convert this summary into approach.md", "capture our decisions", or "create an alignment doc". Use it even if the user just pastes a conversation summary and says "save this" or "let's capture this".
 ---
 
 ## Overview
@@ -9,7 +9,7 @@ Parse a pasted AI conversation summary into a structured, persistent alignment d
 
 If `./docs/approach.md` already exists, it is treated as prior settled truth. Only net-new items and conflicts require grilling — not things the doc already covers.
 
-Once this doc exists, run `approach-to-roadmap` to generate a kanban board without repeating the grilling.
+Once this doc exists, run `to-roadmap` to generate a kanban board without repeating the grilling.
 
 **Optional: Background Research section.** `approach.md` may contain a `## Background Research` section at the top, produced by the `source-synthesis` skill, containing a lit-review synthesis of existing documentation and prior art. This skill does not create or modify that section — it is out of scope here. If the section exists, preserve it verbatim when writing or updating the file.
 
@@ -39,7 +39,7 @@ Only Name + Problem are required. Value and Dependencies are included when they 
 - Ask: "Could a user describe what they'd get from this in one sentence?" If yes, it's a feature
 - Distinguish features from:
   - _Constraints_ — architectural or technical decisions that shape features but aren't features themselves (e.g. "use Postgres") — record in Constraints, not Features
-  - _Tasks_ — implementation steps inside a feature (e.g. "wire up the ORM") — not captured here; `prd-to-issues` handles this later
+  - _Tasks_ — implementation steps inside a feature (e.g. "wire up the ORM") — not captured here; `to-tickets` handles this later
   - _Principles_ — values the user expressed ("keep it simple", "mobile-first") — capture in Principles, not Features
 
 **Anti-patterns to avoid:**
@@ -137,7 +137,7 @@ _Last updated: <YYYY-MM-DD> · Canonical alignment doc — what we are building 
 
 ## Features
 
-Each feature is a user-facing capability. No priority tiers — use approach-to-roadmap for Now/Next/Later.
+Each feature is a user-facing capability. No priority tiers — use to-roadmap for Now/Next/Later.
 
 ### <Feature name>
 
@@ -184,4 +184,4 @@ After writing the file, send a brief receipt (3–5 lines max):
 - Number of conflicts resolved during grilling (if any)
 - Number of open questions outstanding
 - A one-liner on anything placed in "Out of scope" — so the user knows you didn't silently drop things they cared about
-- Reminder: run `approach-to-roadmap` to generate a visual kanban from this doc without repeating grilling
+- Reminder: run `to-roadmap` to generate a visual kanban from this doc without repeating grilling

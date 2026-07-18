@@ -28,10 +28,10 @@ ideate  →  approach  →  roadmap  →  PRD  →  plan  →  tickets
 |----------|----------------------|--------------------------------------------------------|------------------------|
 | ideate   | ideate report        | `ls ./ideas/reports/*-ideate.md`                       | `ideate`               |
 | approach | approach doc         | `test -f ./docs/approach.md`                           | `chat-to-approach`     |
-| roadmap  | roadmap board        | `test -f ./roadmap.html`                               | `approach-to-roadmap`  |
-| PRD      | GitHub `[PRD]` issue | `gh issue list` — any issue whose title starts `[PRD]` | `write-a-prd`          |
-| plan     | plan file            | `ls ./plans/*.md`                                      | `prd-to-plan`          |
-| tickets  | GitHub issues        | `gh issue list` — any issue NOT titled `[PRD]`         | `plan-to-issues`       |
+| roadmap  | roadmap board        | `test -f ./roadmap.html`                               | `to-roadmap`           |
+| PRD      | GitHub `[PRD]` issue | `gh issue list` — any issue whose title starts `[PRD]` | `to-prd`               |
+| plan     | plan file            | `ls ./plans/*.md`                                      | `to-plan`              |
+| tickets  | GitHub issues        | `gh issue list` — any issue NOT titled `[PRD]`         | `to-tickets`           |
 
 ## Procedure
 
@@ -65,7 +65,7 @@ Product lifecycle scan
   [?] plan      — unknown (gh unavailable)
   [ ] tickets   — no non-PRD issues found
 
-Start here: approach → roadmap is the first gap. Run the `approach-to-roadmap` skill.
+Start here: approach → roadmap is the first gap. Run the `to-roadmap` skill.
 ```
 
 Use `[x]` satisfied, `[ ]` not satisfied, `[?]` unknown. Always list all six stages in lifecycle

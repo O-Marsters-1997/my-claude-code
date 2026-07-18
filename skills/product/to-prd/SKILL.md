@@ -1,10 +1,10 @@
 ---
-name: write-a-prd
+name: to-prd
 description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or plan a new feature.
 ---
 
 **PRD principle: product language only.**
-A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in product language. It must NOT contain technical design: no code or pseudo-code, no schema DDL, no class/function/API signatures, no file paths, no library/framework choices. All technical design belongs in the plan (the technical design document produced by prd-to-plan). If a technical detail feels important, translate it into the product outcome it serves, or note it as a "Further Notes" item to be resolved during planning.
+A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in product language. It must NOT contain technical design: no code or pseudo-code, no schema DDL, no class/function/API signatures, no file paths, no library/framework choices. All technical design belongs in the plan (the technical design document produced by to-plan). If a technical detail feels important, translate it into the product outcome it serves, or note it as a "Further Notes" item to be resolved during planning.
 
 **Skip-if-answered precondition.**
 Before asking any question in the steps below, treat two sources as priors and skip any question they already answer — only ask what is genuinely unknown:
@@ -34,7 +34,7 @@ Check with the user that these capabilities match their expectations.
    - Title: `[PRD] <Feature Name>`
    - Body: the filled-in PRD template (write to a temp file and use `gh issue create --title "[PRD] <Feature Name>" --body-file <tmpfile>`)
    - Optionally add `--label` flags if relevant labels exist in the repo
-   - Print the resulting issue URL — the next step (prd-to-plan or prd-to-issues) will reference it
+   - Print the resulting issue URL — the next step (to-plan or to-tickets) will reference it
 
 <prd-template>
 
@@ -68,7 +68,7 @@ A list of product-level decisions that were made. This covers scope and behaviou
 - UX / interaction decisions
 - Specific user-facing interactions or flows
 
-Do NOT include schema changes, API contracts, architectural decisions, library choices, or any other technical design. Those are resolved during planning (prd-to-plan), not here.
+Do NOT include schema changes, API contracts, architectural decisions, library choices, or any other technical design. Those are resolved during planning (to-plan), not here.
 
 ## Testing Decisions
 

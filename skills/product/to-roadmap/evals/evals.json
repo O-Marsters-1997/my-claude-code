@@ -1,5 +1,5 @@
 {
-  "skill_name": "chat-to-roadmap",
+  "skill_name": "to-roadmap",
   "notes": "Evals run with cwd set to a scratch working directory. The presence or absence of ./docs/approach.md selects the source path: if present, the skill treats it as settled truth and SKIPS grilling (approach path); if absent, it parses the pasted conversation and grills ambiguous items (conversation path). Both paths render a self-contained Now/Next/Later kanban to roadmap.html and finish with a short receipt.",
   "evals": [
     {

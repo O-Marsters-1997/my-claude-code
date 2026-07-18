@@ -20,7 +20,7 @@
         {"text": "Report ends with a Recommended Next Step section containing at least 2 concrete build steps (not validation tasks like 'interview users')"},
         {"text": "The agent invoked AskUserQuestion at least once during the run (for interview and/or premise confirmation)"},
         {"text": "The agent invoked WebSearch at least once during the run (for market scan)"},
-        {"text": "After the report, the agent runs a select step (Phase 8): it asks the user to choose a single build target from the opportunities, records the choice, and points to / hands off to write-a-prd with that idea as the starting brief"}
+        {"text": "After the report, the agent runs a select step (Phase 8): it asks the user to choose a single build target from the opportunities, records the choice, and points to / hands off to to-prd with that idea as the starting brief"}
       ]
     },
     {

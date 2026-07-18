@@ -1,11 +1,11 @@
 ---
-name: chat-to-roadmap
-description: Build a lightweight product roadmap from EITHER a pasted AI conversation OR an existing ./docs/approach.md. For a conversation (default), extracts agreed features, grills ambiguous items, and drops only explicitly rejected ideas. If ./docs/approach.md exists, treats it as settled truth and builds straight from it — no grilling. Organises features into Now / Next / Later tiers rendered as a visual kanban HTML board (each card is a feature, not a ticket), open questions flagged at the bottom. Use whenever the user pastes a conversation and wants a roadmap or kanban, OR wants a roadmap from an approach doc. Trigger on "turn this into a roadmap", "what did we decide?", "extract actions from this chat", "make me a kanban", "pull the decisions from this", "what should I build next", "roadmap from this transcript", or "roadmap from our approach doc". Use it even if the user just drops a wall of AI conversation text without instructions — if they seem to want structure from a chat, this skill applies.
+name: to-roadmap
+description: Build a lightweight product roadmap from EITHER a pasted AI conversation OR an existing ./docs/approach.md. For a conversation (default), extracts agreed features, grills ambiguous items, and drops only explicitly rejected ideas. If ./docs/approach.md exists, treats it as settled truth and builds straight from it — no grilling. Organises features into Now / Next / Later tiers rendered as a visual kanban HTML board (each card is a feature, not a ticket), open questions flagged at the bottom. Use whenever the user pastes a conversation and wants a roadmap or kanban, OR wants a roadmap from an approach doc. Trigger on "turn this into a roadmap", "what did we decide?", "make me a kanban", "pull the decisions from this", "what should I build next", "roadmap from our approach doc", "generate roadmap from approach.md", "refresh the roadmap", or "prioritise the approach". Use it even if the user just drops a wall of AI conversation text — if they seem to want structure from a chat, this skill applies.
 ---
 
 ## Overview
 
-Turn a messy AI conversation into a clean, visual product roadmap. The goal is to extract *signal* — things that were genuinely decided, committed to, or worth clarifying — and only discard noise that was explicitly rejected in the conversation. The output is a standalone HTML kanban board with three columns (Now / Next / Later) where each card represents a **feature**, not a ticket. A separate `prd-to-issues` skill handles breaking features into tickets later.
+Turn a messy AI conversation into a clean, visual product roadmap. The goal is to extract *signal* — things that were genuinely decided, committed to, or worth clarifying — and only discard noise that was explicitly rejected in the conversation. The output is a standalone HTML kanban board with three columns (Now / Next / Later) where each card represents a **feature**, not a ticket. A separate `to-tickets` skill handles breaking features into tickets later.
 
 Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder matrices.
 
@@ -54,7 +54,7 @@ At roadmap level, only Name + Problem are required on the card. Value and Depend
 - Ask: "Could a user describe what they'd get from this in one sentence?" If yes, it's a feature
 - Distinguish features from:
   - *Constraints* — architectural or technical decisions that shape features but aren't features themselves (e.g. "use Postgres") — record as a note, not a card
-  - *Tasks* — implementation steps inside a feature (e.g. "wire up the ORM") — don't put these on the kanban; `prd-to-issues` handles this later
+  - *Tasks* — implementation steps inside a feature (e.g. "wire up the ORM") — don't put these on the kanban; `to-tickets` handles this later
   - *Principles* — values or preferences the user expressed ("keep it simple", "mobile-first") — capture as context, not a card
 
 **Anti-patterns to avoid:**

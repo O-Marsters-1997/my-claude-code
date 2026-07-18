@@ -9,7 +9,7 @@
       "expected_output": "The skill runs `gh issue list` reading the status:* labels, then prints a live board grouping the open issues by state (backlog / ready / in-progress / in-review / done). No static roadmap.html is generated.",
       "files": [],
       "assertions": [
-        {"text": "The skill triggers on this prompt (ticket status / board request) rather than deferring to approach-to-roadmap or chat-to-roadmap"},
+        {"text": "The skill triggers on this prompt (ticket status / board request) rather than deferring to to-roadmap"},
         {"text": "The agent runs `gh issue list` (or `gh issue view`) to read the current tickets, not a cached or static file"},
         {"text": "Output groups tickets by state derived from the status:* labels, showing each defined state column"},
         {"text": "The skill does NOT write or refresh ./roadmap.html — it renders live from GitHub, not a static snapshot"}

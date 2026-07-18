@@ -107,7 +107,7 @@ community support".]
 
 ---
 
-**Next step:** feed this decision into `write-a-prd` or open a design document to capture
+**Next step:** feed this decision into `to-prd` or open a design document to capture
 the integration approach, migration plan, and any open questions (configuration, hosting,
 monitoring).
 ```

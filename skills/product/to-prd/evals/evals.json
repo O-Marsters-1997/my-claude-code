@@ -1,5 +1,5 @@
 {
-  "skill_name": "write-a-prd",
+  "skill_name": "to-prd",
   "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout so the codebase-exploration step (2) has code to ground against. The skip-if-answered precondition treats two sources as priors: the conversation and on-disk upstream artifacts (./docs/approach.md, ./ideas/reports/*-ideate.md). These cases pin that behaviour: when priors are on disk, questions they answer are skipped; when nothing is on disk, the full interview runs unchanged.",
   "evals": [
     {

@@ -124,5 +124,5 @@ most differentiated, or most excitingly weird._
 2. [Second step]
 3. [Third step]
 
-**Then:** feed idea #[N] into `write-a-prd` using the tracer-bullet slice as the starting brief.
+**Then:** feed idea #[N] into `to-prd` using the tracer-bullet slice as the starting brief.
 ```

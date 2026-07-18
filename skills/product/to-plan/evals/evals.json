@@ -1,12 +1,12 @@
 {
-  "skill_name": "prd-to-plan",
-  "notes": "Evals assume the subagent runs with cwd set to a real codebase checkout so it can explore architecture while planning. The skill accepts a PRD (default), an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a raw conversation, and writes a phased tracer-bullet plan to ./plans/. Backward-compat: with a PRD in the conversation it must behave exactly as before. Input detection is delegated to the artifact-scan skill — prd-to-plan references it one level deep rather than re-implementing detection.",
+  "skill_name": "to-plan",
+  "notes": "Evals assume the subagent runs with cwd set to a real codebase checkout so it can explore architecture while planning. The skill accepts a PRD (default), an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a raw conversation, and writes a phased tracer-bullet plan to ./plans/. Backward-compat: with a PRD in the conversation it must behave exactly as before. Input detection is delegated to the artifact-scan skill — to-plan references it one level deep rather than re-implementing detection.",
   "evals": [
     {
       "id": 1,
       "name": "prd-in-conversation-default",
       "prompt": "Here's the PRD, break it into an implementation plan with tracer bullets.\n\n[PRD] Saved Searches\n\nProblem: Users re-type the same filter queries every visit. We want to let them save a query and re-run it.\n\nUser stories:\n1. As a user I can save my current search filters under a name.\n2. As a user I can see a list of my saved searches and run one with a click.\n3. As a user I can delete a saved search.\n\nOut of scope: sharing saved searches between users.",
-      "expected_output": "A phased tracer-bullet plan written to ./plans/<feature>.md. The PRD path is unchanged: the skill uses the pasted PRD directly, includes a Technical design decisions header (routes, schema, key models, module boundaries, API/interface contracts, integration points), and breaks the work into vertical slices each with User stories and Acceptance criteria. The plan is concrete enough to hand to plan-to-issues.",
+      "expected_output": "A phased tracer-bullet plan written to ./plans/<feature>.md. The PRD path is unchanged: the skill uses the pasted PRD directly, includes a Technical design decisions header (routes, schema, key models, module boundaries, API/interface contracts, integration points), and breaks the work into vertical slices each with User stories and Acceptance criteria. The plan is concrete enough to hand to to-tickets.",
       "files": [],
       "assertions": [
         {"text": "A plan file is created under ./plans/ as a Markdown file named after the feature"},
@@ -14,7 +14,7 @@
         {"text": "The plan contains a 'Technical design decisions' section with concrete durable decisions (at least schema shape and module boundaries)"},
         {"text": "The plan is broken into at least 2 phases, each a vertical slice with a Title, User stories, and Acceptance criteria"},
         {"text": "Each phase is a thin end-to-end vertical slice cutting through multiple layers, not a horizontal slice of a single layer"},
-        {"text": "The plan is concrete enough for plan-to-issues to derive tickets without re-deriving the design (contracts/model names/routes are named, not deferred)"}
+        {"text": "The plan is concrete enough for to-tickets to derive tickets without re-deriving the design (contracts/model names/routes are named, not deferred)"}
       ]
     },
     {
@@ -31,7 +31,7 @@
       "assertions": [
         {"text": "The skill does NOT stop and demand a PRD; it proceeds to locate an alternative input"},
         {"text": "The skill locates and reads ./docs/approach.md as the source for the plan"},
-        {"text": "Input detection is delegated to the artifact-scan skill (referenced one level deep), not re-implemented inline in prd-to-plan"},
+        {"text": "Input detection is delegated to the artifact-scan skill (referenced one level deep), not re-implemented inline in to-plan"},
         {"text": "A plan file is created under ./plans/ as a Markdown file named after the feature (e.g. offline-mode)"},
         {"text": "The plan contains a 'Technical design decisions' section and reflects decisions from the approach doc (e.g. local-first store, last-write-wins, background sync)"},
         {"text": "The plan is broken into vertical-slice phases, each with User stories/features and Acceptance criteria"},
@@ -50,7 +50,7 @@
         {"text": "The plan contains a 'Technical design decisions' section with concrete durable decisions"},
         {"text": "The plan captures the agreed conversation details: CSV and JSON export, projects and tasks entities, zipped synchronous download, feature-flag gating"},
         {"text": "The plan is broken into vertical-slice phases, each with User stories/features and Acceptance criteria"},
-        {"text": "The plan is concrete enough for plan-to-issues to derive tickets without re-deriving the design"}
+        {"text": "The plan is concrete enough for to-tickets to derive tickets without re-deriving the design"}
       ]
     }
   ]

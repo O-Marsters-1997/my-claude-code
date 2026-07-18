@@ -37,4 +37,4 @@ The 1–2 things most likely to make this fail or take much longer than expected
 
 **Tracer-bullet first slice**
 The smallest end-to-end slice that would prove the idea works and deliver real value. Phrased
-so it could be dropped directly into `write-a-prd` as a starting brief.
+so it could be dropped directly into `to-prd` as a starting brief.

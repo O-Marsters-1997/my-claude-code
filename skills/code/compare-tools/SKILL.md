@@ -168,7 +168,7 @@ The report must contain exactly these five sections in order:
    - 2–3 sentences tying the score back to observed codebase facts and the aligned priorities
    - Flag the **top recommendation** prominently
 
-   End with: "Next step: feed this decision into `write-a-prd` or open a design doc."
+   End with: "Next step: feed this decision into `to-prd` or open a design doc."
 
 ---
 
