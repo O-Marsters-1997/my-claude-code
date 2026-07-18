@@ -1,0 +1,57 @@
+{
+  "skill_name": "prd-to-plan",
+  "notes": "Evals assume the subagent runs with cwd set to a real codebase checkout so it can explore architecture while planning. The skill accepts a PRD (default), an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a raw conversation, and writes a phased tracer-bullet plan to ./plans/. Backward-compat: with a PRD in the conversation it must behave exactly as before. Input detection is delegated to the artifact-scan skill — prd-to-plan references it one level deep rather than re-implementing detection.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "prd-in-conversation-default",
+      "prompt": "Here's the PRD, break it into an implementation plan with tracer bullets.\n\n[PRD] Saved Searches\n\nProblem: Users re-type the same filter queries every visit. We want to let them save a query and re-run it.\n\nUser stories:\n1. As a user I can save my current search filters under a name.\n2. As a user I can see a list of my saved searches and run one with a click.\n3. As a user I can delete a saved search.\n\nOut of scope: sharing saved searches between users.",
+      "expected_output": "A phased tracer-bullet plan written to ./plans/<feature>.md. The PRD path is unchanged: the skill uses the pasted PRD directly, includes a Technical design decisions header (routes, schema, key models, module boundaries, API/interface contracts, integration points), and breaks the work into vertical slices each with User stories and Acceptance criteria. The plan is concrete enough to hand to plan-to-issues.",
+      "files": [],
+      "assertions": [
+        {"text": "A plan file is created under ./plans/ as a Markdown file named after the feature"},
+        {"text": "The skill uses the pasted PRD directly and does NOT ask the user to locate or paste a source (backward-compat: PRD path unchanged)"},
+        {"text": "The plan contains a 'Technical design decisions' section with concrete durable decisions (at least schema shape and module boundaries)"},
+        {"text": "The plan is broken into at least 2 phases, each a vertical slice with a Title, User stories, and Acceptance criteria"},
+        {"text": "Each phase is a thin end-to-end vertical slice cutting through multiple layers, not a horizontal slice of a single layer"},
+        {"text": "The plan is concrete enough for plan-to-issues to derive tickets without re-deriving the design (contracts/model names/routes are named, not deferred)"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "approach-doc-only-skip-to-plan",
+      "prompt": "No PRD, but we already aligned on the approach. Skip straight to an implementation plan.",
+      "expected_output": "With no PRD in the conversation, the skill locates the approach doc at ./docs/approach.md (using artifact-scan as a preflight to find inputs rather than re-implementing detection), and builds the phased tracer-bullet plan from it. Output is the same technical-design plan in ./plans/ with a Technical design decisions header and vertical slices, sourced from the approach doc.",
+      "files": [
+        {
+          "path": "./docs/approach.md",
+          "content": "# Approach: Offline Mode\n\n## What we are building\n\nAn offline mode so the notes app keeps working without a network connection and syncs when it reconnects.\n\n## Why\n\nUsers on flaky connections lose edits today. Offline-first removes that failure class.\n\n## Decisions\n\n- Local-first store is the source of truth; the server is a sync target.\n- Last-write-wins conflict resolution for the first version; no CRDTs yet.\n- Sync runs opportunistically in the background when connectivity returns.\n\n## Features\n\n- Read and edit notes while offline.\n- Queue local changes and replay them on reconnect.\n- Show a sync status indicator.\n\n## Out of scope\n\n- Real-time collaborative editing.\n"
+        }
+      ],
+      "assertions": [
+        {"text": "The skill does NOT stop and demand a PRD; it proceeds to locate an alternative input"},
+        {"text": "The skill locates and reads ./docs/approach.md as the source for the plan"},
+        {"text": "Input detection is delegated to the artifact-scan skill (referenced one level deep), not re-implemented inline in prd-to-plan"},
+        {"text": "A plan file is created under ./plans/ as a Markdown file named after the feature (e.g. offline-mode)"},
+        {"text": "The plan contains a 'Technical design decisions' section and reflects decisions from the approach doc (e.g. local-first store, last-write-wins, background sync)"},
+        {"text": "The plan is broken into vertical-slice phases, each with User stories/features and Acceptance criteria"},
+        {"text": "The plan's Source line references the approach doc rather than a PRD"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "conversation-only-skip-to-plan",
+      "prompt": "We just hashed this out in chat, no PRD and no docs yet. Turn it straight into a plan:\n\nMe: I want an export feature so people can download their data as CSV or JSON.\nAI: Which entities? All of them or a subset?\nMe: Start with the two big ones — projects and tasks. One file per entity type.\nAI: Sync download or emailed link?\nMe: Sync is fine for now, it's small. Zip the files together.\nMe: And gate it behind a feature flag so we can roll it out gradually.",
+      "expected_output": "With no PRD, approach doc, or roadmap present, the skill uses the pasted conversation as the WHAT/WHY input and builds the phased tracer-bullet plan from it. Output is the same technical-design plan in ./plans/ with a Technical design decisions header and vertical slices derived from the agreed conversation (CSV/JSON export of projects and tasks, zipped sync download, behind a feature flag).",
+      "files": [],
+      "assertions": [
+        {"text": "The skill does NOT stop and demand a PRD; it uses the pasted conversation as the source"},
+        {"text": "A plan file is created under ./plans/ as a Markdown file named after the feature (e.g. data-export)"},
+        {"text": "The plan contains a 'Technical design decisions' section with concrete durable decisions"},
+        {"text": "The plan captures the agreed conversation details: CSV and JSON export, projects and tasks entities, zipped synchronous download, feature-flag gating"},
+        {"text": "The plan is broken into vertical-slice phases, each with User stories/features and Acceptance criteria"},
+        {"text": "The plan is concrete enough for plan-to-issues to derive tickets without re-deriving the design"}
+      ]
+    }
+  ]
+}
