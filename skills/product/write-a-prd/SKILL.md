@@ -26,9 +26,11 @@ This skill will be invoked when the user wants to create a PRD. You may skip ste
 
 Check with the user that these capabilities match their expectations.
 
-5. Once you have a complete understanding of the problem and solution, use the template below to write the PRD.
+5. Draw the MVP cut-line. With the capabilities agreed, ask the user which of them belong in the *first cut* — the smallest release that delivers the core outcome — versus what is deliberately deferred to a later pass. Sequence by user value, not technical dependency, and keep it in product language (no build phases, no architecture). Deferred items are staged, not rejected. Record the split in the PRD's **MVP Cut-Line** section (deferred-but-planned items) and in **Out of Scope** (things genuinely not being built).
 
-6. Show the rendered PRD to the user and confirm before creating the issue. Then create the GitHub issue:
+6. Once you have a complete understanding of the problem and solution, use the template below to write the PRD.
+
+7. Show the rendered PRD to the user and confirm before creating the issue. Then create the GitHub issue:
    - Title: `[PRD] <Feature Name>`
    - Body: the filled-in PRD template (write to a temp file and use `gh issue create --title "[PRD] <Feature Name>" --body-file <tmpfile>`)
    - Optionally add `--label` flags if relevant labels exist in the repo
@@ -75,6 +77,15 @@ A list of testing decisions that were made. Include:
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which user-facing behaviours will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+
+## MVP Cut-Line
+
+The first-cut boundary in product language: the capabilities that ship in the MVP versus those deliberately deferred to a later pass.
+
+- **In the first cut:** the smallest set of capabilities that delivers the core user outcome.
+- **Deferred (planned, not now):** capabilities that are agreed but intentionally held back to keep the first cut small — each with a one-line reason (e.g. "adds value but not needed to prove the core flow").
+
+Deferred items are staged for a later release, not rejected — anything genuinely not being built belongs in Out of Scope below.
 
 ## Out of Scope
 

@@ -272,6 +272,24 @@ If they agree:
 
 ---
 
+## Phase 8 — Select the build target
+
+The report proposes a recommended idea, but the user makes the final call on what to build.
+
+1. Present the tiered opportunities and ask, via `AskUserQuestion`, which *single* idea to take
+   forward as the build target — offer the report's recommended idea as the default, with the
+   other ideas selectable.
+2. Record the choice in one line at the top of the report under a `## Selected build target`
+   heading: the idea title plus its tracer-bullet first slice.
+3. Hand off: invoke `write-a-prd` with the chosen idea (and its first slice) as the starting
+   brief — that skill treats the ideate report as an on-disk prior, so the selection flows
+   straight into the PRD interview.
+
+If the user isn't ready to commit, leave the report as-is and say selection can happen on a
+later pass — don't force a pick.
+
+---
+
 ## Quality bar (self-check before finalising)
 
 - [ ] Every idea has a non-generic "uniquely positioned" field grounded in observed code
