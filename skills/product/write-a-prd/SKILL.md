@@ -7,7 +7,12 @@ description: Create a PRD through user interview, codebase exploration, and modu
 A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in product language. It must NOT contain technical design: no code or pseudo-code, no schema DDL, no class/function/API signatures, no file paths, no library/framework choices. All technical design belongs in the plan (the technical design document produced by prd-to-plan). If a technical detail feels important, translate it into the product outcome it serves, or note it as a "Further Notes" item to be resolved during planning.
 
 **Skip-if-answered precondition.**
-Before asking any question in the steps below, scan the full conversation for an answer already provided and skip that question — only ask what is genuinely unknown.
+Before asking any question in the steps below, treat two sources as priors and skip any question they already answer — only ask what is genuinely unknown:
+
+1. **The conversation** — scan the full conversation for an answer already provided.
+2. **On-disk priors** — load the earlier product-lifecycle artifacts if present: the approach doc (`./docs/approach.md`) and the ideate report (`./ideas/reports/*-ideate.md`). These are the upstream artifacts the `artifact-scan` skill locates — defer to it for how the lifecycle fits together rather than re-deriving it here. Read whichever exist and treat their captured decisions (problem, scope, audience, product decisions) as already-answered; do not re-interview on them, only confirm and grill deltas.
+
+If neither file is on disk, fall back to the full interview unchanged.
 
 This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
 
