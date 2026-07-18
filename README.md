@@ -44,10 +44,10 @@ These skills help you think through problems before writing code.
   npx skills add O-Marsters-1997/skills --skill prd-to-issues
   ```
 
-- **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **grill-with-docs** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill grill-me
+  npx skills add O-Marsters-1997/skills --skill grill-with-docs
   ```
 
 - **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents.

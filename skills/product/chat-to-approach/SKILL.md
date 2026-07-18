@@ -85,7 +85,7 @@ Items already settled in the existing doc are **treated as prior truth**. Do not
 
 ## Phase 3 — Alignment Grilling (Safeguard)
 
-Before writing anything, run a focused grilling session using the `grill-with-docs` skill. This is the safeguard: stress-test the extraction before committing it to a durable file.
+Before writing anything, run a focused grilling session using the `grill-with-docs` skill. This is the safeguard: stress-test the extraction before committing it to a durable file. `grill-with-docs` owns the grilling loop — defer to it rather than re-running the questioning yourself. This section only scopes *what* to grill; the *how* lives in `grill-with-docs`.
 
 Grill only on:
 
@@ -101,14 +101,7 @@ Do NOT grill on:
 - Items already settled in the existing approach.md (unless the new chat conflicts with them)
 - Items that are clearly constraints, principles, or out-of-scope — classify and move on
 
-**How to ask good grilling questions:**
-
-- Lead with what you found: "You discussed two auth approaches — JWT and sessions — but I couldn't tell which was chosen."
-- Give your best read: "My read is you landed on JWT because of the mobile client. Is that right?"
-- For discussed-but-not-resolved items: "You mentioned analytics a couple of times but didn't land on a decision — was this cut, deferred, or still live?"
-- For conflicts with the existing doc: "The doc currently records X, but this conversation suggests Y. Did you change your mind, or am I misreading?"
-
-One question at a time. Keep grilling lean — only ask if the answer would meaningfully change what ends up in the doc. If the conversation was explicit and decisive throughout, tell the user and skip straight to Phase 4.
+Keep grilling lean — only ask if the answer would meaningfully change what ends up in the doc. If the conversation was explicit and decisive throughout, tell the user and skip straight to Phase 4.
 
 ---
 

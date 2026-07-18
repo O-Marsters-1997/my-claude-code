@@ -14,7 +14,7 @@ the content demands — the goal is a report someone can scan in 5 minutes and a
 ## Context
 
 [One paragraph: codebase characterisation (language, runtime, what's already installed, what
-the project does) + the confirmed use case. If grill-me ran, include 1–2 sentences summarising
+the project does) + the confirmed use case. If grill-with-docs ran, include 1–2 sentences summarising
 the key constraints that shaped the shortlist — e.g. "self-hosted required, < 10k req/day,
 Go primary language".]
 
