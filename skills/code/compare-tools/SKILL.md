@@ -61,9 +61,9 @@ a wrong framing before the research phase.
 
 State your understanding of what the user wants to choose a tool for and ask them to confirm
 or correct it. If the use case is under-specified — "I need a database", "pick a queue",
-"something for caching" — invoke the `grill-me` skill to resolve the decision tree:
+"something for caching" — invoke the `grill-with-docs` skill to resolve the decision tree:
 scale, read/write mix, latency, hosting constraints, team familiarity, existing
-infrastructure, etc. Skip `grill-me` if the use case is already crisp.
+infrastructure, etc. Skip `grill-with-docs` if the use case is already crisp.
 
 ### 1c. Elicit priorities
 
@@ -139,7 +139,7 @@ Write the report to the echoed path using `references/report-template.md`.
 
 The report must contain exactly these five sections in order:
 
-1. **Context** — one paragraph: codebase characterisation + the confirmed use case. If `grill-me`
+1. **Context** — one paragraph: codebase characterisation + the confirmed use case. If `grill-with-docs`
    ran, summarise the key answers that shaped the shortlist.
 
 2. **Priorities & rubric** — the ranked priorities, their weights (must sum to 100), and scoring
@@ -175,7 +175,7 @@ The report must contain exactly these five sections in order:
 ## Quality bar (self-check before writing)
 
 - [ ] Characterisation is grounded in files actually read, not assumed
-- [ ] Use case was confirmed or clarified (via `grill-me` if fuzzy)
+- [ ] Use case was confirmed or clarified (via `grill-with-docs` if fuzzy)
 - [ ] Priorities were user-stated, not inferred from your own preferences
 - [ ] Rubric weights sum to 100
 - [ ] All scores are derivable from the stated anchors — no magic numbers

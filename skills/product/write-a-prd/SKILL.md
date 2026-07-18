@@ -15,7 +15,7 @@ This skill will be invoked when the user wants to create a PRD. You may skip ste
 
 2. Explore the repo to verify their assertions and understand the current state of the codebase.
 
-3. Interview the user relentlessly about every aspect of this plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+3. Grill the user to nail down the PRD's scope and requirements. Run the grilling session using the `grill-with-docs` skill — it owns the grilling loop; defer to it rather than re-inlining the questioning here. Keep the focus on product-level scope and behaviour (per the PRD principle above), not technical design.
 
 4. Sketch out the major user-facing capabilities and behaviour that will be needed. Actively look for opportunities to identify deep, independently-valuable capabilities — those that deliver user value on their own and can be verified against the user stories.
 
