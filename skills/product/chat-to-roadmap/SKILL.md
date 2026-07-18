@@ -126,6 +126,15 @@ Once features are confirmed — whether from the grilled conversation or extract
 
 **Later** — Someday / low urgency / speculative. Worth keeping visible so nothing falls through the cracks, but not near-term.
 
+**Why this ordering — the prioritisation lens.** A tier is a decision, not a guess. When a feature's tier is unclear, reason it out against four levers (works for either source):
+
+- **Value** — how much user pain it removes or upside it unlocks. High value pulls toward Now.
+- **Effort** — rough size. High value + low effort is the classic Now; high effort earns Next/Later unless it's blocking.
+- **Dependency** — does other work need this first? A blocker for several features earns Now even if its own value is modest; something that depends on unfinished work can't be Now.
+- **Risk** — uncertainty or the cost of getting it wrong. De-risk early when a wrong call is expensive to unwind; defer speculative bets to Later.
+
+State the *why* in one clause when you place or suggest a tier (e.g. "Now — blocks capture and auth"), so the ordering is auditable rather than arbitrary. This is a reasoning aid only; it does not change the card format or the HTML template.
+
 Default to fewer Now items. A solo builder can realistically focus on 2–4 things at once. If everything looks like Now, something is wrong — push back and ask.
 
 ---

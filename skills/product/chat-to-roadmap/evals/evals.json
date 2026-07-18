@@ -19,6 +19,7 @@
         {"text": "The agent does NOT ask the user to paste a conversation and does NOT re-parse source conversation text"},
         {"text": "The agent does NOT modify ./docs/approach.md"},
         {"text": "The agent asks light prioritisation questions to assign the approach doc's features to Now / Next / Later"},
+        {"text": "The tiering is reasoned, not arbitrary: the agent justifies at least one tier placement against the prioritisation lens (value / effort / dependency / risk) — e.g. tiering user authentication toward Now because it blocks quick capture"},
         {"text": "A self-contained roadmap.html is written with three columns (Now / Next / Later) and no JavaScript"},
         {"text": "The three features from approach.md (user authentication, quick capture, weekly review view) each appear as a card"},
         {"text": "The open question about emailed vs in-app weekly review is carried forward into the Open Questions section verbatim"},

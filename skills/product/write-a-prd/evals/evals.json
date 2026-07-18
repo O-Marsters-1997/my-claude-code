@@ -25,7 +25,8 @@
         {"text": "Any grilling (step 3, via grill-with-docs) is confined to genuine deltas or gaps not answered by the priors, not a full re-interview"},
         {"text": "The final PRD's Problem Statement and Solution are consistent with the approach doc and ideate report (diff-based doc freshness, non-blocking CLI warning, Markdown-only scope)"},
         {"text": "The PRD is created as a GitHub issue titled with a [PRD] prefix"},
-        {"text": "The PRD stays in product language only — no code, schema, file paths, or library choices in the body"}
+        {"text": "The PRD stays in product language only — no code, schema, file paths, or library choices in the body"},
+        {"text": "The PRD draws an explicit MVP cut-line (an MVP Cut-Line section, or equivalent) separating what ships in the first cut from what is deliberately deferred, in product language — deferred items are staged, not conflated with Out of Scope rejections"}
       ]
     },
     {
