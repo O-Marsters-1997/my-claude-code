@@ -1,5 +1,5 @@
 {
-  "skill_name": "plan-to-issues",
+  "skill_name": "to-tickets",
   "notes": "All evals assume the subagent runs with cwd set to a real repo checkout with a GitHub remote (gh available). Issue creation is the deliverable; when a live gh is unavailable, assert on the issue-body drafts the agent proposes before create. Each case exercises one of the three sources — plan file (default), PRD issue, raw conversation — and pins the source-reference header the issue body must use.",
   "evals": [
     {

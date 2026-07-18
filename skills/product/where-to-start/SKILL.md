@@ -37,14 +37,14 @@ It does no product work itself — no ideation, no writing, no grilling. It only
    |--------------|------------------------------------------|
    | ideate       | `ideate`                                 |
    | approach     | `chat-to-approach`                       |
-   | roadmap      | `chat-to-roadmap` or `approach-to-roadmap` |
-   | PRD          | `write-a-prd`                            |
-   | plan         | `prd-to-plan`                            |
-   | tickets      | `plan-to-issues` or `prd-to-issues`      |
+   | roadmap      | `to-roadmap`                             |
+   | PRD          | `to-prd`                                 |
+   | plan         | `to-plan`                                |
+   | tickets      | `to-tickets`                             |
 
-   For roadmap, prefer `approach-to-roadmap` when an approach doc exists (alignment is already
-   captured); otherwise `chat-to-roadmap`. For tickets, prefer `prd-to-issues` when a PRD issue
-   exists but no plan; otherwise `plan-to-issues`.
+   `to-roadmap` auto-detects its source (an existing approach doc vs a pasted conversation), and
+   `to-tickets` auto-detects its source (a plan file vs a PRD issue vs a conversation) — so there
+   is a single skill to route to for each stage.
 
 4. **If every stage is satisfied**, there is nothing left to route — tell the user the pipeline is
    complete and the next step is to start building the open tickets.
@@ -66,7 +66,7 @@ Product lifecycle scan
   [ ] plan      — no plan file found
   [ ] tickets   — no non-PRD issues found
 
-Start here: roadmap is your first gap. Run the `approach-to-roadmap` skill
+Start here: roadmap is your first gap. Run the `to-roadmap` skill
 (you already have an approach doc, so alignment is done).
 ```
 

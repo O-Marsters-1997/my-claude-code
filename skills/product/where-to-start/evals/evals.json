@@ -31,7 +31,7 @@
       "id": 3,
       "name": "approach-present-enters-at-roadmap",
       "prompt": "we've already aligned on an approach doc — what should i run next?",
-      "expected_output": "With an ideate report and ./docs/approach.md present but no roadmap, the earliest gap is roadmap. The router recommends entering at the roadmap stage and running approach-to-roadmap (or chat-to-roadmap).",
+      "expected_output": "With an ideate report and ./docs/approach.md present but no roadmap, the earliest gap is roadmap. The router recommends entering at the roadmap stage and running to-roadmap.",
       "files": [
         {
           "path": "./ideas/reports/2026-05-01-ideate.md",
@@ -45,7 +45,7 @@
       "assertions": [
         {"text": "The response marks ideate and approach as satisfied, citing the seeded files as evidence"},
         {"text": "The response identifies roadmap as the earliest unsatisfied stage / entry point"},
-        {"text": "The response recommends running approach-to-roadmap (or chat-to-roadmap) — the roadmap-producing skill"},
+        {"text": "The response recommends running to-roadmap — the roadmap-producing skill"},
         {"text": "The response does not recommend re-running ideate or chat-to-approach for already-satisfied stages"},
         {"text": "The agent does not create or edit any lifecycle artifact (read-only)"}
       ]

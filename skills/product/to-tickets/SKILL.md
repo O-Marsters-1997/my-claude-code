@@ -1,17 +1,17 @@
 ---
-name: plan-to-issues
-description: Break a source — an implementation plan file (default), a PRD GitHub issue, or a raw conversation — into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when the user wants to convert a plan to issues, create tickets from a plan file, cut tickets from a PRD, turn a conversation into issues, or break work into grabbable GitHub items.
+name: to-tickets
+description: Break a source — an implementation plan file (default), a PRD GitHub issue, or a raw conversation — into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when the user wants to convert a plan to issues, create tickets from a plan file, go from PRD to issues, cut tickets from a PRD, create tickets from a PRD, turn a conversation into issues, or break work into grabbable GitHub items.
 ---
 
 # Plan to Issues
 
 Break a source into independently-grabbable GitHub issues using vertical slices (tracer bullets). The source is one of three, in priority order:
 
-1. **A plan file** (DEFAULT) — a local `./plans/*.md` file produced by prd-to-plan.
+1. **A plan file** (DEFAULT) — a local `./plans/*.md` file produced by to-plan.
 2. **A PRD GitHub issue** — a `[PRD]`-titled issue.
 3. **A raw conversation** — a pasted or in-context discussion the user wants turned into tickets.
 
-A plan is a technical design document: its architectural decisions (data models, schema shapes, API contracts, module boundaries) are durable constraints and its user stories are source material. A PRD or conversation carries product intent with less technical design — if a source is thin on technical design, note this to the user; it may need a prd-to-plan pass first.
+A plan is a technical design document: its architectural decisions (data models, schema shapes, API contracts, module boundaries) are durable constraints and its user stories are source material. A PRD or conversation carries product intent with less technical design — if a source is thin on technical design, note this to the user; it may need a to-plan pass first.
 
 ## Process
 

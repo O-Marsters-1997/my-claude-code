@@ -36,7 +36,7 @@
       "id": 3,
       "name": "approach-and-roadmap",
       "prompt": "where are we in the product pipeline for this repo? point me at the next skill to run.",
-      "expected_output": "Report shows approach and roadmap stages satisfied (approach.md and roadmap.html exist), recommends write-a-prd since the PRD stage is the earliest gap.",
+      "expected_output": "Report shows approach and roadmap stages satisfied (approach.md and roadmap.html exist), recommends to-prd since the PRD stage is the earliest gap.",
       "files": [
         {
           "path": "./docs/approach.md",
@@ -51,14 +51,14 @@
         {"text": "The report marks the approach stage satisfied (./docs/approach.md) and the roadmap stage satisfied (./roadmap.html)"},
         {"text": "The report marks the PRD, plan, and tickets stages as not satisfied"},
         {"text": "The scan attempts a GitHub lookup (gh issue list) to check for a [PRD] issue and for tickets"},
-        {"text": "The recommended entry point is the PRD stage, naming the write-a-prd skill as the next step"}
+        {"text": "The recommended entry point is the PRD stage, naming the to-prd skill as the next step"}
       ]
     },
     {
       "id": 4,
       "name": "plan-ready-tickets-next",
       "prompt": "I think most of the planning is done — what's left before I start coding?",
-      "expected_output": "Report shows ideate, approach, roadmap, and plan artifacts present locally; recommends breaking the plan into tickets via plan-to-issues (or prd-to-issues) as the entry point, since tickets are the remaining gap.",
+      "expected_output": "Report shows ideate, approach, roadmap, and plan artifacts present locally; recommends breaking the plan into tickets via to-tickets as the entry point, since tickets are the remaining gap.",
       "files": [
         {
           "path": "./ideas/reports/2026-04-10-ideate.md",
@@ -80,7 +80,7 @@
       "assertions": [
         {"text": "The report marks the ideate, approach, roadmap, and plan stages as satisfied and cites the corresponding files (including ./plans/feature-x.md for the plan stage)"},
         {"text": "The scan attempts a gh issue list lookup to determine whether a [PRD] issue exists and whether tickets already exist"},
-        {"text": "The report identifies tickets as the remaining unsatisfied stage and recommends plan-to-issues (or prd-to-issues) as the entry point"},
+        {"text": "The report identifies tickets as the remaining unsatisfied stage and recommends to-tickets as the entry point"},
         {"text": "The report presents the six stages in lifecycle order: ideate -> approach -> roadmap -> PRD -> plan -> tickets"}
       ]
     }
