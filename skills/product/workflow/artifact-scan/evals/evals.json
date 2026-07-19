@@ -1,64 +1,78 @@
 {
   "skill_name": "artifact-scan",
-  "notes": "Evals set up local artifact files via the `files` field; the subagent runs with cwd at that checkout. PRD-issue and ticket detection go through `gh issue list`, which returns nothing in a sandbox without a GitHub remote — that is fine: assertions only require the scan to attempt the gh lookup and to report GitHub-backed stages as unknown/unsatisfied when gh yields nothing. The behaviour spec is: (1) the skill triggers on 'where do I start / what product docs exist' prompts, (2) it reports which of the six lifecycle stages (ideate -> approach -> roadmap -> PRD -> plan -> tickets) are satisfied, and (3) it recommends a single entry point / next skill.",
+  "notes": "Evals set up local artifact files via the `files` field; the subagent runs with cwd at that checkout. PRD and ticket detection go partly through `gh issue list`, which returns nothing in a sandbox without a GitHub remote — that is fine: assertions only require the scan to attempt the gh lookup and to report GitHub-backed artifacts as unknown when gh yields nothing. Local ./docs/prd-*.md files count as PRDs without gh. The behaviour spec is: (1) the skill triggers on 'where do I start / what product docs exist' prompts, (2) it reports which artifacts are present, grouped into portfolio level (ideate report, approach doc, roadmap) and feature level (PRD, plan, tickets), and (3) it recommends exactly one next skill, routed on what the user HAS rather than on the earliest missing artifact. The suite is deliberately not a strict sequence: a missing upstream artifact is usually an intentional skip, not a gap to fill.",
   "evals": [
     {
       "id": 1,
-      "name": "empty-repo-start",
+      "name": "scoped-feature-on-empty-repo-routes-to-prd",
       "prompt": "just cloned this and I want to add a product feature — where should I start? do any product docs or plans already exist?",
-      "expected_output": "A short scan report showing none of the six lifecycle artifacts are present, so no stages are satisfied, with a recommended entry point of the ideate skill (or chat-to-approach if the user already has a conversation to capture).",
+      "expected_output": "A short scan report showing no artifacts are present, with a recommendation of to-prd because the user arrived with a feature they want to build. The absence of an ideate report or approach doc must not divert them into ideation.",
       "files": [],
       "assertions": [
-        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./roadmap.html), PRD issue (gh issue titled [PRD]), plan file (./plans/*.md), and tickets (non-PRD gh issues)"},
-        {"text": "The report states that no lifecycle stages are satisfied (or explicitly lists each of the six stages as not satisfied)"},
-        {"text": "The report recommends a single entry point, and it is the ideate skill (or chat-to-approach) since the earliest stage is unsatisfied"},
+        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./roadmap.html), PRD (./docs/prd-*.md or a gh issue titled [PRD]), plan file (./plans/*.md), and tickets (non-PRD gh issues)"},
+        {"text": "The report states that none of the artifacts were found"},
+        {"text": "The report recommends exactly one skill, and it is to-prd — the user said they want to add a feature, so they are not asking to ideate"},
+        {"text": "The report does NOT tell the user to run ideate, chat-to-approach, or to-roadmap first in order to fill in missing upstream artifacts"},
         {"text": "The report does not fabricate artifacts that were not found on disk or via gh"}
       ]
     },
     {
       "id": 2,
-      "name": "ideate-only",
-      "prompt": "what's the state of the product docs here and what should I do next?",
-      "expected_output": "Report shows the ideate stage satisfied (an ideate report exists) and every later stage unsatisfied, with a recommended next step of chat-to-approach to produce the approach doc.",
-      "files": [
-        {
-          "path": "./ideas/reports/2026-05-01-ideate.md",
-          "content": "# Ideate report\n\nRecommended next idea: a diff-based freshness score.\n"
-        }
-      ],
+      "name": "no-idea-yet-routes-to-ideate",
+      "prompt": "fresh repo, I want to work on this project but I have no idea what to build next. what should I do?",
+      "expected_output": "Scan reports no artifacts present and recommends ideate, because the user has explicitly said they have nothing in mind.",
+      "files": [],
       "assertions": [
-        {"text": "The report marks the ideate stage as satisfied and cites ./ideas/reports/2026-05-01-ideate.md as the evidence"},
-        {"text": "The report marks the approach, roadmap, PRD, plan, and tickets stages as not satisfied"},
-        {"text": "The recommended entry point is the first unsatisfied stage — the approach stage — and names the chat-to-approach skill as the next step"}
+        {"text": "The report states that none of the artifacts were found"},
+        {"text": "The report recommends exactly one skill, and it is ideate, because the user has no candidate feature"},
+        {"text": "The report does not recommend to-prd, since there is nothing yet to write a PRD about"}
       ]
     },
     {
       "id": 3,
-      "name": "approach-and-roadmap",
-      "prompt": "where are we in the product pipeline for this repo? point me at the next skill to run.",
-      "expected_output": "Report shows approach and roadmap stages satisfied (approach.md and roadmap.html exist), recommends to-prd since the PRD stage is the earliest gap.",
+      "name": "ideate-report-present",
+      "prompt": "what's the state of the product docs here and what should I do next?",
+      "expected_output": "Report shows the ideate report present and nothing else, and recommends to-prd on the report's selected build target — not chat-to-approach, since an approach doc is optional and the user has no conversation to capture.",
       "files": [
         {
-          "path": "./docs/approach.md",
-          "content": "# Approach\n\n_Last updated 2026-05-02_\n\n## Problem\n\nUsers can't tell what to build next.\n"
-        },
-        {
-          "path": "./roadmap.html",
-          "content": "<!doctype html><title>Roadmap</title><h1>Now / Next / Later</h1>"
+          "path": "./ideas/reports/2026-05-01-ideate.md",
+          "content": "# Ideate report\n\n## Selected build target\n\nDiff-based freshness score — first slice: flag any doc whose source files changed since it was last edited.\n"
         }
       ],
       "assertions": [
-        {"text": "The report marks the approach stage satisfied (./docs/approach.md) and the roadmap stage satisfied (./roadmap.html)"},
-        {"text": "The report marks the PRD, plan, and tickets stages as not satisfied"},
-        {"text": "The scan attempts a GitHub lookup (gh issue list) to check for a [PRD] issue and for tickets"},
-        {"text": "The recommended entry point is the PRD stage, naming the to-prd skill as the next step"}
+        {"text": "The report marks the ideate report as present and cites ./ideas/reports/2026-05-01-ideate.md as the evidence"},
+        {"text": "The report marks the approach doc, roadmap, PRD, plan, and tickets as not present"},
+        {"text": "The report recommends to-prd, carrying forward the selected build target from the ideate report"},
+        {"text": "The report does not treat the missing approach doc as a gap that must be filled before proceeding"}
       ]
     },
     {
       "id": 4,
-      "name": "plan-ready-tickets-next",
+      "name": "roadmap-present-fans-out-per-card",
+      "prompt": "where are we with this repo? point me at the next skill to run.",
+      "expected_output": "Report shows approach doc and roadmap present at portfolio level and no feature-level artifacts, and recommends picking one roadmap card and running to-prd on it — making clear that each card is its own pass down the spine.",
+      "files": [
+        {
+          "path": "./docs/approach.md",
+          "content": "# Approach\n\n_Last updated 2026-05-02_\n\n## Problem\n\nUsers can't tell what to build next.\n\n## Features\n\n### Freshness score\n\n### Saved views\n"
+        },
+        {
+          "path": "./roadmap.html",
+          "content": "<!doctype html><title>Roadmap</title><h1>Now / Next / Later</h1><div class=\"card\">Freshness score</div><div class=\"card\">Saved views</div>"
+        }
+      ],
+      "assertions": [
+        {"text": "The report marks the approach doc (./docs/approach.md) and roadmap (./roadmap.html) as present"},
+        {"text": "The report groups artifacts so portfolio-level items (ideate report, approach doc, roadmap) are distinguishable from feature-level items (PRD, plan, tickets)"},
+        {"text": "The scan attempts a GitHub lookup (gh issue list) to check for a [PRD] issue and for tickets, and also checks for local ./docs/prd-*.md files"},
+        {"text": "The recommendation is to pick a single roadmap card / feature and run to-prd on it, rather than running to-prd across the whole roadmap at once"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "plan-present-per-feature-counts",
       "prompt": "I think most of the planning is done — what's left before I start coding?",
-      "expected_output": "Report shows ideate, approach, roadmap, and plan artifacts present locally; recommends breaking the plan into tickets via to-tickets as the entry point, since tickets are the remaining gap.",
+      "expected_output": "Report shows portfolio artifacts present plus one PRD and one plan for a single feature, and recommends to-tickets for that feature. Feature-level artifacts are reported by name/count, not as a single satisfied tick, since a second feature has a PRD but no plan.",
       "files": [
         {
           "path": "./ideas/reports/2026-04-10-ideate.md",
@@ -73,15 +87,23 @@
           "content": "<!doctype html><title>Roadmap</title>"
         },
         {
+          "path": "./docs/prd-feature-x.md",
+          "content": "# PRD: Feature X\n\n## Problem Statement\n"
+        },
+        {
+          "path": "./docs/prd-feature-y.md",
+          "content": "# PRD: Feature Y\n\n## Problem Statement\n"
+        },
+        {
           "path": "./plans/feature-x.md",
           "content": "# Feature X plan\n\n## Phase 1 — tracer bullet\n"
         }
       ],
       "assertions": [
-        {"text": "The report marks the ideate, approach, roadmap, and plan stages as satisfied and cites the corresponding files (including ./plans/feature-x.md for the plan stage)"},
-        {"text": "The scan attempts a gh issue list lookup to determine whether a [PRD] issue exists and whether tickets already exist"},
-        {"text": "The report identifies tickets as the remaining unsatisfied stage and recommends to-tickets as the entry point"},
-        {"text": "The report presents the six stages in lifecycle order: ideate -> approach -> roadmap -> PRD -> plan -> tickets"}
+        {"text": "The report cites both local PRDs (./docs/prd-feature-x.md and ./docs/prd-feature-y.md) rather than reporting the PRD artifact as a single satisfied tick"},
+        {"text": "The report cites ./plans/feature-x.md as the only plan, and makes clear that Feature Y has a PRD but no plan yet"},
+        {"text": "The scan attempts a gh issue list lookup to determine whether tickets already exist"},
+        {"text": "The report recommends exactly one skill: to-tickets for Feature X, since it is the feature furthest along"}
       ]
     }
   ]

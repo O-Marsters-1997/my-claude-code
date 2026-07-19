@@ -1,6 +1,15 @@
 ---
 name: to-prd
-description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or plan a new feature.
+description: >
+  Turn a feature idea into a PRD for one feature — the WHAT and WHY in product language — through
+  interview, codebase exploration, and an MVP cut-line, saved to ./docs/prd-<feature>.md and filed
+  as a GitHub issue. This is where the build workflow starts: run it whenever the user knows roughly
+  what they want built. Trigger on "write a PRD", "create a product requirements document", "spec
+  this out", "I want to build X", "I have an idea for a feature", "help me scope this feature",
+  "let's plan a new feature", "define the requirements for X", or "what should this feature do?".
+  Reads ./docs/approach.md and ./ideas/reports/*-ideate.md as priors if they exist, so it does not
+  re-ask what is already settled — but needs neither, and runs a full interview from nothing.
+  Prefer this over ideate when the user already knows what they want to build.
 ---
 
 **PRD principle: product language only.**
@@ -16,27 +25,52 @@ These priors are **accelerants, not prerequisites** — they exist to remove que
 
 Both priors are portfolio-level: they cover several features, while this PRD covers exactly one. If the prior holds more than one feature and the target isn't obvious from the invocation, ask which feature this PRD is for before going further.
 
-This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
+## Process
 
-1. Ask the user for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
+You may skip steps if you don't consider them necessary.
 
-2. Explore the repo to verify their assertions and understand the current state of the codebase.
+### 1. Get the problem in the user's words
 
-3. Grill the user to nail down the PRD's scope and requirements. Run the grilling session using the `grill-with-docs` skill — it owns the grilling loop; defer to it rather than re-inlining the questioning here. Keep the focus on product-level scope and behaviour (per the PRD principle above), not technical design.
+Ask for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
 
-4. Sketch out the major user-facing capabilities and behaviour that will be needed. Actively look for opportunities to identify deep, independently-valuable capabilities — those that deliver user value on their own and can be verified against the user stories.
+### 2. Explore the repo
+
+Verify their assertions and understand the current state of the codebase.
+
+### 3. Grill for scope and requirements
+
+Run the grilling session using the `grill-with-docs` skill — it owns the grilling loop; defer to it rather than re-inlining the questioning here. Keep the focus on product-level scope and behaviour (per the PRD principle above), not technical design.
+
+### 4. Sketch the user-facing capabilities
+
+Sketch out the major user-facing capabilities and behaviour that will be needed. Actively look for opportunities to identify deep, independently-valuable capabilities — those that deliver user value on their own and can be verified against the user stories.
 
 Check with the user that these capabilities match their expectations.
 
-5. Draw the MVP cut-line. With the capabilities agreed, ask the user which of them belong in the *first cut* — the smallest release that delivers the core outcome — versus what is deliberately deferred to a later pass. Sequence by user value, not technical dependency, and keep it in product language (no build phases, no architecture). Deferred items are staged, not rejected. Record the split in the PRD's **MVP Cut-Line** section (deferred-but-planned items) and in **Out of Scope** (things genuinely not being built).
+### 5. Draw the MVP cut-line
 
-6. Once you have a complete understanding of the problem and solution, use the template below to write the PRD.
+With the capabilities agreed, ask the user which of them belong in the *first cut* — the smallest release that delivers the core outcome — versus what is deliberately deferred to a later pass. Sequence by user value, not technical dependency, and keep it in product language (no build phases, no architecture). Deferred items are staged, not rejected. Record the split in the PRD's **MVP Cut-Line** section (deferred-but-planned items) and in **Out of Scope** (things genuinely not being built).
 
-7. Show the rendered PRD to the user and confirm before creating the issue. Then create the GitHub issue:
-   - Title: `[PRD] <Feature Name>`
-   - Body: the filled-in PRD template (write to a temp file and use `gh issue create --title "[PRD] <Feature Name>" --body-file <tmpfile>`)
-   - Optionally add `--label` flags if relevant labels exist in the repo
-   - Print the resulting issue URL — the next step (to-plan or to-tickets) will reference it
+### 6. Write the PRD
+
+Once you have a complete understanding of the problem and solution, use the template below to write the PRD.
+
+### 7. Save it, then file it
+
+The Markdown file is the artifact; the GitHub issue is a copy of it for discussion. Write the file first so the PRD survives a repo with no remote, no `gh`, or no network — and so this stage can be re-run and iterated on without depending on the issue.
+
+1. Create `./docs/` if it doesn't exist. Write the filled-in template to `./docs/prd-<feature>.md`, kebab-cased (e.g. `./docs/prd-saved-views.md`).
+2. Show the rendered PRD to the user and confirm before going further.
+3. File the issue from that file — do **not** re-render it into a temp file, or the two copies can drift:
+   ```bash
+   gh issue create --title "[PRD] <Feature Name>" --body-file ./docs/prd-<feature>.md
+   ```
+   Add `--label` flags if relevant labels exist in the repo.
+4. Print both the file path and the issue URL. `to-plan` accepts either.
+
+If `gh` is unavailable or fails, keep the file and say the issue wasn't created — the PRD still stands and `to-plan` can read the file directly. Do not treat a missing issue as a failed run.
+
+When finished, hand off: `to-plan` turns this PRD into the technical design.
 
 <prd-template>
 

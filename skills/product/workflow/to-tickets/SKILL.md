@@ -8,7 +8,7 @@ description: Break a source — an implementation plan file (default), a PRD Git
 Break a source into independently-grabbable GitHub issues using vertical slices (tracer bullets). The source is one of three, in priority order:
 
 1. **A plan file** (DEFAULT) — a local `./plans/*.md` file produced by to-plan.
-2. **A PRD GitHub issue** — a `[PRD]`-titled issue.
+2. **A PRD** — a local `./docs/prd-<feature>.md` file or a `[PRD]`-titled GitHub issue. Prefer the file when both exist; they hold the same content.
 3. **A raw conversation** — a pasted or in-context discussion the user wants turned into tickets.
 
 A plan is a technical design document: its architectural decisions (data models, schema shapes, API contracts, module boundaries) are durable constraints and its user stories are source material. A PRD or conversation carries product intent with less technical design — if a source is thin on technical design, note this to the user; it may need a to-plan pass first.
@@ -27,7 +27,7 @@ Two cases where the priority order is the wrong answer:
 Load the chosen source in full:
 
 - **Plan file** — read the `./plans/*.md` file. Record its path and the **Source PRD** link from the plan header (if present).
-- **PRD issue** — fetch with `gh issue view <number>` (with comments). Record the issue number.
+- **PRD** — read `./docs/prd-<feature>.md`, or fetch the issue with `gh issue view <number>` (with comments). Record whichever you used: the file path, the issue number, or both.
 - **Conversation** — use the in-context discussion, or ask the user to paste it.
 
 Extract from whichever source: **technical design decisions** (data models, schema, API contracts, module boundaries, routes), **user stories**, and **acceptance criteria**. Note the source type — it selects the issue-body source header in step 5.
@@ -78,7 +78,7 @@ Create issues in dependency order (blockers first) so you can reference real iss
 <issue-template>
 <Source-reference header — pick ONE to match the source type from step 1:>
 <  Plan file:    "## Source plan" + `./plans/<file>.md` + Source PRD link from the plan header, if present>
-<  PRD issue:    "## Parent PRD" + #<prd-issue-number>>
+<  PRD:          "## Parent PRD" + ./docs/prd-<feature>.md and/or #<prd-issue-number>>
 <  Conversation: "## Source conversation" + one-line note on what the conversation was>
 
 ## What to build
@@ -106,4 +106,21 @@ Reference by number from the source (plan / PRD / conversation):
 
 </issue-template>
 
-Do NOT modify the source plan file or the parent PRD issue.
+Do NOT modify the source plan file or the parent PRD.
+
+### 6. Hand off to the board
+
+Report the created issue numbers, then label them so they land on the board in a usable state:
+
+```bash
+gh issue edit <number> --add-label "status:ready"
+```
+
+Anything blocked by another slice gets `status:backlog` instead — it isn't grabbable yet. If the
+`status:*` labels don't exist in the repo, `ticket-tracker` creates them; defer to it rather than
+inventing label names here.
+
+From this point `ticket-tracker` owns the tickets — it reads and moves them between states. This
+skill does not track what it files.
+
+When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.

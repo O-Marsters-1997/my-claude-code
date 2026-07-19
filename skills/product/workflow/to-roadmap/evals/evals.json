@@ -1,6 +1,6 @@
 {
   "skill_name": "to-roadmap",
-  "notes": "Evals run with cwd set to a scratch working directory. The presence or absence of ./docs/approach.md selects the source path: if present, the skill treats it as settled truth and SKIPS grilling (approach path); if absent, it parses the pasted conversation and grills ambiguous items (conversation path). Both paths render a self-contained Now/Next/Later kanban to roadmap.html and finish with a short receipt.",
+  "notes": "Evals run with cwd set to a scratch working directory. ./docs/approach.md is this skill's only source. If present, the skill treats it as settled truth, tiers its features into Now/Next/Later, and renders a self-contained kanban to roadmap.html. If absent, the skill must NOT interview or parse a pasted conversation — it routes to chat-to-approach, which owns conversation-to-structure including the grilling pass. Keeping one conversation parser in the suite prevents two skills drifting apart and prevents a roadmap built on ungrilled assumptions.",
   "evals": [
     {
       "id": 1,
@@ -28,19 +28,18 @@
     },
     {
       "id": 2,
-      "name": "conversation-only-runs-grilling",
+      "name": "conversation-without-approach-doc-routes-out",
       "prompt": "turn this into a roadmap:\n\nMe: I want to build a small habit tracker. Definitely need accounts so people can save streaks.\nAI: Makes sense. What about reminders?\nMe: Yeah reminders are a must, push notifications.\nAI: And you mentioned analytics earlier?\nMe: We talked about a stats dashboard but I'm not sure. Maybe later. Also I decided we're NOT doing social sharing, that's out of scope.\nAI: Got it. Anything on onboarding?\nMe: There should be some onboarding but I haven't thought it through.",
-      "expected_output": "Because ./docs/approach.md does NOT exist, the skill takes the conversation path: it parses the transcript into decided / discussed / discarded / open-question buckets, runs an alignment grilling pass via grill-with-docs on the ambiguous items (stats dashboard, onboarding), drops only the explicitly rejected social sharing, and renders a Now/Next/Later kanban to roadmap.html with open questions flagged.",
+      "expected_output": "Because ./docs/approach.md does NOT exist, the skill must not build a roadmap from the transcript. It stops and routes the user to chat-to-approach — which owns conversation parsing and the grilling pass — and offers to invoke it, explaining that the roadmap can be generated once alignment is captured.",
       "files": [],
       "assertions": [
-        {"text": "The agent determines ./docs/approach.md does not exist and takes the conversation path"},
-        {"text": "The agent runs an alignment grilling pass (invokes or delegates to grill-with-docs) on ambiguous items such as the stats dashboard and onboarding"},
-        {"text": "Committed features (accounts/streaks, reminders / push notifications) appear as cards on the board"},
-        {"text": "Social sharing is dropped (it was explicitly rejected) and is not rendered as a card"},
-        {"text": "The ambiguous stats dashboard and under-thought onboarding are surfaced for clarification (grilled or flagged as open questions), not silently dropped"},
-        {"text": "A self-contained roadmap.html is written with Now / Next / Later columns and no JavaScript"},
-        {"text": "The agent does NOT create or write ./docs/approach.md"},
-        {"text": "The finishing receipt notes the feature distribution and what was excluded (only the actively rejected social sharing)"}
+        {"text": "The agent determines ./docs/approach.md does not exist"},
+        {"text": "The agent does NOT write roadmap.html"},
+        {"text": "The agent does NOT parse the transcript into a set of feature cards and does NOT assign Now / Next / Later tiers"},
+        {"text": "The agent does NOT run a grilling pass itself on the ambiguous items (stats dashboard, onboarding)"},
+        {"text": "The agent names chat-to-approach as the skill to run first, and offers to invoke it with the pasted conversation"},
+        {"text": "The agent explains that re-running to-roadmap afterwards will produce the board, so the user understands this is a routing step and not a refusal"},
+        {"text": "The agent does NOT create or write ./docs/approach.md itself"}
       ]
     }
   ]

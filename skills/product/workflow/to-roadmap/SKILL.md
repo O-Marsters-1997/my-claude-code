@@ -1,164 +1,124 @@
 ---
 name: to-roadmap
-description: Build a lightweight product roadmap from EITHER a pasted AI conversation OR an existing ./docs/approach.md. For a conversation (default), extracts agreed features, grills ambiguous items, and drops only explicitly rejected ideas. If ./docs/approach.md exists, treats it as settled truth and builds straight from it — no grilling. Organises features into Now / Next / Later tiers rendered as a visual kanban HTML board (each card is a feature, not a ticket), open questions flagged at the bottom. Use whenever the user pastes a conversation and wants a roadmap or kanban, OR wants a roadmap from an approach doc. Trigger on "turn this into a roadmap", "what did we decide?", "make me a kanban", "pull the decisions from this", "what should I build next", "roadmap from our approach doc", "generate roadmap from approach.md", "refresh the roadmap", or "prioritise the approach". Use it even if the user just drops a wall of AI conversation text — if they seem to want structure from a chat, this skill applies.
+description: >
+  Prioritise the features in ./docs/approach.md into a Now / Next / Later kanban board, rendered as
+  a self-contained ./roadmap.html. Each card is a feature, not a ticket. The approach doc is settled
+  truth — this skill assigns tiers and reasons about ordering, it never re-litigates what was
+  decided. Use whenever the user wants to prioritise, sequence, or visualise what to build: "make me
+  a roadmap", "turn the approach into a roadmap", "generate a kanban", "what should I build first",
+  "prioritise these features", "refresh the roadmap", or "what's Now vs Later". Requires
+  ./docs/approach.md — if it is missing, route to chat-to-approach first rather than interviewing
+  here.
 ---
 
 ## Overview
 
-Turn a messy AI conversation into a clean, visual product roadmap. The goal is to extract *signal* — things that were genuinely decided, committed to, or worth clarifying — and only discard noise that was explicitly rejected in the conversation. The output is a standalone HTML kanban board with three columns (Now / Next / Later) where each card represents a **feature**, not a ticket. A separate `to-tickets` skill handles breaking features into tickets later.
+Turn the settled features in `./docs/approach.md` into a visual product roadmap: a standalone HTML
+kanban with three columns (Now / Next / Later) where each card is a **feature**, not a ticket.
+`to-tickets` breaks features into tickets later.
 
-Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder matrices.
+This skill is **portfolio-level** — it prioritises many features at once. The per-feature spine
+(`to-prd → to-plan → to-tickets`) starts from a single card. See `../README.md`.
+
+Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder
+matrices.
 
 ---
 
-## Phase 0 — Detect the Source
+## Phase 0 — Load the approach doc
 
-This skill takes one of two inputs. Decide which before doing anything else.
+Run `artifact-scan` as a preflight to detect `./docs/approach.md` — defer to it, don't reimplement
+its file checks.
 
-Run the `artifact-scan` skill as a preflight to detect whether `./docs/approach.md` exists — defer to it, don't reimplement its file checks.
+**If `./docs/approach.md` exists**, read it and extract, treating every item as already agreed:
 
-- **`./docs/approach.md` exists → APPROACH PATH.** The approach doc is the canonical, *settled* alignment doc. Treat it as truth: **skip Phase 1 and Phase 2 (no re-parsing, no grilling)** and go straight to Phase 3 using the doc's contents. Do not modify `./docs/approach.md`. If the user *also* pasted a conversation, tell them the approach doc takes precedence — point them at `chat-to-approach` if they want to fold new material into alignment first.
-- **No `./docs/approach.md` → CONVERSATION PATH (default).** The user is working from a pasted conversation. Proceed through Phase 1 → Phase 2 → Phase 3 as normal, grilling included.
-
-### Approach path — load the doc
-
-Read `./docs/approach.md` and extract, treating every item as already agreed (no grilling):
 - All features (Name, Problem, Value, Dependencies) → cards
 - Constraints → a note below the board, not cards
 - Principles → use to inform tier suggestions (e.g. "ship weekly" → fewer Now items)
 - Open questions → carry forward verbatim into the Open Questions section
 
-If a feature in the doc is genuinely too vague to tier, do **not** re-litigate it — say so and ask the user for a tier, or point them back to `chat-to-approach` to sharpen the doc. Then continue to Phase 3.
+Do not modify `./docs/approach.md`.
+
+**If it does not exist**, stop and route — do not interview, and do not build a roadmap from a
+conversation:
+
+> "There's no `./docs/approach.md` yet. Run `chat-to-approach` first to capture what you're
+> building — paste the conversation and it'll write the alignment doc. Then re-run this and I'll
+> prioritise it."
+
+Offer to invoke `chat-to-approach` there and then. **Why route instead of absorbing the
+conversation:** `chat-to-approach` owns conversation → structure, including the grilling that
+resolves ambiguity before anything is committed. Duplicating that here means two skills parsing
+transcripts differently and drifting apart, and a roadmap built on ungrilled assumptions. One source
+of alignment truth, one skill that produces it.
+
+If the user pasted a conversation *and* an approach doc exists, the doc wins — point them at
+`chat-to-approach` to fold the new material into alignment first, then re-run this.
+
+A feature too vague to tier is not a licence to re-litigate it. Say so, and either ask the user for
+a tier directly or point them back to `chat-to-approach` to sharpen the doc.
 
 ---
 
-## What Is a Feature (at Roadmap Level)?
+## Phase 1 — Prioritise
 
-A feature is a coherent, user-facing capability that delivers value on its own. It is not an implementation task, a ticket, or a technical decision.
+Assign each feature a tier. Offer a suggested tier per feature — biasing dependency-blocking
+features toward Now and anything speculative toward Later — and let the user confirm or override in
+one pass.
 
-**Anatomy of a roadmap-level feature:**
+**Now** — Committed, ready to start, essential for current momentum. If the user isn't working on
+it this week or next, it's not Now.
 
-| Field | What it captures | Example |
-|---|---|---|
-| **Name** | Short, user-facing label — what it does, not how | "User authentication" |
-| **Problem** | The user pain or need it addresses (one sentence) | "Users need to log in securely to access their data" |
-| **Value** | What it unlocks or enables | "Unblocks all personalisation and data persistence features" |
-| **Dependencies** | Other features that must exist first | "Requires: database setup" |
+**Next** — Decided but intentionally deferred. Depends on Now items finishing first, or deliberately
+held back to maintain focus.
 
-At roadmap level, only Name + Problem are required on the card. Value and Dependencies are surfaced when they matter for prioritisation.
+**Later** — Someday / low urgency / speculative. Worth keeping visible so nothing falls through the
+cracks, but not near-term.
 
-**How to group chat content into a feature:**
-
-- A feature = a cluster of related decisions that together describe one user-facing capability
-- Multiple small decisions about the same area → one feature, not many cards
-- Ask: "Could a user describe what they'd get from this in one sentence?" If yes, it's a feature
-- Distinguish features from:
-  - *Constraints* — architectural or technical decisions that shape features but aren't features themselves (e.g. "use Postgres") — record as a note, not a card
-  - *Tasks* — implementation steps inside a feature (e.g. "wire up the ORM") — don't put these on the kanban; `to-tickets` handles this later
-  - *Principles* — values or preferences the user expressed ("keep it simple", "mobile-first") — capture as context, not a card
-
-**Anti-patterns to avoid:**
-
-- Don't split one feature into multiple cards because the conversation touched it in different ways
-- Don't create a card for every distinct sentence — synthesise first
-- Don't mistake a technical decision for a feature ("use JWT" is a constraint; "user sessions" is a feature)
-
----
-
-## Phase 1 — Parse the Conversation
-
-*Conversation path only. On the approach path this is already done — skip to Phase 3.*
-
-Read the pasted transcript or summary carefully. Classify everything into four buckets:
-
-**Decided/committed** — Both parties agreed and committed to something. Look for language like "we'll do X", "let's go with Y", "agreed: Z", "the plan is", "I'll build", "we'll ship". These become roadmap features.
-
-**Discussed but not resolved** — Ideas that came up, were explored, but didn't reach a clear conclusion. Do not silently drop these. Bring them to Phase 2 for grilling. **An idea not explicitly accepted is not the same as an idea that was rejected.**
-
-**Explicitly discarded** — Ideas the user or conversation actively rejected or dismissed in favour of something else. Look for language like "no, let's not", "actually scratch that", "we're not doing X", "that's out of scope". Only these get dropped without grilling.
-
-**Open questions** — Things that need a decision before work can proceed. Surface at the bottom of the board.
-
-**Default to inclusion over exclusion.** When in doubt about whether something was decided, treat it as either a candidate for the board (pending grilling) or an open question. A roadmap that surfaces ambiguity honestly is better than one that silently drops things the user cared about.
-
----
-
-## Phase 2 — Alignment Grilling (Safeguard)
-
-*Conversation path only. The approach doc is settled truth — never grill it; skip this phase entirely on the approach path.*
-
-Before generating the roadmap, run a focused grilling session using the `grill-with-docs` skill. This is the safeguard: stress-test your extraction before committing it to a visual artifact. Don't skip this phase. `grill-with-docs` owns the resolution of ambiguity — defer to it rather than making a judgement call yourself.
-
-Scan your extracted items for:
-- Items in the "discussed but not resolved" bucket — were these dropped intentionally, or just deferred?
-- Items where it's unclear if a decision was reached vs. just explored
-- Items with ambiguous priority (could reasonably be Now or Next)
-- Items that seem to contradict each other — were both agreed, or did one supersede the other?
-- Items with fuzzy scope — "improve X" or "think about Y" — is there a concrete feature here?
-- Items that could be the same feature described differently at different points in the conversation
-
-For each ambiguous item, ask one targeted clarifying question. Lead with what you found in the text, give your best read, and wait for the user's confirmation. One question at a time.
-
-**How to ask good grilling questions:**
-- Lead with what you found: "You discussed two auth approaches — JWT and sessions — but I couldn't tell which was chosen."
-- Give your best read: "My read is you landed on JWT because of the mobile client. Is that right?"
-- For discussed-but-not-resolved items: "You mentioned analytics a couple of times but didn't land on a decision — was this cut, deferred, or still live?"
-- Stay concrete: don't ask "what's your priority?" — ask "Should 'onboarding flow' be Now (this week) or Next (after auth is solid)?"
-
-**Examples of when to grill vs. skip:**
-- Grill: "You mentioned a dashboard twice but never committed to building it — is this a Later item or cut entirely?"
-- Grill: "Onboarding was described as 'important' but no concrete action was attached — is there a feature here or just a principle?"
-- Grill: "You considered two pricing models but I couldn't tell which you chose — did you land on one?"
-- Skip: "You said 'we'll ship the MVP by end of month' — I'll put the MVP features in Now."
-- Skip: "You agreed to use Postgres — I'll note this as a constraint, not a feature card."
-
-Keep this lean. Only ask if the answer would meaningfully change what ends up on the board. If the conversation was explicit and decisive throughout, tell the user and skip straight to Phase 3.
-
----
-
-## Phase 3 — Prioritise
-
-Once features are confirmed — whether from the grilled conversation or extracted from `./docs/approach.md` — assign each to a tier. On the approach path, offer a suggested tier per feature (biasing dependency-blocking features toward Now and anything speculative toward Later) and let the user confirm or override in one pass.
-
-**Now** — Committed, ready to start, essential for current momentum. If the user isn't working on it this week or next, it's not Now.
-
-**Next** — Decided but intentionally deferred. Depends on Now items finishing first, or deliberately held back to maintain focus.
-
-**Later** — Someday / low urgency / speculative. Worth keeping visible so nothing falls through the cracks, but not near-term.
-
-**Why this ordering — the prioritisation lens.** A tier is a decision, not a guess. When a feature's tier is unclear, reason it out against four levers (works for either source):
+**Why this ordering — the prioritisation lens.** A tier is a decision, not a guess. When a feature's
+tier is unclear, reason it out against four levers:
 
 - **Value** — how much user pain it removes or upside it unlocks. High value pulls toward Now.
-- **Effort** — rough size. High value + low effort is the classic Now; high effort earns Next/Later unless it's blocking.
-- **Dependency** — does other work need this first? A blocker for several features earns Now even if its own value is modest; something that depends on unfinished work can't be Now.
-- **Risk** — uncertainty or the cost of getting it wrong. De-risk early when a wrong call is expensive to unwind; defer speculative bets to Later.
+- **Effort** — rough size. High value + low effort is the classic Now; high effort earns Next/Later
+  unless it's blocking.
+- **Dependency** — does other work need this first? A blocker for several features earns Now even if
+  its own value is modest; something that depends on unfinished work can't be Now.
+- **Risk** — uncertainty or the cost of getting it wrong. De-risk early when a wrong call is
+  expensive to unwind; defer speculative bets to Later.
 
-State the *why* in one clause when you place or suggest a tier (e.g. "Now — blocks capture and auth"), so the ordering is auditable rather than arbitrary. This is a reasoning aid only; it does not change the card format or the HTML template.
+State the *why* in one clause when you suggest a tier (e.g. "Now — blocks capture and auth"), so the
+ordering is auditable rather than arbitrary.
 
-Default to fewer Now items. A solo builder can realistically focus on 2–4 things at once. If everything looks like Now, something is wrong — push back and ask.
+Default to fewer Now items. A solo builder can realistically focus on 2–4 things at once. If
+everything looks like Now, something is wrong — push back and ask.
 
 ---
 
-## Phase 4 — Generate the HTML Kanban Board
+## Phase 2 — Generate the board
 
-Generate a complete, self-contained HTML file. Deliver it as an artifact (using `<artifact>` tags if the interface supports it) or write it to `roadmap.html` in the current working directory.
+Write a complete, self-contained HTML file to `./roadmap.html` in the current working directory.
+
+**Always write the file.** Other skills detect this stage with `test -f ./roadmap.html`, so a board
+that only ever existed as a chat artifact leaves the repo looking like no roadmap was made. Render
+it as an artifact too if the interface supports it, but the file is the deliverable, not the copy.
+
+Use `assets/roadmap-template.html` as the starting point — inline CSS, no external dependencies, no
+JavaScript. Replace its placeholder comments with the actual cards and questions.
 
 ### Card format
 
 Each card represents a **feature** and shows:
-- A short noun-phrase title naming the feature (e.g. "User authentication", "Payments integration", "Onboarding flow")
-- One sentence describing the user problem it solves or the value it delivers — extracted from the conversation
+
+- A short noun-phrase title naming the feature (e.g. "User authentication", "Onboarding flow")
+- One sentence describing the user problem it solves or the value it delivers
 - A dependency line only if it blocks or is blocked by another feature on the board
 
 Nothing else — no assignees, no tags, no dates, no story points, no implementation tasks.
 
 ### Open questions format
 
-Below the board, list each open question as a numbered item:
-- State the question concisely
-- Add a one-line note on why it matters or what's blocked on it
-
-### Visual design
+Below the board, list each open question from the approach doc as a numbered item: the question
+concisely, plus a one-line note on why it matters or what's blocked on it.
 
 ```
 Now (amber)  |  Next (blue)  |  Later (slate)
@@ -173,113 +133,17 @@ Open Questions
 2. Is the pricing page in scope for v1?
 ```
 
-### HTML template
-
-Write inline CSS only — no external dependencies. Use this structure as your starting point:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roadmap</title>
-  <style>
-    /* Reset + base */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-           background: #f5f5f4; color: #1c1917; padding: 2rem; min-height: 100vh; }
-
-    /* Header */
-    header { margin-bottom: 2rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; }
-    .subtitle { color: #78716c; font-size: 0.875rem; margin-top: 0.25rem; }
-
-    /* Board */
-    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
-    @media (max-width: 640px) { .board { grid-template-columns: 1fr; } }
-
-    .column { background: #fff; border-radius: 0.75rem; padding: 1.25rem;
-               box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .column h2 { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
-                  text-transform: uppercase; margin-bottom: 1rem; padding-bottom: 0.5rem;
-                  border-bottom: 2px solid; }
-    .column.now   h2 { color: #d97706; border-color: #fbbf24; }
-    .column.next  h2 { color: #2563eb; border-color: #93c5fd; }
-    .column.later h2 { color: #64748b; border-color: #cbd5e1; }
-
-    /* Cards */
-    .card { background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 0.5rem;
-             padding: 0.75rem; margin-bottom: 0.75rem; }
-    .card:last-child { margin-bottom: 0; }
-    .card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
-    .card-context { font-size: 0.8rem; color: #78716c; line-height: 1.4; }
-    .card-dep { font-size: 0.75rem; color: #a8a29e; margin-top: 0.35rem;
-                padding-top: 0.35rem; border-top: 1px solid #e7e5e4; }
-
-    /* Open questions */
-    .open-questions { background: #fefce8; border: 1px solid #fde68a;
-                       border-radius: 0.75rem; padding: 1.25rem; }
-    .open-questions h2 { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
-                          text-transform: uppercase; color: #b45309; margin-bottom: 1rem; }
-    .open-questions ol { padding-left: 1.25rem; }
-    .open-questions li { font-size: 0.875rem; margin-bottom: 0.5rem; line-height: 1.5; }
-    .open-questions .q-note { color: #92400e; font-size: 0.8rem; }
-
-    /* Dark mode */
-    @media (prefers-color-scheme: dark) {
-      body { background: #1c1917; color: #fafaf9; }
-      .column { background: #292524; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-      .card { background: #1c1917; border-color: #44403c; }
-      .card-context { color: #a8a29e; }
-      .card-dep { color: #78716c; border-top-color: #44403c; }
-      .open-questions { background: #1c1409; border-color: #78350f; }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Roadmap</h1>
-    <p class="subtitle"><!-- "Extracted from conversation" (conversation path) or "Generated from approach.md" (approach path) --> · <!-- date --></p>
-  </header>
-
-  <div class="board">
-    <div class="column now">
-      <h2>Now</h2>
-      <!-- <div class="card">
-             <div class="card-title">Feature name</div>
-             <div class="card-context">Problem or value sentence.</div>
-             <div class="card-dep">Needs: other feature</div>
-           </div> -->
-    </div>
-    <div class="column next">
-      <h2>Next</h2>
-    </div>
-    <div class="column later">
-      <h2>Later</h2>
-    </div>
-  </div>
-
-  <section class="open-questions">
-    <h2>Open Questions</h2>
-    <ol>
-      <!-- <li>Question text? <span class="q-note">— Why it matters.</span></li> -->
-    </ol>
-  </section>
-</body>
-</html>
-```
-
-Replace the placeholder comments with the actual cards and questions. Do not include any JavaScript.
-
 ---
 
 ## Finishing Up
 
-After delivering the HTML, write a brief summary (3–5 lines max):
+After writing the file, a brief summary (3–5 lines max). It's a receipt, not a re-explanation —
+don't repeat the roadmap verbatim.
+
 - How many features are on the board and how they're distributed (N Now / N Next / N Later)
 - How many open questions were flagged
-- **Conversation path:** a one-liner on anything explicitly excluded (only items the conversation actively rejected) — so the user knows you didn't silently drop things they cared about
-- **Approach path:** the source was `./docs/approach.md` (left unmodified) — remind the user to run `chat-to-approach` to update alignment, then re-run this skill to refresh the roadmap
+- The source was `./docs/approach.md`, left unmodified — to change what's on the board, run
+  `chat-to-approach` to update alignment, then re-run this to refresh
+- The next step: pick one card and run `to-prd` on it. Each card is its own pass down the spine.
 
-Don't repeat the roadmap verbatim. The summary is a receipt, not a re-explanation.
+When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.

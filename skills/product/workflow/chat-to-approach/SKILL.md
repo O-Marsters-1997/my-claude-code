@@ -185,3 +185,5 @@ After writing the file, send a brief receipt (3–5 lines max):
 - Number of open questions outstanding
 - A one-liner on anything placed in "Out of scope" — so the user knows you didn't silently drop things they cared about
 - Reminder: run `to-roadmap` to generate a visual kanban from this doc without repeating grilling
+
+When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
