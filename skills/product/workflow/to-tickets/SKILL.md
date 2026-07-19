@@ -17,7 +17,12 @@ A plan is a technical design document: its architectural decisions (data models,
 
 ### 1. Locate the source
 
-If the user named a source, use it. Otherwise detect what exists by running the `artifact-scan` skill as a preflight — it reports whether a plan file or a `[PRD]` issue is present. Apply the priority order above: prefer a plan file, then a PRD issue, then a conversation already in context. If more than one is present, confirm which to use.
+If the user named a source, use it. Otherwise detect what exists by running the `artifact-scan` skill as a preflight — it reports whether a plan file or a PRD is present. Apply the priority order above: prefer a plan file, then a PRD, then a conversation already in context.
+
+Two cases where the priority order is the wrong answer:
+
+- **A conversation in hand beats a stale artifact.** If the user is pasting a conversation *now* ("turn this into tickets"), that is the source — even if `./plans/*.md` exists. The priority order ranks source *quality*, not source *recency*; a plan file from another feature is not a better source than the thing the user just handed you.
+- **More than one plan or PRD present.** These are per-feature artifacts, so several will accumulate. Confirm which feature you're cutting tickets for rather than defaulting to the newest.
 
 Load the chosen source in full:
 

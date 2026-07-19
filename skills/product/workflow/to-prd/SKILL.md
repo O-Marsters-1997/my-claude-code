@@ -10,9 +10,11 @@ A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in produc
 Before asking any question in the steps below, treat two sources as priors and skip any question they already answer — only ask what is genuinely unknown:
 
 1. **The conversation** — scan the full conversation for an answer already provided.
-2. **On-disk priors** — load the earlier product-lifecycle artifacts if present: the approach doc (`./docs/approach.md`) and the ideate report (`./ideas/reports/*-ideate.md`). These are the upstream artifacts the `artifact-scan` skill locates — defer to it for how the lifecycle fits together rather than re-deriving it here. Read whichever exist and treat their captured decisions (problem, scope, audience, product decisions) as already-answered; do not re-interview on them, only confirm and grill deltas.
+2. **On-disk priors** — load the portfolio artifacts if present: the approach doc (`./docs/approach.md`) and the ideate report (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them, and see `../README.md` for how the suite fits together. Read whichever exist and treat their captured decisions (problem, scope, audience, product decisions) as already-answered; do not re-interview on them, only confirm and grill deltas.
 
-If neither file is on disk, fall back to the full interview unchanged.
+These priors are **accelerants, not prerequisites** — they exist to remove questions, never to gate this skill. If neither is on disk, fall back to the full interview unchanged. Do not send the user upstream to create one first.
+
+Both priors are portfolio-level: they cover several features, while this PRD covers exactly one. If the prior holds more than one feature and the target isn't obvious from the invocation, ask which feature this PRD is for before going further.
 
 This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
 

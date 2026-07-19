@@ -1,6 +1,6 @@
 ---
 name: to-plan
-description: Turn a PRD — or an approach doc, roadmap, or raw conversation — into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
+description: Turn a PRD — or an approach doc or raw conversation — into a multi-phase implementation plan for one feature, using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
 ---
 
 # PRD to Plan
@@ -15,13 +15,14 @@ Break a PRD into a phased implementation plan using vertical slices (tracer bull
 
 A PRD is the default source and takes priority. If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
 
-Otherwise the goal is to **skip straight to a plan** from whatever upstream artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which lifecycle artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
+Otherwise the goal is to **skip straight to a plan** from whatever artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
 
 - an approach doc at `./docs/approach.md`
-- a roadmap at `./roadmap.html`
 - a raw conversation summary or transcript the user has pasted
 
 If none of these and no PRD exist, ask the user to paste one or point you to a file or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
+
+**A plan covers one feature.** An approach doc or a pasted conversation is portfolio-level — it may hold several. If the target feature isn't obvious from the invocation, ask which one before drafting; don't silently plan all of them or pick the first. (See `../README.md`.)
 
 ### 2. Explore the codebase
 
