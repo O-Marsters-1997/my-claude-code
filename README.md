@@ -22,27 +22,40 @@ To list all skills available in this repo:
 npx skills add O-Marsters-1997/skills --list
 ```
 
+## Product workflow suite
+
+Eight skills that take work from a raw idea through to tickets on a board. See
+[`skills/product/workflow/README.md`](skills/product/workflow/README.md) for the map. Install the
+whole suite — the skills call each other, so a partial install leaves broken handoffs:
+
+```
+for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-plan to-tickets ticket-tracker; do
+  npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
+done
+```
+
+| Skill | Level | Takes | Produces |
+|---|---|---|---|
+| `artifact-scan` | — | nothing | a report + one routing recommendation |
+| `ideate` | portfolio | the codebase | `./ideas/reports/YYYY-MM-DD-ideate.md` |
+| `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
+| `to-roadmap` | portfolio | `./docs/approach.md` | `./roadmap.html` (cards are features) |
+| `to-prd` | feature | one feature | `./docs/prd-<feature>.md` + a `[PRD]` issue |
+| `to-plan` | feature | a PRD | `./plans/<feature>.md` |
+| `to-tickets` | feature | a plan | GitHub issues |
+| `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
+
+The suite calls three routines that are not stages — install them too:
+
+```
+for s in grill-with-docs source-synthesis design-an-interface; do
+  npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
+done
+```
+
 ## Planning & Design
 
 These skills help you think through problems before writing code.
-
-- **to-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a GitHub issue.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill to-prd
-  ```
-
-- **to-plan** — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill to-plan
-  ```
-
-- **to-tickets** — Break a plan or PRD into independently-grabbable GitHub issues using vertical slices.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill to-tickets
-  ```
 
 - **grill-with-docs** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
 

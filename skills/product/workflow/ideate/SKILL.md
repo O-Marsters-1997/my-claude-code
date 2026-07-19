@@ -7,13 +7,33 @@ description: >
   here?", "what could I add?", "what are competitors doing?", "how do I grow this?", "help me find
   gaps", or "what's missing?". Also trigger for roadmap ideation, product discovery, opportunity
   analysis, or competitive positioning. Trigger even if the user doesn't say "ideate" — if the
-  question is *what to build next in this project*, this skill applies.
+  question is *what to build next in this project*, this skill applies. Portfolio-level: it surfaces
+  many candidate features at once, each of which later runs the per-feature spine (to-prd → to-plan
+  → to-tickets) on its own. For "which skill should I run next?" use artifact-scan instead.
 ---
 
 # Ideate
 
 Help the user discover what to build next in *this* codebase: a set of high-conviction product
 ideas, grounded in the code's actual shape and calibrated against the real market.
+
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                 ^^^^^^ you are here
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+```
+
+**Portfolio → feature is a fan-out, not a step.** This skill produces *several* candidate features.
+A roadmap card is one of them — something to be built, which the spine later breaks into several
+tickets. Never plan or ticket the whole report in one pass; each idea is its own run.
+
+**Nothing gates anything.** The report is an accelerant for `to-prd` and `chat-to-approach`, never a
+prerequisite. A user who already knows what they want should go straight to `to-prd`.
 
 ## Operating principles
 

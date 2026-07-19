@@ -1,9 +1,27 @@
 ---
 name: to-tickets
-description: Break a source — an implementation plan file (default), a PRD GitHub issue, or a raw conversation — into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when the user wants to convert a plan to issues, create tickets from a plan file, go from PRD to issues, cut tickets from a PRD, create tickets from a PRD, turn a conversation into issues, or break work into grabbable GitHub items.
+description: Break a source — an implementation plan file (default), a PRD GitHub issue, or (only when neither exists) a raw conversation — into independently-grabbable GitHub issues using tracer-bullet vertical slices. Cuts tickets for one feature per run: one roadmap card / one PRD becomes several tickets. Use when the user wants to convert a plan to issues, create tickets from a plan file, go from PRD to issues, cut tickets from a PRD, create tickets from a PRD, turn a conversation into issues, or break work into grabbable GitHub items. If the user wants the technical design worked out first, run to-plan instead.
 ---
 
 # Plan to Issues
+
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+                                                    ^^^^^^^^^^ you are here
+```
+
+**Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
+built — and this is the stage that turns exactly one of those features into its several tickets.
+Never cut tickets for a whole roadmap or approach doc in one run.
+
+**Nothing gates anything.** A missing plan is not a blocker — cut tickets from whatever exists, and
+say so if the source is thin on technical design.
 
 Break a source into independently-grabbable GitHub issues using vertical slices (tracer bullets). The source is one of three, in priority order:
 
