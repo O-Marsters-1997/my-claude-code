@@ -3,6 +3,10 @@ name: grill-with-docs
 description: Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallise. Use when user wants to stress-test a plan against their project's language and documented decisions.
 ---
 
+> **This is THE canonical grilling core.** The grilling loop lives here and only here. Other skills delegate to it rather than re-inlining the loop.
+>
+> **Rule: user-invoked orchestrators vs model-invoked routines.** A user-invoked skill (e.g. `to-prd`, `chat-to-approach`) orchestrates a workflow and may call model-invoked routines like this one. This grilling core is a model-invoked routine: it is not triggered directly by the user, it is delegated to from within another skill's flow. When a skill needs grilling, it points here — one level deep, no copy-paste.
+
 <what-to-do>
 
 Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.

@@ -230,7 +230,7 @@ Then write the report to the path echoed by that block.
 
 The report should read in 5 minutes and be directly actionable. End with **concrete build
 steps** — the single idea to start on, the tracer-bullet first slice, and a pointer to
-`write-a-prd` for the next step. Not business validation. Not "go interview 10 users". Build steps.
+`to-prd` for the next step. Not business validation. Not "go interview 10 users". Build steps.
 
 ---
 
@@ -269,6 +269,24 @@ If they agree:
    - Plausible feature-work PRs/merges from the output above → `## Implemented ideas`
      (conservative: only items that clearly look like feature work; skip chores and fixes)
    - This run's recommended idea → `## Proposed ideas (pending)`
+
+---
+
+## Phase 8 — Select the build target
+
+The report proposes a recommended idea, but the user makes the final call on what to build.
+
+1. Present the tiered opportunities and ask, via `AskUserQuestion`, which *single* idea to take
+   forward as the build target — offer the report's recommended idea as the default, with the
+   other ideas selectable.
+2. Record the choice in one line at the top of the report under a `## Selected build target`
+   heading: the idea title plus its tracer-bullet first slice.
+3. Hand off: invoke `to-prd` with the chosen idea (and its first slice) as the starting
+   brief — that skill treats the ideate report as an on-disk prior, so the selection flows
+   straight into the PRD interview.
+
+If the user isn't ready to commit, leave the report as-is and say selection can happen on a
+later pass — don't force a pick.
 
 ---
 

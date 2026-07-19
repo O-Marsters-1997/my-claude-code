@@ -1,0 +1,57 @@
+{
+  "skill_name": "ticket-tracker",
+  "notes": "All evals assume the subagent runs with cwd set to a real repo with a GitHub remote and the gh CLI authenticated. The skill uses status:* labels on GitHub issues as the state machine. Issue reads/writes go through `gh issue list` and `gh issue edit`, so evals against a live repo will mutate labels — run against a scratch repo or fixture. Assertions focus on behaviour (reads state, moves a ticket between states, reuses triage-issue conventions), not exact wording.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "trigger-show-board",
+      "prompt": "where are all my tickets at right now?",
+      "expected_output": "The skill runs `gh issue list` reading the status:* labels, then prints a live board grouping the open issues by state (backlog / ready / in-progress / in-review / done). No static roadmap.html is generated.",
+      "files": [],
+      "assertions": [
+        {"text": "The skill triggers on this prompt (ticket status / board request) rather than deferring to to-roadmap"},
+        {"text": "The agent runs `gh issue list` (or `gh issue view`) to read the current tickets, not a cached or static file"},
+        {"text": "Output groups tickets by state derived from the status:* labels, showing each defined state column"},
+        {"text": "The skill does NOT write or refresh ./roadmap.html — it renders live from GitHub, not a static snapshot"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "move-ticket-between-states",
+      "prompt": "issue 42 is done being coded, it's up for review now — move it along",
+      "expected_output": "The skill transitions issue #42 from its current state to in-review by swapping the status:* label via `gh issue edit`, removing the old status label and adding the new one, then confirms the new state.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent runs `gh issue edit 42` (or equivalent) to change the issue's status labels"},
+        {"text": "The transition removes the prior status:* label AND adds the new status:in-review label — a ticket carries exactly one status label"},
+        {"text": "The agent validates the transition against the defined state order before applying it (e.g. rejects or flags a nonsensical jump)"},
+        {"text": "The agent confirms the ticket's new state after the edit"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "bootstrap-labels-missing",
+      "prompt": "start tracking my issues by state",
+      "expected_output": "When the status:* labels do not yet exist in the repo, the skill creates them via `gh label create`, then treats unlabelled open issues as backlog and renders the initial board.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent checks whether the status:* labels exist (`gh label list`) before relying on them"},
+        {"text": "If labels are missing, the agent creates the full set of status:* labels via `gh label create`"},
+        {"text": "Open issues without any status:* label are treated as backlog rather than dropped"},
+        {"text": "After bootstrapping, the agent reads current ticket states and renders the board"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "reuses-triage-issue-conventions",
+      "prompt": "triage this crash and then show me where it lands on the board",
+      "expected_output": "The skill defers issue creation to the triage-issue workflow (does not duplicate its investigate-and-file flow), then places the newly created issue into backlog and shows the board — extending triage-issue toward ongoing tracking rather than re-implementing it.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent does NOT re-implement triage-issue's investigate-root-cause-and-file flow; it defers new-issue creation to triage-issue"},
+        {"text": "A newly filed issue enters the board at the backlog (or ready) state by getting its initial status:* label"},
+        {"text": "The agent reads the current ticket states and renders the board after triage completes"}
+      ]
+    }
+  ]
+}

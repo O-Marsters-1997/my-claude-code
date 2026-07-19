@@ -1,19 +1,27 @@
 ---
-name: prd-to-plan
-description: Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions "tracer bullets".
+name: to-plan
+description: Turn a PRD — or an approach doc, roadmap, or raw conversation — into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
 ---
 
 # PRD to Plan
 
-This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that plan-to-issues can derive independently-grabbable tickets from it without re-deriving the design.
+This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design.
 
 Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./plans/`.
 
 ## Process
 
-### 1. Confirm the PRD is in context
+### 1. Locate the input (PRD by default)
 
-The PRD should already be in the conversation. If it isn't, ask the user to paste it or point you to the file or GitHub issue.
+A PRD is the default source and takes priority. If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
+
+Otherwise the goal is to **skip straight to a plan** from whatever upstream artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which lifecycle artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
+
+- an approach doc at `./docs/approach.md`
+- a roadmap at `./roadmap.html`
+- a raw conversation summary or transcript the user has pasted
+
+If none of these and no PRD exist, ask the user to paste one or point you to a file or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
 
 ### 2. Explore the codebase
 
@@ -51,7 +59,7 @@ Break the PRD into **tracer bullet** phases. Each phase is a thin vertical slice
 Present the proposed breakdown as a numbered list. For each phase show:
 
 - **Title**: short descriptive name
-- **User stories covered**: which user stories from the PRD this addresses
+- **User stories covered**: which user stories or features from the source this addresses
 
 Ask the user:
 
@@ -67,7 +75,7 @@ Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named a
 <plan-template>
 # Plan: <Feature Name>
 
-> Source PRD: <issue URL or brief identifier>
+> Source: <PRD issue URL, ./docs/approach.md, ./roadmap.html, or brief identifier>
 
 ## Technical design decisions
 
@@ -85,7 +93,7 @@ Durable decisions that apply across all phases. Be concrete — this section is 
 
 ## Phase 1: <Title>
 
-**User stories**: <list from PRD>
+**User stories**: <list from source>
 
 ### What to build
 
@@ -101,7 +109,7 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 
 ## Phase 2: <Title>
 
-**User stories**: <list from PRD>
+**User stories**: <list from source>
 
 ### What to build
 

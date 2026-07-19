@@ -1,0 +1,47 @@
+{
+  "skill_name": "to-roadmap",
+  "notes": "Evals run with cwd set to a scratch working directory. The presence or absence of ./docs/approach.md selects the source path: if present, the skill treats it as settled truth and SKIPS grilling (approach path); if absent, it parses the pasted conversation and grills ambiguous items (conversation path). Both paths render a self-contained Now/Next/Later kanban to roadmap.html and finish with a short receipt.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "approach-doc-present-skips-grilling",
+      "prompt": "make me a roadmap",
+      "expected_output": "Because ./docs/approach.md exists, the skill takes the approach path: it detects the doc via an artifact-scan preflight, treats it as settled truth, does NOT re-parse a conversation or invoke grill-with-docs, asks only light prioritisation questions to tier the doc's features, and renders a Now/Next/Later kanban to roadmap.html. The approach doc is left unmodified.",
+      "files": [
+        {
+          "path": "./docs/approach.md",
+          "content": "# Approach — TaskPal\n\n## What we're building\n\nA minimal solo-founder task app with a fast keyboard-first capture flow.\n\n## Features\n\n### User authentication\n- Problem: Users need a secure private account to keep their tasks.\n- Value: Unblocks all persistence and sync.\n- Dependencies: database setup\n\n### Quick capture\n- Problem: Adding a task takes too many taps today.\n- Value: A single keyboard shortcut captures a task from anywhere.\n- Dependencies: user authentication\n\n### Weekly review view\n- Problem: Users lose track of what they finished.\n- Value: A read-only weekly digest of completed tasks.\n- Dependencies: none\n\n## Constraints\n\n- Use Postgres.\n- Mobile-first.\n\n## Principles\n\n- Ship weekly.\n\n## Open questions\n\n1. Should the weekly review be emailed or in-app only? — affects notification work.\n"
+        }
+      ],
+      "assertions": [
+        {"text": "The agent detects ./docs/approach.md exists (references an artifact-scan preflight or equivalent detection) before choosing a path"},
+        {"text": "The agent takes the approach path: it does NOT invoke or delegate to the grill-with-docs skill"},
+        {"text": "The agent does NOT ask the user to paste a conversation and does NOT re-parse source conversation text"},
+        {"text": "The agent does NOT modify ./docs/approach.md"},
+        {"text": "The agent asks light prioritisation questions to assign the approach doc's features to Now / Next / Later"},
+        {"text": "The tiering is reasoned, not arbitrary: the agent justifies at least one tier placement against the prioritisation lens (value / effort / dependency / risk) — e.g. tiering user authentication toward Now because it blocks quick capture"},
+        {"text": "A self-contained roadmap.html is written with three columns (Now / Next / Later) and no JavaScript"},
+        {"text": "The three features from approach.md (user authentication, quick capture, weekly review view) each appear as a card"},
+        {"text": "The open question about emailed vs in-app weekly review is carried forward into the Open Questions section verbatim"},
+        {"text": "The finishing receipt notes the source was ./docs/approach.md and that it was left unmodified"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "conversation-only-runs-grilling",
+      "prompt": "turn this into a roadmap:\n\nMe: I want to build a small habit tracker. Definitely need accounts so people can save streaks.\nAI: Makes sense. What about reminders?\nMe: Yeah reminders are a must, push notifications.\nAI: And you mentioned analytics earlier?\nMe: We talked about a stats dashboard but I'm not sure. Maybe later. Also I decided we're NOT doing social sharing, that's out of scope.\nAI: Got it. Anything on onboarding?\nMe: There should be some onboarding but I haven't thought it through.",
+      "expected_output": "Because ./docs/approach.md does NOT exist, the skill takes the conversation path: it parses the transcript into decided / discussed / discarded / open-question buckets, runs an alignment grilling pass via grill-with-docs on the ambiguous items (stats dashboard, onboarding), drops only the explicitly rejected social sharing, and renders a Now/Next/Later kanban to roadmap.html with open questions flagged.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent determines ./docs/approach.md does not exist and takes the conversation path"},
+        {"text": "The agent runs an alignment grilling pass (invokes or delegates to grill-with-docs) on ambiguous items such as the stats dashboard and onboarding"},
+        {"text": "Committed features (accounts/streaks, reminders / push notifications) appear as cards on the board"},
+        {"text": "Social sharing is dropped (it was explicitly rejected) and is not rendered as a card"},
+        {"text": "The ambiguous stats dashboard and under-thought onboarding are surfaced for clarification (grilled or flagged as open questions), not silently dropped"},
+        {"text": "A self-contained roadmap.html is written with Now / Next / Later columns and no JavaScript"},
+        {"text": "The agent does NOT create or write ./docs/approach.md"},
+        {"text": "The finishing receipt notes the feature distribution and what was excluded (only the actively rejected social sharing)"}
+      ]
+    }
+  ]
+}

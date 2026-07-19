@@ -26,28 +26,28 @@ npx skills add O-Marsters-1997/skills --list
 
 These skills help you think through problems before writing code.
 
-- **write-a-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a GitHub issue.
+- **to-prd** — Create a PRD through an interactive interview, codebase exploration, and module design. Filed as a GitHub issue.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill write-a-prd
+  npx skills add O-Marsters-1997/skills --skill to-prd
   ```
 
-- **prd-to-plan** — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices.
+- **to-plan** — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill prd-to-plan
+  npx skills add O-Marsters-1997/skills --skill to-plan
   ```
 
-- **prd-to-issues** — Break a PRD into independently-grabbable GitHub issues using vertical slices.
+- **to-tickets** — Break a plan or PRD into independently-grabbable GitHub issues using vertical slices.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill prd-to-issues
+  npx skills add O-Marsters-1997/skills --skill to-tickets
   ```
 
-- **grill-me** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **grill-with-docs** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill grill-me
+  npx skills add O-Marsters-1997/skills --skill grill-with-docs
   ```
 
 - **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents.

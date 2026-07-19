@@ -1,13 +1,34 @@
 ---
-name: chat-to-roadmap
-description: Parse a pasted AI conversation summary or transcript into a lightweight product roadmap. Extracts agreed-upon features and surfaces ambiguous items for clarification — only explicitly rejected ideas are silently dropped. Organises output into Now / Next / Later priority tiers rendered as a visual kanban HTML board where each card represents a feature (not a ticket), with open questions flagged separately at the bottom. Solo/indie-builder scale — no enterprise PM overhead. Use this skill whenever the user pastes a conversation and wants a roadmap, action items, or a kanban board extracted from it. Trigger on phrases like "turn this into a roadmap", "what did we decide?", "extract actions from this chat", "make me a kanban", "pull the decisions from this", "what should I build next based on this conversation", or "roadmap from this transcript". Use it even if the user just drops a wall of AI conversation text without explicit instructions — if they seem to want structure from a chat, this skill applies.
+name: to-roadmap
+description: Build a lightweight product roadmap from EITHER a pasted AI conversation OR an existing ./docs/approach.md. For a conversation (default), extracts agreed features, grills ambiguous items, and drops only explicitly rejected ideas. If ./docs/approach.md exists, treats it as settled truth and builds straight from it — no grilling. Organises features into Now / Next / Later tiers rendered as a visual kanban HTML board (each card is a feature, not a ticket), open questions flagged at the bottom. Use whenever the user pastes a conversation and wants a roadmap or kanban, OR wants a roadmap from an approach doc. Trigger on "turn this into a roadmap", "what did we decide?", "make me a kanban", "pull the decisions from this", "what should I build next", "roadmap from our approach doc", "generate roadmap from approach.md", "refresh the roadmap", or "prioritise the approach". Use it even if the user just drops a wall of AI conversation text — if they seem to want structure from a chat, this skill applies.
 ---
 
 ## Overview
 
-Turn a messy AI conversation into a clean, visual product roadmap. The goal is to extract *signal* — things that were genuinely decided, committed to, or worth clarifying — and only discard noise that was explicitly rejected in the conversation. The output is a standalone HTML kanban board with three columns (Now / Next / Later) where each card represents a **feature**, not a ticket. A separate `prd-to-issues` skill handles breaking features into tickets later.
+Turn a messy AI conversation into a clean, visual product roadmap. The goal is to extract *signal* — things that were genuinely decided, committed to, or worth clarifying — and only discard noise that was explicitly rejected in the conversation. The output is a standalone HTML kanban board with three columns (Now / Next / Later) where each card represents a **feature**, not a ticket. A separate `to-tickets` skill handles breaking features into tickets later.
 
 Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder matrices.
+
+---
+
+## Phase 0 — Detect the Source
+
+This skill takes one of two inputs. Decide which before doing anything else.
+
+Run the `artifact-scan` skill as a preflight to detect whether `./docs/approach.md` exists — defer to it, don't reimplement its file checks.
+
+- **`./docs/approach.md` exists → APPROACH PATH.** The approach doc is the canonical, *settled* alignment doc. Treat it as truth: **skip Phase 1 and Phase 2 (no re-parsing, no grilling)** and go straight to Phase 3 using the doc's contents. Do not modify `./docs/approach.md`. If the user *also* pasted a conversation, tell them the approach doc takes precedence — point them at `chat-to-approach` if they want to fold new material into alignment first.
+- **No `./docs/approach.md` → CONVERSATION PATH (default).** The user is working from a pasted conversation. Proceed through Phase 1 → Phase 2 → Phase 3 as normal, grilling included.
+
+### Approach path — load the doc
+
+Read `./docs/approach.md` and extract, treating every item as already agreed (no grilling):
+- All features (Name, Problem, Value, Dependencies) → cards
+- Constraints → a note below the board, not cards
+- Principles → use to inform tier suggestions (e.g. "ship weekly" → fewer Now items)
+- Open questions → carry forward verbatim into the Open Questions section
+
+If a feature in the doc is genuinely too vague to tier, do **not** re-litigate it — say so and ask the user for a tier, or point them back to `chat-to-approach` to sharpen the doc. Then continue to Phase 3.
 
 ---
 
@@ -33,7 +54,7 @@ At roadmap level, only Name + Problem are required on the card. Value and Depend
 - Ask: "Could a user describe what they'd get from this in one sentence?" If yes, it's a feature
 - Distinguish features from:
   - *Constraints* — architectural or technical decisions that shape features but aren't features themselves (e.g. "use Postgres") — record as a note, not a card
-  - *Tasks* — implementation steps inside a feature (e.g. "wire up the ORM") — don't put these on the kanban; `prd-to-issues` handles this later
+  - *Tasks* — implementation steps inside a feature (e.g. "wire up the ORM") — don't put these on the kanban; `to-tickets` handles this later
   - *Principles* — values or preferences the user expressed ("keep it simple", "mobile-first") — capture as context, not a card
 
 **Anti-patterns to avoid:**
@@ -45,6 +66,8 @@ At roadmap level, only Name + Problem are required on the card. Value and Depend
 ---
 
 ## Phase 1 — Parse the Conversation
+
+*Conversation path only. On the approach path this is already done — skip to Phase 3.*
 
 Read the pasted transcript or summary carefully. Classify everything into four buckets:
 
@@ -61,6 +84,8 @@ Read the pasted transcript or summary carefully. Classify everything into four b
 ---
 
 ## Phase 2 — Alignment Grilling (Safeguard)
+
+*Conversation path only. The approach doc is settled truth — never grill it; skip this phase entirely on the approach path.*
 
 Before generating the roadmap, run a focused grilling session using the `grill-with-docs` skill. This is the safeguard: stress-test your extraction before committing it to a visual artifact. Don't skip this phase. `grill-with-docs` owns the resolution of ambiguity — defer to it rather than making a judgement call yourself.
 
@@ -93,13 +118,22 @@ Keep this lean. Only ask if the answer would meaningfully change what ends up on
 
 ## Phase 3 — Prioritise
 
-Once features are confirmed, assign each to a tier:
+Once features are confirmed — whether from the grilled conversation or extracted from `./docs/approach.md` — assign each to a tier. On the approach path, offer a suggested tier per feature (biasing dependency-blocking features toward Now and anything speculative toward Later) and let the user confirm or override in one pass.
 
 **Now** — Committed, ready to start, essential for current momentum. If the user isn't working on it this week or next, it's not Now.
 
 **Next** — Decided but intentionally deferred. Depends on Now items finishing first, or deliberately held back to maintain focus.
 
 **Later** — Someday / low urgency / speculative. Worth keeping visible so nothing falls through the cracks, but not near-term.
+
+**Why this ordering — the prioritisation lens.** A tier is a decision, not a guess. When a feature's tier is unclear, reason it out against four levers (works for either source):
+
+- **Value** — how much user pain it removes or upside it unlocks. High value pulls toward Now.
+- **Effort** — rough size. High value + low effort is the classic Now; high effort earns Next/Later unless it's blocking.
+- **Dependency** — does other work need this first? A blocker for several features earns Now even if its own value is modest; something that depends on unfinished work can't be Now.
+- **Risk** — uncertainty or the cost of getting it wrong. De-risk early when a wrong call is expensive to unwind; defer speculative bets to Later.
+
+State the *why* in one clause when you place or suggest a tier (e.g. "Now — blocks capture and auth"), so the ordering is auditable rather than arbitrary. This is a reasoning aid only; it does not change the card format or the HTML template.
 
 Default to fewer Now items. A solo builder can realistically focus on 2–4 things at once. If everything looks like Now, something is wrong — push back and ask.
 
@@ -206,7 +240,7 @@ Write inline CSS only — no external dependencies. Use this structure as your s
 <body>
   <header>
     <h1>Roadmap</h1>
-    <p class="subtitle">Extracted from conversation · <!-- date --></p>
+    <p class="subtitle"><!-- "Extracted from conversation" (conversation path) or "Generated from approach.md" (approach path) --> · <!-- date --></p>
   </header>
 
   <div class="board">
@@ -245,6 +279,7 @@ Replace the placeholder comments with the actual cards and questions. Do not inc
 After delivering the HTML, write a brief summary (3–5 lines max):
 - How many features are on the board and how they're distributed (N Now / N Next / N Later)
 - How many open questions were flagged
-- A one-liner on anything explicitly excluded (only items the conversation actively rejected) — so the user knows you didn't silently drop things they cared about
+- **Conversation path:** a one-liner on anything explicitly excluded (only items the conversation actively rejected) — so the user knows you didn't silently drop things they cared about
+- **Approach path:** the source was `./docs/approach.md` (left unmodified) — remind the user to run `chat-to-approach` to update alignment, then re-run this skill to refresh the roadmap
 
 Don't repeat the roadmap verbatim. The summary is a receipt, not a re-explanation.

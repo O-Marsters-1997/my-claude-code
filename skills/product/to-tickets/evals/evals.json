@@ -1,0 +1,56 @@
+{
+  "skill_name": "to-tickets",
+  "notes": "All evals assume the subagent runs with cwd set to a real repo checkout with a GitHub remote (gh available). Issue creation is the deliverable; when a live gh is unavailable, assert on the issue-body drafts the agent proposes before create. Each case exercises one of the three sources — plan file (default), PRD issue, raw conversation — and pins the source-reference header the issue body must use.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "plan-file-source-default",
+      "prompt": "break this plan into grabbable GitHub issues",
+      "expected_output": "The agent uses the ./plans/*.md file as the source, drafts tracer-bullet vertical slices, quizzes the user (HITL/AFK, blockers, granularity), and creates issues in dependency order whose bodies open with a '## Source plan' header referencing the plan path.",
+      "files": [
+        {
+          "path": "./plans/auth-mvp.md",
+          "content": "# Auth MVP — Implementation Plan\n\nSource PRD: #12\n\n## Phase 1 — Session foundation\n\nData model: `users(id, email, password_hash)`, `sessions(id, user_id, expires_at)`.\nModule boundary: `auth` package owns hashing and session issuance behind a `SessionStore` interface.\n\nUser story 1: As a user I can sign up with email + password.\nUser story 2: As a user I can log in and receive a session cookie.\nAcceptance: signup persists a hashed password; login returns a valid session cookie.\n\n## Phase 2 — Protected routes\n\nUser story 3: As a user I stay logged in across requests.\nAcceptance: a request with a valid session cookie reaches a protected route; an expired one is rejected.\n"
+        }
+      ],
+      "assertions": [
+        {"text": "The agent identifies ./plans/auth-mvp.md as the source (plan file is the default source) without asking for a PRD number or conversation"},
+        {"text": "The agent proposes tracer-bullet vertical slices, each a complete end-to-end path rather than a single-layer horizontal slice"},
+        {"text": "The agent presents the breakdown as a numbered list marking each slice HITL or AFK with blocked-by relationships, and quizzes the user on granularity and dependencies before creating anything"},
+        {"text": "Each created (or drafted) issue body opens with a '## Source plan' header referencing `./plans/auth-mvp.md`"},
+        {"text": "No issue body uses '## Parent PRD' or '## Source conversation' as its source-reference header"},
+        {"text": "Issues are created in dependency order so blocked-by fields reference real earlier issue numbers"},
+        {"text": "The source plan file ./plans/auth-mvp.md is not modified"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "prd-issue-source",
+      "prompt": "cut implementation tickets from PRD issue #12",
+      "expected_output": "With no ./plans/*.md present, the agent fetches PRD issue #12 with gh, drafts tracer-bullet slices, quizzes the user, and creates issues whose bodies open with a '## Parent PRD' header referencing #12.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent uses the PRD GitHub issue #12 as the source (fetches it with gh issue view rather than looking only for a plan file)"},
+        {"text": "The agent proposes tracer-bullet vertical slices and quizzes the user on HITL/AFK, blockers, and granularity before creating issues"},
+        {"text": "Each created (or drafted) issue body opens with a '## Parent PRD' header referencing #12"},
+        {"text": "No issue body uses '## Source plan' or '## Source conversation' as its source-reference header"},
+        {"text": "Issues are created in dependency order with blocked-by fields referencing real earlier issue numbers"},
+        {"text": "The parent PRD issue #12 is not closed or modified"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "conversation-source",
+      "prompt": "we just spent an hour hashing this out in chat — turn our conversation into GitHub issues. We agreed to add a CSV export: a button on the reports page hits a new /export endpoint that streams the current report as CSV, gated behind the existing auth middleware. Then a follow-up to let users pick which columns are included.",
+      "expected_output": "With no plan file and no PRD issue, the agent treats the in-context conversation as the source, drafts tracer-bullet slices, quizzes the user, and creates issues whose bodies open with a '## Source conversation' header.",
+      "files": [],
+      "assertions": [
+        {"text": "The agent treats the in-context conversation as the source (does not demand a ./plans/*.md file or a PRD issue number)"},
+        {"text": "The agent proposes tracer-bullet vertical slices grounded in the conversation (e.g. an /export endpoint slice, then a column-selection slice) and quizzes the user before creating issues"},
+        {"text": "Each created (or drafted) issue body opens with a '## Source conversation' header"},
+        {"text": "No issue body uses '## Source plan' or '## Parent PRD' as its source-reference header"},
+        {"text": "Issues are created in dependency order with blocked-by fields referencing real earlier issue numbers"}
+      ]
+    }
+  ]
+}
