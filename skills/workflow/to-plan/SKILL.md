@@ -1,6 +1,15 @@
 ---
 name: to-plan
-description: Turn a PRD — or, when no PRD exists, an approach doc or raw conversation — into a multi-phase implementation plan for one feature, using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Covers exactly one feature per run: a roadmap card or a single approach-doc feature, which later breaks into several tickets. If the source holds more than one feature, ask which one before drafting. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets". For turning a source straight into GitHub issues without a plan, use to-tickets instead.
+description: >
+  Turn a PRD — or, when no PRD exists, an approach doc or raw conversation — into a multi-phase
+  implementation plan for one feature, using tracer-bullet vertical slices, saved as a local
+  Markdown file in ./plans/. Covers exactly one feature per run: a roadmap card or a single
+  approach-doc feature, which later breaks into several tickets. If the source holds more than one
+  feature, ask which one before drafting. Use when the user wants to go from PRD to plan, break
+  down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an
+  approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or
+  mentions "tracer bullets". For turning a source straight into GitHub issues without a plan, use
+  to-tickets instead.
 ---
 
 # PRD to Plan

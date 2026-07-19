@@ -1,6 +1,14 @@
 ---
 name: ticket-tracker
-description: Live triage board over GitHub issues — reads the current tickets via the gh CLI and moves each between states (backlog → ready → in-progress → in-review → done) using status labels. This is the *ticket-level* board, complementing the *feature-level* ./roadmap.html rather than replacing it: a roadmap card is a feature that becomes several tickets here. Use when the user asks "where are my tickets", "show the board", "what's in progress", "move issue N to in-review", "what's ready to pick up", "update the ticket status", "mark N done", or otherwise wants to see or change where work sits. Trigger whenever the request is about the *current state* of GitHub issues rather than generating a new roadmap or filing a new issue.
+description: >
+  Live triage board over GitHub issues — reads the current tickets via the gh CLI and moves each
+  between states (backlog → ready → in-progress → in-review → done) using status labels. This is
+  the *ticket-level* board, complementing the *feature-level* ./roadmap.html rather than replacing
+  it: a roadmap card is a feature that becomes several tickets here. Use when the user asks "where
+  are my tickets", "show the board", "what's in progress", "move issue N to in-review", "what's
+  ready to pick up", "update the ticket status", "mark N done", or otherwise wants to see or
+  change where work sits. Trigger whenever the request is about the *current state* of GitHub
+  issues rather than generating a new roadmap or filing a new issue.
 ---
 
 # Ticket Tracker

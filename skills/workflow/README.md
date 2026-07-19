@@ -22,6 +22,14 @@ error to tell you.
 The routines the suite calls (`../product/grill-with-docs`, `../product/source-synthesis`,
 `../product/design-an-interface`, `../product/triage-issue`) install the same way.
 
+**Keep every `description` a folded block scalar (`description: >`).** A plain one-line description
+containing `": "` is invalid YAML, and a skill whose frontmatter won't parse is dropped from
+`npx skills add --list` silently — no error, it simply isn't there. After editing a description:
+
+```
+grep -l '^description: [^>|].*: ' skills/*/*/SKILL.md   # must print nothing
+```
+
 ---
 
 **Skills must not reference this file.** Installation is flat — each skill lands in its own directory

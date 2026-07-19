@@ -1,6 +1,13 @@
 ---
 name: to-tickets
-description: Break a source — an implementation plan file (default), a PRD GitHub issue, or (only when neither exists) a raw conversation — into independently-grabbable GitHub issues using tracer-bullet vertical slices. Cuts tickets for one feature per run: one roadmap card / one PRD becomes several tickets. Use when the user wants to convert a plan to issues, create tickets from a plan file, go from PRD to issues, cut tickets from a PRD, create tickets from a PRD, turn a conversation into issues, or break work into grabbable GitHub items. If the user wants the technical design worked out first, run to-plan instead.
+description: >
+  Break a source — an implementation plan file (default), a PRD GitHub issue, or (only when
+  neither exists) a raw conversation — into independently-grabbable GitHub issues using tracer-
+  bullet vertical slices. Cuts tickets for one feature per run: one roadmap card / one PRD becomes
+  several tickets. Use when the user wants to convert a plan to issues, create tickets from a plan
+  file, go from PRD to issues, cut tickets from a PRD, create tickets from a PRD, turn a
+  conversation into issues, or break work into grabbable GitHub items. If the user wants the
+  technical design worked out first, run to-plan instead.
 ---
 
 # Plan to Issues
