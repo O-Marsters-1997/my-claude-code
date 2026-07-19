@@ -5,17 +5,22 @@ board. This file is the map for humans working on the suite.
 
 ## Installing
 
+Install all eight — the skills call each other, so a partial install leaves broken handoffs:
+
 ```
-./install.sh
+for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-plan to-tickets ticket-tracker; do
+  npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
+done
 ```
 
-The `skills` CLI only discovers `skills/<category>/<name>/SKILL.md` — one level shallower than this
-directory — so `npx skills add` cannot see anything in here. `install.sh` copies the suite into
-`~/.agents/skills` directly. Because these skills are then outside the CLI's lockfile, `npx skills
-check` and `npx skills update` will never flag them: **re-run `./install.sh` after every change**.
+**This suite must stay at `skills/workflow/<name>/`.** The `skills` CLI discovers
+`skills/<category>/<name>/SKILL.md` and nothing deeper. When the suite briefly lived at
+`skills/product/workflow/<name>/` it was invisible to `npx skills add` — six of the eight silently
+went uninstalled. Nesting one directory further to tidy things up breaks installation, with no
+error to tell you.
 
-The routines the suite calls (`../grill-with-docs`, `../source-synthesis`, `../design-an-interface`,
-`../triage-issue`) sit at depth 2 and install normally via `npx skills add`.
+The routines the suite calls (`../product/grill-with-docs`, `../product/source-synthesis`,
+`../product/design-an-interface`, `../product/triage-issue`) install the same way.
 
 ---
 
@@ -90,7 +95,7 @@ create a missing artifact — if they have what the stage needs, run the stage.
 
 ## Orchestrators vs routines
 
-From `../grill-with-docs/SKILL.md`, and it applies suite-wide:
+From `../product/grill-with-docs/SKILL.md`, and it applies suite-wide:
 
 > A **user-invoked skill** orchestrates a workflow and may call **model-invoked routines**. A routine
 > is not triggered directly by the user — it is delegated to from within another skill's flow.
@@ -103,10 +108,10 @@ appear in the map above:
 
 | Routine | Called by | For |
 |---|---|---|
-| `../grill-with-docs` | `chat-to-approach`, `to-prd`, `to-roadmap` | the canonical grilling loop — never re-inline it |
-| `../source-synthesis` | `chat-to-approach` | the optional `## Background Research` section of `approach.md` |
-| `../design-an-interface` | `to-plan` | designing a module boundary twice before committing to one |
-| `../triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |
+| `../product/grill-with-docs` | `chat-to-approach`, `to-prd`, `to-roadmap` | the canonical grilling loop — never re-inline it |
+| `../product/source-synthesis` | `chat-to-approach` | the optional `## Background Research` section of `approach.md` |
+| `../product/design-an-interface` | `to-plan` | designing a module boundary twice before committing to one |
+| `../product/triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |
 
 ## Not in scope
 
