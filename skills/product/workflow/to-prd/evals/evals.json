@@ -1,0 +1,84 @@
+{
+  "skill_name": "to-prd",
+  "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout so the codebase-exploration step (2) has code to ground against. The skip-if-answered precondition treats two sources as priors: the conversation and on-disk upstream artifacts (./docs/approach.md, ./ideas/reports/*-ideate.md). These cases pin that behaviour: when priors are on disk, questions they answer are skipped; when nothing is on disk, the full interview runs unchanged. The PRD artifact is the local file ./docs/prd-<feature>.md, written FIRST; the GitHub issue is filed from that file as a copy. The file must be written even if gh is unavailable, so the stage survives a repo with no remote and can be re-run without depending on the issue.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "priors-on-disk-skipped",
+      "prompt": "Let's write a PRD for the diff-based doc freshness feature.",
+      "expected_output": "The skill reads ./docs/approach.md and the ./ideas/reports/*-ideate.md report before interviewing, treats the problem/scope/audience/product decisions they capture as already-answered, and only grills on deltas \u2014 it does NOT re-ask the user to describe the problem or re-derive scope that the priors already settle. Output is a [PRD] GitHub issue in product language.",
+      "files": [
+        {
+          "path": "./docs/approach.md",
+          "content": "---\nlast_updated: 2026-06-01\n---\n\n# DocSync \u2014 Approach\n\n## What we are building\n\nA diff-based doc freshness feature: surface documentation sections that have drifted out of sync with the code they describe, shown as a CLI warning during normal dev workflow.\n\n## Who it is for\n\nSolo developers and small teams already using DocSync to generate codemaps.\n\n## Why\n\nDocs silently rot; the biggest pain is not writing docs but trusting that existing docs are still true. Treating freshness as a diffing problem (code changed, doc did not) lets us flag staleness automatically.\n\n## Product decisions already settled\n\n- Freshness is surfaced as a non-blocking CLI warning, not a hard failure.\n- Scope is limited to Markdown docs under ./docs; source-code comments are out of scope.\n- A section is 'stale' when the code paths it references changed after the doc's last edit.\n"
+        },
+        {
+          "path": "./ideas/reports/2026-05-20-ideate.md",
+          "content": "# Ideation report \u2014 2026-05-20\n\n## Desired Outcome\n\nMake developers trust that docs are current without manual review.\n\n## Opportunities\n\n### Diff-based doc freshness score (adjacent)\n\n**Idea** Surface stale documentation sections as a CLI warning, scored by how far the referenced code has drifted since the doc was last touched.\n\n**Why this codebase is uniquely positioned** DocSync already builds a code-to-doc reference map when generating codemaps; the freshness check reuses that map.\n\n**Audience** Existing DocSync users on solo/small-team projects.\n"
+        }
+      ],
+      "assertions": [
+        {
+          "text": "The agent reads ./docs/approach.md before starting the interview (step 1)"
+        },
+        {
+          "text": "The agent reads the ./ideas/reports/2026-05-20-ideate.md report before starting the interview (step 1)"
+        },
+        {
+          "text": "The agent does NOT ask the user to describe the problem from scratch (step 1) \u2014 the problem is already captured in the priors"
+        },
+        {
+          "text": "The agent does NOT re-interview on scope/audience/product decisions already settled in the priors (e.g. does not re-ask whether the warning should block, or who the audience is)"
+        },
+        {
+          "text": "Any grilling (step 3, via grill-with-docs) is confined to genuine deltas or gaps not answered by the priors, not a full re-interview"
+        },
+        {
+          "text": "The final PRD's Problem Statement and Solution are consistent with the approach doc and ideate report (diff-based doc freshness, non-blocking CLI warning, Markdown-only scope)"
+        },
+        {
+          "text": "The PRD is written to a local ./docs/prd-<feature>.md file before any GitHub issue is created"
+        },
+        {
+          "text": "The GitHub issue is filed from that file via --body-file (not re-rendered into a temp file), titled with a [PRD] prefix, and both the file path and issue URL are reported"
+        },
+        {
+          "text": "The PRD stays in product language only \u2014 no code, schema, file paths, or library choices in the body"
+        },
+        {
+          "text": "The PRD draws an explicit MVP cut-line (an MVP Cut-Line section, or equivalent) separating what ships in the first cut from what is deliberately deferred, in product language \u2014 deferred items are staged, not conflated with Out of Scope rejections"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "nothing-on-disk-full-interview",
+      "prompt": "I want to write a PRD for a new feature, but I haven't written anything down yet.",
+      "expected_output": "With no ./docs/approach.md and no ./ideas/reports/*-ideate.md on disk, the skill falls back to the full interview unchanged: it asks the user for a detailed problem description (step 1), explores the repo (step 2), and grills via grill-with-docs (step 3) before writing the PRD.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "The agent asks the user for a long, detailed description of the problem (step 1) \u2014 the full interview runs because no priors are on disk"
+        },
+        {
+          "text": "The agent does NOT claim to have loaded an approach doc or ideate report that does not exist \u2014 it does not fabricate priors"
+        },
+        {
+          "text": "The agent explores the repo to ground the PRD (step 2)"
+        },
+        {
+          "text": "The agent runs the grilling session via the grill-with-docs skill (step 3), not a re-inlined questioning loop"
+        },
+        {
+          "text": "The PRD is written to a local ./docs/prd-<feature>.md file before any GitHub issue is created"
+        },
+        {
+          "text": "The GitHub issue is filed from that file via --body-file (not re-rendered into a temp file), titled with a [PRD] prefix, and both the file path and issue URL are reported"
+        },
+        {
+          "text": "The PRD stays in product language only \u2014 no code, schema, file paths, or library choices in the body"
+        }
+      ]
+    }
+  ]
+}

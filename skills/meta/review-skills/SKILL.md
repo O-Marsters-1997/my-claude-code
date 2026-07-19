@@ -11,14 +11,25 @@ Audit every skill available in the current project context and produce a structu
 
 ### 1. Discover skills in scope
 
-Scan these locations only — not the current repo's `skills/` directory (those are development-only unless installed):
+Locate the installed skills first — **do not assume a location, check which ones exist**. Installed skills live in different places depending on how they were installed, and scanning a single hardcoded path is how this audit silently reports zero skills:
 
-- `~/.claude/skills/` — global skills, available everywhere
+```bash
+for d in ~/.agents/skills ~/.claude/skills "$PWD/.claude/skills"; do
+  [ -d "$d" ] && printf '%s: %s skills\n' "$d" "$(find "$d" -maxdepth 2 -name SKILL.md | wc -l)"
+done
+```
+
+- `~/.agents/skills/` — installed via `npx skills add`, flat, one directory per skill. Usually the real set.
+- `~/.claude/skills/` — global skills
 - `<cwd>/.claude/skills/` — project-local skills installed into this project
 - Plugins: read `~/.claude/settings.json` for `enabledPlugins`, then find their SKILL.md files under `~/.claude/plugins/cache/`
 
+If `~/.agents/.skill-lock.json` exists, read it. It records each installed skill's `source` and `skillPath` in its origin repo, which lets you spot two problems a directory listing cannot: entries whose `skillPath` no longer exists upstream (the skill was renamed or moved, so `npx skills update` can no longer follow it), and installed copies that have drifted behind their source.
+
+By default, audit what is **installed** — that is what actually loads. A source repo's `skills/` directory is development-only. But when the user points you at a repo's `skills/` directory, or asks about skills they are authoring, review the source instead and say which you reviewed. If both exist, compare them: a source repo that has renamed or restructured its skills while the installed copies still carry the old names is a real, silent failure — every cross-skill reference in the new generation dangles at runtime.
+
 For each skill found, record:
-- **Source**: global, project-local, or plugin
+- **Source**: installed (`~/.agents/skills`), global, project-local, plugin, or source repo
 - **Path**: absolute path to SKILL.md
 - **Name**: from `name` frontmatter field
 - **Description**: from `description` frontmatter field
@@ -62,7 +73,7 @@ For each skill, check all 15 items below. Record pass/fail and a one-line note f
 
 **Resources**
 14. Every file referenced by name in SKILL.md actually exists on disk
-15. If references/ or scripts/ directories exist, SKILL.md mentions them so the model knows to use them
+15. If references/, scripts/ or assets/ directories exist, SKILL.md mentions them so the model knows to use them. This applies to **model-facing** resources only — files the skill reads or renders at runtime. `evals/`, `skill-feedback-ledger.md` and similar are development tooling the model never loads; requiring SKILL.md to mention them adds context noise and is not a finding.
 </quality-rubric>
 
 Assign severity to each failing check:
@@ -88,7 +99,8 @@ For each pattern found, note which skills use it and which other skills could be
 <report-template>
 ## Skills Audit Report
 
-**Skills discovered**: [N] total — [N] global, [N] project-local, [N] plugin
+**Skills discovered**: [N] total — [N] installed, [N] global, [N] project-local, [N] plugin
+**Scanned**: [which locations existed and were read; say if you audited source rather than installed]
 
 ---
 

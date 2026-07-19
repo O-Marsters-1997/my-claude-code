@@ -1,6 +1,6 @@
 ---
 name: to-plan
-description: Turn a PRD — or an approach doc, roadmap, or raw conversation — into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
+description: Turn a PRD — or an approach doc or raw conversation — into a multi-phase implementation plan for one feature, using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
 ---
 
 # PRD to Plan
@@ -13,15 +13,18 @@ Break a PRD into a phased implementation plan using vertical slices (tracer bull
 
 ### 1. Locate the input (PRD by default)
 
-A PRD is the default source and takes priority. If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
+A PRD is the default source and takes priority. It exists in two forms, either of which is fine: a local `./docs/prd-<feature>.md` file (the artifact `to-prd` writes) or a `[PRD]`-titled GitHub issue (a copy of the same content). Prefer the file when both are present — it needs no network and is what `to-prd` treats as canonical.
 
-Otherwise the goal is to **skip straight to a plan** from whatever upstream artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which lifecycle artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
+If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
+
+Otherwise the goal is to **skip straight to a plan** from whatever artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
 
 - an approach doc at `./docs/approach.md`
-- a roadmap at `./roadmap.html`
 - a raw conversation summary or transcript the user has pasted
 
 If none of these and no PRD exist, ask the user to paste one or point you to a file or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
+
+**A plan covers one feature.** An approach doc or a pasted conversation is portfolio-level — it may hold several. If the target feature isn't obvious from the invocation, ask which one before drafting; don't silently plan all of them or pick the first. (See `../README.md`.)
 
 ### 2. Explore the codebase
 
@@ -35,6 +38,8 @@ Before slicing, identify technical decisions that are unlikely to change through
 - **Database schema shape** — table names, key columns, relationships
 - **Key data models** — names, fields, and their responsibilities
 - **Module boundaries** — what each module owns and exposes. Prefer **deep modules**: substantial functionality behind a simple, stable interface that can be tested in isolation (as opposed to a shallow module, whose interface is complex relative to what it does). Note which modules warrant isolated tests.
+
+  When a module boundary is central to the design and the right shape isn't obvious, run the `design-an-interface` skill on it before committing — it generates several radically different shapes in parallel and compares them. A boundary is the most expensive thing in this document to get wrong: slices are re-derived freely by `to-tickets`, but every slice is built against the interface. Use it sparingly, on the one or two boundaries the feature actually hinges on.
 - **API / interface contracts** — endpoint shapes, function signatures (at the module boundary level, not internal implementation)
 - **Integration points** — third-party services, async boundaries, storage adapters
 - **Key flows / algorithms** — non-trivial logic described at the level of "what calls what"
@@ -75,7 +80,7 @@ Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named a
 <plan-template>
 # Plan: <Feature Name>
 
-> Source: <PRD issue URL, ./docs/approach.md, ./roadmap.html, or brief identifier>
+> Source: <./docs/prd-<feature>.md, PRD issue URL, ./docs/approach.md, or brief identifier>
 
 ## Technical design decisions
 
@@ -121,3 +126,5 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 
 <!-- Repeat for each phase -->
 </plan-template>
+
+When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
