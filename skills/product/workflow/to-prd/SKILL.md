@@ -3,14 +3,34 @@ name: to-prd
 description: >
   Turn a feature idea into a PRD for one feature — the WHAT and WHY in product language — through
   interview, codebase exploration, and an MVP cut-line, saved to ./docs/prd-<feature>.md and filed
-  as a GitHub issue. This is where the build workflow starts: run it whenever the user knows roughly
-  what they want built. Trigger on "write a PRD", "create a product requirements document", "spec
-  this out", "I want to build X", "I have an idea for a feature", "help me scope this feature",
-  "let's plan a new feature", "define the requirements for X", or "what should this feature do?".
-  Reads ./docs/approach.md and ./ideas/reports/*-ideate.md as priors if they exist, so it does not
-  re-ask what is already settled — but needs neither, and runs a full interview from nothing.
-  Prefer this over ideate when the user already knows what they want to build.
+  as a GitHub issue. The per-feature spine (to-prd → to-plan → to-tickets) starts here once a feature
+  is chosen. Covers exactly one feature: if handed a multi-feature source (approach doc, roadmap,
+  ideate report), ask which feature this PRD is for — each roadmap card is its own run down the
+  spine. Trigger on "write a PRD", "spec this out", "I want to build X", "I have an idea for a
+  feature", "help me scope this feature", "let's plan a new feature", or "define the requirements
+  for X". Reads ./docs/approach.md and ./ideas/reports/*-ideate.md as priors if they exist, so it
+  doesn't re-ask what's settled — but needs neither, and interviews from nothing. Prefer over ideate
+  when the user already knows what they want built; use artifact-scan if they don't know where they
+  are in the workflow.
 ---
+
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+                                 ^^^^^^ you are here
+```
+
+**Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
+built, which then breaks down into several tickets further down the spine. Six cards means six PRDs,
+not one; never write a single PRD covering a whole roadmap or approach doc.
+
+**Nothing gates anything.** Upstream artifacts make this stage faster and better-informed; they never
+make it required. Do not send the user backwards to create a missing artifact.
 
 **PRD principle: product language only.**
 A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in product language. It must NOT contain technical design: no code or pseudo-code, no schema DDL, no class/function/API signatures, no file paths, no library/framework choices. All technical design belongs in the plan (the technical design document produced by to-plan). If a technical detail feels important, translate it into the product outcome it serves, or note it as a "Further Notes" item to be resolved during planning.
@@ -19,7 +39,7 @@ A PRD describes WHAT and WHY — outcomes, behaviour, and requirements in produc
 Before asking any question in the steps below, treat two sources as priors and skip any question they already answer — only ask what is genuinely unknown:
 
 1. **The conversation** — scan the full conversation for an answer already provided.
-2. **On-disk priors** — load the portfolio artifacts if present: the approach doc (`./docs/approach.md`) and the ideate report (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them, and see `../README.md` for how the suite fits together. Read whichever exist and treat their captured decisions (problem, scope, audience, product decisions) as already-answered; do not re-interview on them, only confirm and grill deltas.
+2. **On-disk priors** — load the portfolio artifacts if present: the approach doc (`./docs/approach.md`) and the ideate report (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them. Read whichever exist and treat their captured decisions (problem, scope, audience, product decisions) as already-answered; do not re-interview on them, only confirm and grill deltas.
 
 These priors are **accelerants, not prerequisites** — they exist to remove questions, never to gate this skill. If neither is on disk, fall back to the full interview unchanged. Do not send the user upstream to create one first.
 

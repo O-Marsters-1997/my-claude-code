@@ -2,7 +2,9 @@
 name: to-roadmap
 description: >
   Prioritise the features in ./docs/approach.md into a Now / Next / Later kanban board, rendered as
-  a self-contained ./roadmap.html. Each card is a feature, not a ticket. The approach doc is settled
+  a self-contained ./roadmap.html. Each card is a feature, not a ticket — something to be built,
+  which one run of to-prd → to-plan → to-tickets later breaks down into several tickets. The board
+  is portfolio-level and holds many features at once. The approach doc is settled
   truth — this skill assigns tiers and reasons about ordering, it never re-litigates what was
   decided. Use whenever the user wants to prioritise, sequence, or visualise what to build: "make me
   a roadmap", "turn the approach into a roadmap", "generate a kanban", "what should I build first",
@@ -14,11 +16,28 @@ description: >
 ## Overview
 
 Turn the settled features in `./docs/approach.md` into a visual product roadmap: a standalone HTML
-kanban with three columns (Now / Next / Later) where each card is a **feature**, not a ticket.
-`to-tickets` breaks features into tickets later.
+kanban with three columns (Now / Next / Later) where each card is a **feature**, not a ticket — a
+thing to be built, which the spine later breaks down into several tickets.
 
-This skill is **portfolio-level** — it prioritises many features at once. The per-feature spine
-(`to-prd → to-plan → to-tickets`) starts from a single card. See `../README.md`.
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                    ^^^^^^^^^^^^ you are here
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+```
+
+**Portfolio → feature is a fan-out, not a step.** This skill is portfolio-level: it prioritises many
+features at once. Crossing to the spine means picking one card — six cards means six independent
+runs of `to-prd → to-plan → to-tickets`, each producing its own several tickets.
+
+**Nothing gates anything — with one deliberate exception, here.** Everywhere else in the suite a
+missing upstream artifact is a deliberate skip, not a blocker. This skill is the exception: it
+requires `./docs/approach.md` and routes to `chat-to-approach` if it's absent, because that skill
+owns conversation → structure (see Phase 0 for why).
 
 Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder
 matrices.

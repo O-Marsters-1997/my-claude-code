@@ -1,9 +1,26 @@
 ---
 name: to-plan
-description: Turn a PRD — or an approach doc or raw conversation — into a multi-phase implementation plan for one feature, using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets".
+description: Turn a PRD — or, when no PRD exists, an approach doc or raw conversation — into a multi-phase implementation plan for one feature, using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Covers exactly one feature per run: a roadmap card or a single approach-doc feature, which later breaks into several tickets. If the source holds more than one feature, ask which one before drafting. Use when the user wants to go from PRD to plan, break down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or mentions "tracer bullets". For turning a source straight into GitHub issues without a plan, use to-tickets instead.
 ---
 
 # PRD to Plan
+
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+                                          ^^^^^^^ you are here
+```
+
+**Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
+built, which `to-tickets` then breaks into several tickets. Six cards means six plans, not one.
+
+**Nothing gates anything.** A missing PRD is not a blocker — plan from whatever exists. Do not send
+the user backwards to create an artifact first.
 
 This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design.
 
@@ -24,7 +41,7 @@ Otherwise the goal is to **skip straight to a plan** from whatever artifact exis
 
 If none of these and no PRD exist, ask the user to paste one or point you to a file or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
 
-**A plan covers one feature.** An approach doc or a pasted conversation is portfolio-level — it may hold several. If the target feature isn't obvious from the invocation, ask which one before drafting; don't silently plan all of them or pick the first. (See `../README.md`.)
+**A plan covers one feature.** An approach doc or a pasted conversation is portfolio-level — it may hold several. If the target feature isn't obvious from the invocation, ask which one before drafting; don't silently plan all of them or pick the first.
 
 ### 2. Explore the codebase
 

@@ -1,6 +1,6 @@
 ---
 name: chat-to-approach
-description: Convert a pasted AI conversation summary or transcript into a canonical alignment document at ./docs/approach.md — the single source of truth for what we are building and why. Grills for alignment on ambiguities and conflicts, then writes or merges the result. If approach.md already exists, reads it first and only grills on deltas and conflicts, not settled decisions. Downstream skills (to-roadmap, to-plan, to-tickets) consume this doc without re-grilling. Use this skill when the user pastes a summary and wants to capture alignment, extract decisions, write an approach doc, or record what was agreed on. Trigger on phrases like "turn this chat into an approach", "extract our alignment", "write an approach doc from this", "what did we decide (save it)", "convert this summary into approach.md", "capture our decisions", or "create an alignment doc". Use it even if the user just pastes a conversation summary and says "save this" or "let's capture this".
+description: Convert a pasted AI conversation summary or transcript into a canonical alignment document at ./docs/approach.md — the single source of truth for what we are building and why. Grills only on ambiguities, conflicts and deltas, never on settled decisions. The doc is portfolio-level: it holds many features at once, which to-roadmap prioritises into a Now/Next/Later board before each feature runs the per-feature spine (to-prd → to-plan → to-tickets) on its own. Use for a multi-feature conversation; if the user already knows the one feature they want built now, prefer to-prd. Trigger when the user pastes a summary and wants to capture alignment, extract decisions, or record what was agreed — phrases like "turn this chat into an approach", "extract our alignment", "write an approach doc from this", "what did we decide (save it)", "capture our decisions", or "create an alignment doc". Use it even if the user just pastes a conversation summary and says "save this" or "let's capture this".
 ---
 
 ## Overview
@@ -9,7 +9,26 @@ Parse a pasted AI conversation summary into a structured, persistent alignment d
 
 If `./docs/approach.md` already exists, it is treated as prior settled truth. Only net-new items and conflicts require grilling — not things the doc already covers.
 
-Once this doc exists, run `to-roadmap` to generate a kanban board without repeating the grilling.
+Once this doc exists, run `to-roadmap` to generate a kanban board without repeating the grilling —
+then pick one card and run `to-prd` on it.
+
+## Where this sits
+
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                             ^^^^^^^^^^^^^^^^ you are here
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+```
+
+**Portfolio → feature is a fan-out, not a step.** This doc holds *every* feature under
+consideration. A roadmap card is one of those features — something to be built, which the spine
+later breaks into several tickets. Six features here means six independent runs down the spine.
+
+**Nothing gates anything.** This doc makes downstream stages faster; it is never a prerequisite for
+them. A user who already knows the one feature they want can skip straight to `to-prd`.
 
 **Optional: Background Research section.** `approach.md` may contain a `## Background Research` section at the top, produced by the `source-synthesis` skill, containing a lit-review synthesis of existing documentation and prior art. This skill does not create or modify that section — it is out of scope here. If the section exists, preserve it verbatim when writing or updating the file.
 

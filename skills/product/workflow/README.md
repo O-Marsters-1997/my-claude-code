@@ -1,7 +1,13 @@
 # Product workflow suite
 
 Eight skills that take work from a raw idea (or an already-scoped task) through to tickets on a
-board. This file is the map. Read it before assuming how any two of these skills relate.
+board. This file is the map for humans working on the suite.
+
+**Skills must not reference this file.** Installation is flat — each skill lands in its own directory
+under the agent's skills root, so `../README.md` does not resolve once installed, and the map would
+be unreachable at exactly the moment it's needed. Every skill therefore carries its own `## Where
+this sits` block: the same diagram, an arrow marking its position, and the two rules below. When the
+shape of the suite changes, update this file *and* all eight blocks.
 
 ## The shape
 
@@ -34,9 +40,14 @@ DOORS — optional, pick whichever matches what you have
 `approach.md` and `roadmap.html` are portfolio-level: they hold every feature you're considering.
 `to-prd`, `to-plan` and `to-tickets` handle exactly one feature per run.
 
+A **roadmap card is a feature** — something that should be built — *not* a ticket. It is expected to
+break down into several tickets, which happens at `to-tickets`, three stages later. `roadmap.html`
+and the `ticket-tracker` board are different altitudes of the same work, not rival copies of it.
+
 Crossing from portfolio to feature is a **fan-out, not a step**. A roadmap with six cards means six
-independent spine runs. When a spine skill is handed a portfolio artifact as its source, its first
-job is to establish *which feature* — ask if it isn't obvious.
+independent spine runs, each ending in its own handful of tickets. When a spine skill is handed a
+portfolio artifact as its source, its first job is to establish *which feature* — ask if it isn't
+obvious.
 
 **2. Nothing gates anything.**
 

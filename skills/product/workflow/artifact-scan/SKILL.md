@@ -4,11 +4,13 @@ description: >
   Front door to the product workflow suite — scans the repo for the product artifacts, reports what
   exists, and names the one skill to run next. Detects the ideate report, approach doc, roadmap,
   PRD, plan files, and tickets, then routes based on what the user already has rather than enforcing
-  a fixed order. Use whenever the user asks "where do I start with this project?", "which skill
-  should I use?", "what product docs already exist?", "where are we in the workflow?", "what should
-  I run next?", "do we have a roadmap/PRD/plan yet?", "I don't know where to begin", or "what's left
-  before I start coding?". Also invoke this as a preflight routine from other product skills that
-  need to know which artifacts are already present before acting.
+  a fixed order. Use whenever the user asks "which skill should I use?", "what product docs already
+  exist?", "where are we in the workflow?", "what should I run next?", "do we have a roadmap/PRD/plan
+  yet?", or "what's left before I start coding?". This routes between *skills* — for "what feature
+  should I build next?" use ideate instead. A roadmap card is a feature that fans out into its own
+  to-prd → to-plan → to-tickets run, so feature-level artifacts are counted, never ticked off. Also
+  invoke this as a preflight routine from other product skills that need to know which artifacts are
+  already present before acting.
 ---
 
 # Artifact Scan
@@ -16,11 +18,20 @@ description: >
 A fast, read-only routine. Scan the repo for the product artifacts, report what exists, and point
 the user at exactly one next skill. No interview, no grilling, no writing. Just look, report, route.
 
-Read `../README.md` for the full suite map. The short version you need to route correctly:
+## Where this sits
 
-- **The spine** is `to-prd → to-plan → to-tickets`, and it runs **per feature**.
+```
+PORTFOLIO — many features        ideate  or  chat-to-approach
+                                        ↓
+                            ./docs/approach.md  →  ./roadmap.html
+                                                        ↓  pick ONE card
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+```
+
 - **The doors** (`ideate`, `chat-to-approach`, or an already-scoped task) are optional ways in.
-- **The portfolio artifacts** (`approach.md`, `roadmap.html`) describe **many** features at once.
+- **Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
+  built, which then breaks down into several tickets. Six cards means six runs down the spine, not
+  one. When a skill is handed a portfolio artifact, it must establish *which feature* first.
 - **Nothing gates anything.** Upstream artifacts make a stage faster, they never make it required.
 
 That last point drives this skill's whole job: **report what exists, don't compute a first gap.**
