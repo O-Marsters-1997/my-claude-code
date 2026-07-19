@@ -3,6 +3,22 @@
 Eight skills that take work from a raw idea (or an already-scoped task) through to tickets on a
 board. This file is the map for humans working on the suite.
 
+## Installing
+
+```
+./install.sh
+```
+
+The `skills` CLI only discovers `skills/<category>/<name>/SKILL.md` — one level shallower than this
+directory — so `npx skills add` cannot see anything in here. `install.sh` copies the suite into
+`~/.agents/skills` directly. Because these skills are then outside the CLI's lockfile, `npx skills
+check` and `npx skills update` will never flag them: **re-run `./install.sh` after every change**.
+
+The routines the suite calls (`../grill-with-docs`, `../source-synthesis`, `../design-an-interface`,
+`../triage-issue`) sit at depth 2 and install normally via `npx skills add`.
+
+---
+
 **Skills must not reference this file.** Installation is flat — each skill lands in its own directory
 under the agent's skills root, so `../README.md` does not resolve once installed, and the map would
 be unreachable at exactly the moment it's needed. Every skill therefore carries its own `## Where
