@@ -26,13 +26,16 @@ npx skills add O-Marsters-1997/skills --list
 
 Eight skills that take work from a raw idea through to tickets on a board. See
 [`skills/product/workflow/README.md`](skills/product/workflow/README.md) for the map. Install the
-whole suite — the skills call each other, so a partial install leaves broken handoffs:
+whole suite at once — the skills call each other, so a partial install leaves broken handoffs:
 
 ```
-for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-plan to-tickets ticket-tracker; do
-  npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
-done
+skills/product/workflow/install.sh
 ```
+
+Not `npx skills add`: the CLI only discovers `skills/<category>/<name>/SKILL.md`, one level
+shallower than this suite lives, so it cannot see these. The script copies them into
+`~/.agents/skills` directly — which also means `npx skills check` and `npx skills update` won't
+track them, so re-run it after any change.
 
 | Skill | Level | Takes | Produces |
 |---|---|---|---|
@@ -45,10 +48,10 @@ done
 | `to-tickets` | feature | a plan | GitHub issues |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
-The suite calls three routines that are not stages — install them too:
+The suite calls four routines that are not stages. These sit at depth 2, so they install normally:
 
 ```
-for s in grill-with-docs source-synthesis design-an-interface; do
+for s in grill-with-docs source-synthesis design-an-interface triage-issue; do
   npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
 done
 ```
