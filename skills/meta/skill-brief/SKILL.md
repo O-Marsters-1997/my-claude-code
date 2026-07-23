@@ -55,12 +55,12 @@ When find-skills finishes it will offer its own "reply build it" CTA — **ignor
 
 ### 2. Add "what to lift" per candidate — the part find-skills skips
 
-find-skills ranks by relevance; it does not read each candidate and tell you what to take. That's your job. For each candidate worth considering, read its `SKILL.md` and write a blunt two-column note:
+find-skills ranks by relevance; it does not read each candidate and tell you what to take. That's your job. For each candidate worth considering, read its `SKILL.md` and write a blunt note keyed by the skill's catalog number (see step 4):
 
 - **Partial match** → "lift X, ignore the rest" (name the one technique or structure worth taking).
 - **Full match** → "grab wholesale" — and that's a signal the idea might be a duplicate; see step 3.
 
-Don't pad this list. A candidate with nothing worth lifting doesn't belong in the table — drop it. Three real lifts beat ten polite ones.
+Don't pad this list. A candidate with nothing worth lifting doesn't belong in the Candidates list — drop it (it still appears in the catalog above). Three real lifts beat ten polite ones.
 
 ### 3. Compliance review vs. skills the user already has
 
@@ -76,30 +76,44 @@ For a full health audit of their whole skill set (conflicts, stale descriptions)
 
 ### 4. Write `sources.md`
 
-Write `.claude/skill-brief/sources.md` with these sections, tables over prose:
+Write `.claude/skill-brief/sources.md`, tables over prose. Assign every skill find-skills surfaced a **stable incrementing number** in the catalog — that number is the skill's canonical ID for the rest of the brief's life. Reference it (not the name) everywhere downstream: candidates, compliance, notes, and any follow-up command.
 
 ```markdown
 # Skill brief — sources: {idea}
 
 **Verdict:** {build / build narrower (duplicates parts of X) / don't build (X already covers this)}
 
-## Compliance — vs. skills you already have
-| Existing skill | Overlap | Verdict |
-|----------------|---------|---------|
-| ... | none / partial / full | safe to build / narrow it / skip |
+## Similar skills found
+Reproduce find-skills' ranked results — do NOT pre-digest them away; this is the browsable catalog the user reads from. One table per capability area of the brief. Number skills continuously across all tables (1, 2, 3 …).
+
+### {capability area}
+| # | Skill | Installs | Source | Relevance | Link |
+|---|-------|----------|--------|-----------|------|
+| 1 | ... | 95.1K | ✅ Microsoft | ... | url |
+| 2 | ... | 13.5K | community | ... | url |
 
 ## Candidates — what to lift
-| Skill | Relevance | What to lift | What to leave | Link |
-|-------|-----------|--------------|---------------|------|
-| ... | strong / partial / adjacent | ... | ... | url |
+Only the numbered skills worth stealing from, by their catalog number — drop any with nothing worth lifting (they stay in the catalog above, just not here):
+
+3. **{skill-name}**
+   - lift: {technique / structure worth taking}
+   - leave: {what to ignore}
+
+## Compliance — vs. skills you already have
+| # | Existing skill | Overlap | Verdict |
+|---|----------------|---------|---------|
+| ... | ... | none / partial / full | safe to build / narrow it / skip |
 
 ## Landscape
 {the synthesis paragraphs from find-skills — the readable overview of the field}
 
 ## Your notes
-<!-- Add anything here, then run skill-brief in "capture" mode. -->
-_Nothing yet._
+<!-- For each catalogued skill, add bullets you want captured. Leave a skill's bullets empty to capture nothing for it. Then run skill-brief in "capture" mode. -->
+1. {skill-name} —
+2. {skill-name} —
 ```
+
+List every catalogued skill in "Your notes" by its number, so the user has one slot per skill; an empty slot means "capture nothing for this one".
 
 ### 5. Tell the user and stop
 
@@ -111,7 +125,7 @@ Give the one-line verdict, name the top 2–3 lifts in the conversation, then: "
 
 Goal: a tight decision record so skill-creator inherits *decisions*, not a research dump.
 
-Re-read `.claude/skill-brief/sources.md`, **including the user's notes** — those override your original recommendations. Then write `.claude/skill-brief/capture.md`:
+Re-read `.claude/skill-brief/sources.md`, **including the user's per-skill notes** — those override your original recommendations. If any note raises a clarifying question or contradicts a recommendation (e.g. asks to lift from a skill you flagged as a full-match duplicate), invoke **`/grill-with-docs`** to stress-test the decision *before* writing `capture.md` — don't silently bake the contradiction in. Preserve the catalog numbers from `sources.md` verbatim when referencing skills. Then write `.claude/skill-brief/capture.md`:
 
 ```markdown
 # Skill brief — capture: {name}
@@ -124,9 +138,9 @@ Re-read `.claude/skill-brief/sources.md`, **including the user's notes** — tho
 - **Out of scope:** ...
 
 ## Lifted from prior art
-| Take | From | How it's adapted |
-|------|------|------------------|
-| ... | [skill](url) | ... |
+| Take | From (#) | How it's adapted |
+|------|----------|------------------|
+| ... | #3 [skill](url) | ... |
 
 ## Deliberately not doing
 - {thing we could have built but chose not to, and why}
@@ -143,7 +157,7 @@ The "deliberately not doing" list is as valuable as the lifts — it stops skill
 
 Goal: a self-contained prompt skill-creator can run cold.
 
-Re-read `.claude/skill-brief/capture.md` and emit a prompt with: what to build, proposed name, shape/modes, patterns to borrow (with source links), out-of-scope list, and open questions. Print it in the conversation so the user can eyeball it, then offer to run `/skill-creator` with it (invoke the `skill-creator` skill on confirmation).
+Re-read `.claude/skill-brief/capture.md` and emit a prompt with: what to build, proposed name, shape/modes, patterns to borrow (with source links and their catalog numbers, preserved verbatim from `sources.md`), out-of-scope list, and open questions. Print it in the conversation so the user can eyeball it, then offer to run `/skill-creator` with it (invoke the `skill-creator` skill on confirmation).
 
 ---
 
