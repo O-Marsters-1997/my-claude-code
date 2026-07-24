@@ -1,7 +1,7 @@
 ---
 name: flow-friction-audit
 description: Drive a live web flow through a real browser, turn the run into evidence-backed friction findings, then route those findings into the impeccable skill for critique and redesign. Use whenever the user wants to find where a real user gets stuck, confused, or slowed down in an actual working flow — "audit the signup flow", "where's the friction in checkout", "walk through onboarding and tell me what's clunky", "usability audit of the live app", "why do people drop off on this page". Trigger even when the user says "usability", "UX audit", "friction", "drop-off", or "walk the flow" without naming this skill, and even when they only point you at a URL and ask what's wrong with the experience. NOT for static mockups, Figma files, or design critique of something that isn't running (use impeccable directly for those) and NOT for writing Playwright test suites (use playwright-cli).
-allowed-tools: Bash(playwright-cli:*)
+allowed-tools: Bash(playwright-cli:*), Bash(od:*), Bash(odo:*)
 ---
 
 # Flow Friction Audit
@@ -14,6 +14,7 @@ Do not reimplement critique or design generation. Your job ends at evidence + na
 
 - **`playwright-cli` (the CLI)** — required. This skill has no other driving layer; if it isn't installed, stop and say so rather than improvising.
 - **the `playwright-cli` skill** — optional but recommended. Defer to it for command syntax and driving best-practices; don't reinvent CLI flags here.
+- **Open Design (`od`/`odo` CLI)** — optional; used only in stage 5 to render `impeccable`'s fix directions as low-fi wireframe PNGs. Needs the local daemon running plus a desktop runtime for image export. If it's absent, unreachable, or the renderer is unavailable, fall back to ASCII wireframes and say so — never hard-fail the audit for a missing design tool. Setup and the render loop: [references/open-design.md](references/open-design.md).
 
 ## The pipeline
 
@@ -88,7 +89,7 @@ Close the browser (`playwright-cli close`) — the audit is done driving.
 Hand the findings to `impeccable`, which owns both the critique and the fixes:
 
 - **Critique the current experience:** invoke `impeccable` in `critique` mode against the audited surface, feeding it `findings.md` as the evidence so its heuristic review is grounded in observed behaviour, not a static read.
-- **Fan out fix directions:** from the findings, name the 2–3 **main** pain points (highest-severity or most-repeated friction). For each, research how well-regarded apps solve the same problem — don't invent in a vacuum — and carry that prior art in as reference. Then invoke `impeccable` in `shape`/redesign mode with each pain point as a problem statement plus its precedent, asking for **three divergent fix directions per pain point** and, if `impeccable` can produce them, low-fidelity wireframes so the directions are legible at a glance. `impeccable` generates the options — you supply the problem, the evidence, and the precedent. (Do not reach for `design-an-interface`; it is deprecated.)
+- **Fan out fix directions:** from the findings, name the 2–3 **main** pain points (highest-severity or most-repeated friction). For each, research how well-regarded apps solve the same problem — don't invent in a vacuum — and carry that prior art in as reference. Then invoke `impeccable` in `shape`/redesign mode with each pain point as a problem statement plus its precedent, asking for **three divergent fix directions per pain point**. Then render each direction as a concrete low-fidelity wireframe PNG with Open Design — author one self-contained low-fi HTML page per direction, grounded in the audited surface's current code, and have Open Design rasterize it so each direction is viewable as a whole page, not just described. See [references/open-design.md](references/open-design.md) for the render loop and the ASCII fallback when Open Design is unavailable. `impeccable` generates the options and you supply the problem, the evidence, and the precedent — Open Design only draws them. (Do not reach for `design-an-interface`; it is deprecated.)
 
 Tell the user what you handed off and what `impeccable` came back with. Don't editorialise a second critique of your own on top.
 
@@ -98,6 +99,6 @@ When asked to re-audit after changes, re-drive the same flows, regenerate `findi
 
 ## Scope boundaries
 
-- **You don't critique or redesign** — `impeccable` does. You produce evidence and named findings and route them.
+- **You don't critique or redesign** — `impeccable` does. You produce evidence and named findings and route them. Rendering a wireframe of `impeccable`'s fix direction is *drawing someone else's idea*, not forming your own design opinion — the direction is `impeccable`'s; Open Design only makes it viewable.
 - **You don't write tests** — the walk is throwaway observation, not a suite. If the user wants regression tests, that's `playwright-cli`'s job.
 - **You don't do participant recruiting, fidelity ladders, video, or network mocking** — this is a single automated agent walking a live flow, nothing more.
