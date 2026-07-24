@@ -1,0 +1,22 @@
+[
+  {"query": "walk through our signup and tell me where it feels clunky — it's at app.staging.acme.io/signup, test login is qa@acme.io / hunter2", "should_trigger": true},
+  {"query": "why are people dropping off on the checkout page? can you actually go through it live and find the friction points", "should_trigger": true},
+  {"query": "usability audit of the onboarding flow please, the app's running at localhost:3000 and you can sign in with demo/demo", "should_trigger": true},
+  {"query": "https://demo.myapp.dev/invite — something feels off about the invite-a-teammate flow, can you find what", "should_trigger": true},
+  {"query": "our activation rate tanked after the redesign. go through the new-user flow at beta.foo.com and figure out where it's confusing", "should_trigger": true},
+  {"query": "I'd like a friction analysis of the password reset flow before we ship it — staging url and creds are in the ticket", "should_trigger": true},
+  {"query": "drive through the booking flow on our live site and log every place a real user would get stuck or have to guess", "should_trigger": true},
+  {"query": "we fixed the address step in checkout last week — re-run the friction audit and tell me if the friction actually went away", "should_trigger": true},
+  {"query": "go audit the live signup experience and find the actual UX problems real users hit, not just what looks bad", "should_trigger": true},
+  {"query": "just click through the whole trial-to-paid upgrade path on production and note anything janky or slow", "should_trigger": true},
+  {"query": "critique this Figma of our new dashboard, link's here: figma.com/file/abc123 — is the hierarchy working?", "should_trigger": false},
+  {"query": "write me playwright tests for the checkout flow so CI catches regressions when we change the cart", "should_trigger": false},
+  {"query": "make our landing page bolder and more delightful, it feels really flat and corporate right now", "should_trigger": false},
+  {"query": "why is our checkout API returning 500s under load? logs are in datadog", "should_trigger": false},
+  {"query": "here's our funnel export from Amplitude — which step has the worst drop-off rate?", "should_trigger": false},
+  {"query": "log into the admin panel at admin.acme.io and export the users table as a CSV for me", "should_trigger": false},
+  {"query": "run an accessibility audit on our React component library and flag the WCAG violations", "should_trigger": false},
+  {"query": "rewrite the error messages in our signup form to be friendlier and less scary", "should_trigger": false},
+  {"query": "brainstorm what features we should build next quarter to improve retention", "should_trigger": false},
+  {"query": "take clean screenshots of every page on the marketing site so I can drop them in the board deck", "should_trigger": false}
+]

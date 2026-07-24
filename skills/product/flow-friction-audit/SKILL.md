@@ -1,0 +1,94 @@
+---
+name: flow-friction-audit
+description: Drive a live web flow through a real browser, turn the run into evidence-backed friction findings, then route those findings into the impeccable skill for critique and redesign. Use whenever the user wants to find where a real user gets stuck, confused, or slowed down in an actual working flow — "audit the signup flow", "where's the friction in checkout", "walk through onboarding and tell me what's clunky", "usability audit of the live app", "why do people drop off on this page". Trigger even when the user says "usability", "UX audit", "friction", "drop-off", or "walk the flow" without naming this skill, and even when they only point you at a URL and ask what's wrong with the experience. NOT for static mockups, Figma files, or design critique of something that isn't running (use impeccable directly for those) and NOT for writing Playwright test suites (use playwright-cli).
+allowed-tools: Bash(playwright-cli:*)
+---
+
+# Flow Friction Audit
+
+You drive a real, running flow through the browser and turn what actually happens into friction evidence a designer can act on. The unique value here is the **middle**: most UX tooling either drives a browser (no judgement) or critiques a design (no live behaviour). You do both — you *observe the running product* and convert each interaction into named, evidence-backed findings, then hand those findings to `impeccable` for the critique and the fixes.
+
+Do not reimplement critique or design generation. Your job ends at evidence + named findings; `impeccable` owns the opinion about what "good" looks like and what to build instead.
+
+## The pipeline
+
+Five stages, in order. Don't skip the scope step to "just start clicking" — an unscoped walk produces a pile of observations nobody can prioritise.
+
+### 1. Scope
+
+Before opening a browser, settle three things (ask the user only for what you can't infer):
+
+- **The goal of this run.** Is it *friction discovery* (where does anyone get stuck?), *conversion* (where do people drop before the key action?), or *concept validation* (is the core idea even legible?)? The goal decides what counts as a finding — a slow-but-clear step is a real finding for conversion, noise for concept validation.
+- **The flows.** Identify 3–5 core flows (e.g. sign up, add to cart → checkout, invite a teammate). If the user named one, do that one well rather than padding to five.
+- **The starting URL and any credentials/test data** needed to actually complete each flow.
+
+State the scope back in one or two lines and start.
+
+### 2. Drive
+
+Open **one** browser session and keep it for the whole audit — teardown happens once, at the very end (stage 5's close), not between flows. A single session preserves login and app state so later flows start where a real returning user would; note that if state from an earlier flow visibly leaks into a later one, that leak is itself a finding, not a reason to restart.
+
+Use `playwright-cli` as the driving layer. Never hand-roll selectors — work from the snapshot's element refs:
+
+```bash
+playwright-cli open <url>        # start the one session
+playwright-cli snapshot          # read the page; every element gets a ref like e15
+playwright-cli click e15         # act on refs, not CSS selectors
+playwright-cli fill e7 "test@example.com" --submit
+playwright-cli find "Continue"   # locate text before acting
+```
+
+Re-`snapshot` after every action that changes the page — the refs are only valid for the snapshot you took them from.
+
+**Walk each flow one step at a time, logging every step as a triple:**
+
+```
+element (ref + label) → expected outcome → actual outcome
+```
+
+The triple is the whole game. The gap between expected and actual is where friction lives:
+
+- **Mismatch** (actual ≠ expected) → confusion. The label promised one thing, the app did another.
+- **Retry** (you had to act more than once, or hunt for the right element) → friction. A real user feels this as "wait, how do I…".
+- **Long wait / no feedback** (the page sat there after an action with no spinner, toast, or change) → slow / invisible system status.
+- **Dead end** (expected a next step, got nothing) → the flow is broken here.
+
+Record the wait qualitatively per step (instant / a beat / had-to-wait / stalled) — you don't need millisecond timing, you need to know which steps made you wait without telling you why. Keep the running log; it becomes the evidence section of the report.
+
+### 3. Score
+
+Turn the raw step log into **named findings** using the timed heuristic rubric in [references/rubric.md](references/rubric.md). Read that file now — it converts Nielsen's heuristics into concrete, timed review questions ("was the result of this action visible within ~1s?") so a finding is a rubric failure with evidence attached, not a vibe.
+
+Two heuristics earn extra weight because they're the ones automated walks surface best and teams miss most:
+
+- **User control & freedom** — can the user undo, cancel, go back, escape a state they landed in by mistake? Watch every point where you felt trapped.
+- **Recognition rather than recall** — does the UI show what's needed at the moment of decision, or must the user remember it from a previous screen? Watch every point where you had to hold something in your head.
+
+Work at the **micro level**: a finding is about one interaction ("the email field accepts an invalid address and only errors after submit"), not a whole-flow grade ("signup is confusing"). Whole-flow verdicts can't be fixed or re-tested; micro findings can.
+
+Give every finding a **stable, descriptive ID** — `<flow>-<what>`, e.g. `signup-email-late-validation`, `checkout-no-back-from-payment`. The ID must describe the friction, not its position in a list, so that when the flow is fixed and you re-run, the same underlying issue keeps the same ID and a diff shows exactly what closed. Never use bare sequence numbers.
+
+### 4. Report
+
+Write findings to `findings.md` using [assets/findings-template.md](assets/findings-template.md). The report carries: the run goal, the per-flow step-log evidence, and the named findings (each with ID, flow, the triple that exposed it, the heuristic it fails, and a severity). This is the artifact `impeccable` reads and the baseline a re-run diffs against — keep it human-readable and stable in structure so diffs stay legible.
+
+### 5. Route to impeccable, then close
+
+Close the browser (`playwright-cli close`) — the audit is done driving.
+
+Hand the findings to `impeccable`, which owns both the critique and the fixes:
+
+- **Critique the current experience:** invoke `impeccable` in `critique` mode against the audited surface, feeding it `findings.md` as the evidence so its heuristic review is grounded in observed behaviour, not a static read.
+- **Explore fix directions:** invoke `impeccable` in `shape`/redesign mode with the findings as the problem statement, so it proposes divergent directions for the friction points. `impeccable` generates the options — you do not. (Do not reach for `design-an-interface`; it is deprecated.)
+
+Tell the user what you handed off and what `impeccable` came back with. Don't editorialise a second critique of your own on top.
+
+## Re-runs (did the fix land?)
+
+When asked to re-audit after changes, re-drive the same flows, regenerate `findings.md`, and diff against the previous one **by finding ID**: an ID that's gone is fixed, an ID that survived isn't, a new ID is a regression. Report the delta, not a fresh wall of findings — the point of stable IDs is that the second run answers "did we fix it?" in one glance.
+
+## Scope boundaries
+
+- **You don't critique or redesign** — `impeccable` does. You produce evidence and named findings and route them.
+- **You don't write tests** — the walk is throwaway observation, not a suite. If the user wants regression tests, that's `playwright-cli`'s job.
+- **You don't do participant recruiting, fidelity ladders, video, or network mocking** — this is a single automated agent walking a live flow, nothing more.
