@@ -2,6 +2,8 @@
 
 Used in stage 5's fan-out to turn each of `impeccable`'s fix directions into a viewable PNG. `impeccable` still owns the ideas; this is only the render/export engine. Optional — degrade to ASCII wireframes if any part of this isn't available (see bottom).
 
+**What the page should look like is not decided here.** Fidelity, framing, labelling and annotation are governed by [wireframe-style.md](wireframe-style.md) — read it before authoring, and follow it over anything below if the two ever drift.
+
 ## Binaries
 
 Two binaries on PATH: `od` (the daemon CLI — run bare `od` to start daemon + web UI) and `odo`/`pnpm tools-dev` (starts daemon + web + **desktop** in the background). **Use `odo`** — `od export … image` needs the desktop runtime's bundled Chromium to rasterize.
@@ -16,9 +18,9 @@ Per fix direction:
 
 1. **Ground in the current code.** Before drawing, read the actual source of the audited surface to get real structure/labels as the starting point — the wireframe is a *modification of what exists*, not a blank invention. (E.g. an onboarding run might draw from `onboardingModal.tsx`, `nextStepsCard.tsx`, `enableChannelsForm.tsx`, `threadPageQueueEmptyStates.tsx`, `useNextStepsChecklist.ts` — whatever files the findings named.) Capture the current layout (regions, primary actions, copy) so the "before" is honest and the wireframe reads as *this* product.
 
-2. **Author one self-contained low-fi HTML file per direction** capturing the **whole page/flow**, not a fragment:
+2. **Author one self-contained low-fi HTML file per direction** — one direction per file, one screen per frame, never a multi-direction board:
    - Single file, all CSS inline, no external assets (renders deterministically).
-   - Grayscale + one accent for the changed element; system font; visible boxes/labels; real copy from step 1; short margin annotations explaining the fix. Explicitly low-fi — not a polished brand mockup.
+   - Everything about how it looks — greyscale, placeholders, annotation style, labelling, spacing — comes from [wireframe-style.md](wireframe-style.md). Don't re-decide it here.
    - Optionally seed consistent styling from a built-in direction: `od tools directions --json` lists them (`modern-minimal`, `tech-utility`, etc.); `od tools directions --id <id>` prints palette/fonts/posture to bind into `:root`. For pure wireframes a neutral grayscale is usually better — leave this as an option, not a requirement.
 
 3. **Register it as a project artifact** so it renders in the UI:

@@ -6,99 +6,128 @@ allowed-tools: Bash(playwright-cli:*), Bash(od:*), Bash(odo:*)
 
 # Flow Friction Audit
 
-You drive a real, running flow through the browser and turn what actually happens into friction evidence a designer can act on. The unique value here is the **middle**: most UX tooling either drives a browser (no judgement) or critiques a design (no live behaviour). You do both — you *observe the running product* and convert each interaction into named, evidence-backed findings, then hand those findings to `impeccable` for the critique and the fixes.
+Drive a real, running flow through the browser and turn what happens into friction evidence a designer can act on. The value is the **middle**: most UX tooling either drives a browser (no judgement) or critiques a design (no live behaviour). Do both — observe the running product, convert each interaction into named evidence, then hand it to `impeccable` for the critique and the fixes.
 
-Do not reimplement critique or design generation. Your job ends at evidence + named findings; `impeccable` owns the opinion about what "good" looks like and what to build instead.
+Your job ends at evidence and named problems. `impeccable` owns the opinion about what "good" looks like and what to build instead.
 
 ## Prerequisites
 
-- **`playwright-cli` (the CLI)** — required. This skill has no other driving layer; if it isn't installed, stop and say so rather than improvising.
-- **the `playwright-cli` skill** — optional but recommended. Defer to it for command syntax and driving best-practices; don't reinvent CLI flags here.
-- **Open Design (`od`/`odo` CLI)** — optional; used only in stage 5 to render `impeccable`'s fix directions as low-fi wireframe PNGs. Needs the local daemon running plus a desktop runtime for image export. If it's absent, unreachable, or the renderer is unavailable, fall back to ASCII wireframes and say so — never hard-fail the audit for a missing design tool. Setup and the render loop: [references/open-design.md](references/open-design.md).
+- **A browser driver** — required. Default to `playwright-cli`; behind enterprise SSO, drive the user's authenticated Chrome session with `claude-in-chrome` (stage 1b). If neither is available, stop and say so rather than improvising.
+- **the `playwright-cli` skill** — optional. Defer to it for command syntax rather than reinventing flags here.
+- **Open Design (`od`/`odo`)** — optional; stage 5's wireframe renderer. If it's absent or the renderer is unavailable, fall back to ASCII and say so — never hard-fail an audit for a missing design tool. [references/open-design.md](references/open-design.md).
 
 ## The pipeline
 
-Five stages, in order. Don't skip the scope step to "just start clicking" — an unscoped walk produces a pile of observations nobody can prioritise.
+Five stages with one human gate at 3b. Don't skip scope to "just start clicking" — an unscoped walk produces observations nobody can prioritise. Don't skip the gate to get to the designs; that's the more expensive mistake.
 
 ### 1. Scope
 
-Before opening a browser, settle three things (ask the user only for what you can't infer):
+Settle three things before opening a browser (ask only for what you can't infer):
 
-- **The goal of this run.** Is it *friction discovery* (where does anyone get stuck?), *conversion* (where do people drop before the key action?), or *concept validation* (is the core idea even legible?)? The goal decides what counts as a finding — a slow-but-clear step is a real finding for conversion, noise for concept validation.
-- **The flow.** Pick **one** target flow and audit it well — a flow can span several screens and interactions, but resist widening to 3–5 flows in one run. This skill is meant to be precise and re-invoked per scenario, not run as a sprawling general audit; a multi-flow sweep bloats context and produces observations nobody can prioritise.
-- **The starting URL and any credentials/test data** needed to actually complete the flow.
+- **The goal.** *Friction discovery* (where does anyone get stuck?), *conversion* (where do people drop before the key action?), or *concept validation* (is the core idea legible?). The goal decides what counts — a slow-but-clear step is a finding for conversion, noise for concept validation.
+- **One flow.** A flow can span several screens; auditing 3–5 flows at once cannot. This skill is precise and re-invoked per scenario, not run as a sprawling sweep.
+- **An explicit URL**, plus credentials and test data. The URL must come from the user — **never infer it, never default to `localhost`, never start a dev server.** Environments differ in seeded data, feature flags and auth, so a guessed URL silently audits the wrong product. If none was given, ask before anything else.
 
-State the scope back in one or two lines and start.
+State the scope back in a line or two and start.
 
 ### 1b. Auth precondition
 
-Before driving, confirm the app is actually authenticated — many flows sit behind a login wall, and a walk that starts logged-out audits the login screen instead of the flow. Open the start URL, `snapshot`, and check the target UI rendered — not a sign-in page or a stuck loading overlay.
+Confirm the app is authenticated before driving — a walk that starts logged-out audits the login screen instead of the flow. Open the URL, `snapshot`, and check the target UI rendered rather than a sign-in page or a stuck loading overlay.
 
-**Never automate the login.** Providers like Google block automated sign-in (CAPTCHA, 2FA, bot detection), so scripting it is flaky and burns the run. If the app is unauthenticated and the flow can't continue, **stop and ask the user to log in manually in the open browser session**, then resume from where you paused. Because one session is kept for the whole run (stage 2), a single manual login at the start carries through every step.
+**Never automate the login.** Google and friends block automated sign-in (CAPTCHA, 2FA, bot detection), so scripting it is flaky and burns the run. If the flow can't continue, stop and ask the user to log in manually in the open session, then resume. One session runs the whole audit (stage 2), so a single manual login carries through every step.
 
-Plain's `support-app` default and how to recognise the logged-out state: see [references/auth.md](references/auth.md).
+**Behind enterprise SSO**, a fresh `playwright-cli` profile can't get past at all — no cookies, no device trust, and manual login inside a throwaway profile is often blocked outright. Drive the user's already-authenticated browser with `claude-in-chrome` instead; everything downstream is unchanged. Record which driver was used in `findings.md` — evidence from a live account has different provenance than a clean profile, and a reader needs to know which they're looking at.
+
+Plain's `support-app` default and the logged-out state: [references/auth.md](references/auth.md).
 
 ### 2. Drive
 
-Open **one** browser session and keep it for the whole audit — teardown happens once, at the very end (stage 5's close), not between flows. A single session preserves login and app state so later flows start where a real returning user would; note that if state from an earlier flow visibly leaks into a later one, that leak is itself a finding, not a reason to restart.
+Attach to the user's running browser at the stage-1 URL rather than launching a fresh profile — the running session carries the auth and app state a real user arrives with. Keep that one session for the whole audit; teardown happens once, at stage 5.
 
-Use `playwright-cli` as the driving layer, working from snapshot element refs (never hand-rolled selectors): `snapshot` to read the page, act on refs like `e15`, and re-`snapshot` after anything that changes the page since refs only survive the snapshot you took them from. For command syntax and driving best-practices, defer to the `playwright-cli` skill rather than memorising flags here.
+Work from snapshot element refs, never hand-rolled selectors: `snapshot` to read the page, act on refs like `e15`, re-`snapshot` after anything that changes it. Save each snapshot into the run's artifacts directory (stage 4) so the evidence outlives the browser.
 
-Save each snapshot into the run's artifacts directory (see stage 4) as you go, so the evidence is reviewable after the browser closes.
-
-**Walk each flow one step at a time, logging every step as a triple:**
+**Walk one step at a time, logging each as a triple:**
 
 ```
 element (ref + label) → expected outcome → actual outcome
 ```
 
-The triple is one lens, not the whole game — the clearest one, because the gap between expected and actual is where a lot of friction lives:
+The gap between expected and actual is where much of the friction lives:
 
 - **Mismatch** (actual ≠ expected) → confusion. The label promised one thing, the app did another.
-- **Retry** (you had to act more than once, or hunt for the right element) → friction. A real user feels this as "wait, how do I…".
-- **Long wait / no feedback** (the page sat there after an action with no spinner, toast, or change) → slow / invisible system status.
-- **Dead end** (expected a next step, got nothing) → the flow is broken here.
+- **Retry** (you acted more than once, or hunted for the right element) → "wait, how do I…".
+- **Long wait / no feedback** → invisible system status.
+- **Dead end** (expected a next step, got nothing) → the flow breaks here.
 
-But some friction never shows as a gap: a step can do exactly what its label promised and still overload — a dense screen with no obvious starting point, a primary action buried among competing controls, information you must carry from an earlier screen. So at every step also ask "would a first-time user know where to start here?" and "is everything needed to decide visible right now?" — these are the *recognition-over-recall* and *aesthetic/minimalist* questions the rubric scores in stage 3, and the class of friction automated walks miss most.
+But the triple is one lens, not the whole game. A step can do exactly what its label promised and still overload: a dense screen with no obvious starting point, a primary action buried among competing controls, information you must carry from an earlier screen. So at every step also ask "would a first-time user know where to start?" and "is everything needed to decide visible right now?" — the *recognition-over-recall* and *aesthetic/minimalist* questions the rubric scores, and the friction automated walks miss most.
 
-Record the wait qualitatively per step (instant / a beat / had-to-wait / stalled) — you don't need millisecond timing, you need to know which steps made you wait without telling you why. Keep the running log; it becomes the evidence section of the report.
+Record the wait qualitatively (instant / a beat / had-to-wait / stalled). You don't need milliseconds; you need to know which steps made you wait without telling you why.
+
+**Audit intended behaviour, not defects.** The triple lens surfaces anomalies, and most anomalies are bugs — not what this skill exists to find. A design finding is one where the product worked as built and still failed the user. So re-test every anomaly (dead click, no response, error banner, blank region) on a fresh load before promoting it:
+
+- Reproduces identically → may be a design issue; score it in stage 3.
+- Intermittent, or gone on the retry → a bug or a browser-automation artifact. Raise it with the user so it isn't lost, but keep it out of the report — never score it as friction.
+
+A flaky click scored as major friction crowds out the real findings and sends `impeccable` designing around a defect someone should just fix.
 
 ### 3. Score
 
-Turn the raw step log into **named findings** using the timed heuristic rubric in [references/rubric.md](references/rubric.md). Read that file now — it converts Nielsen's heuristics into concrete, timed review questions ("was the result of this action visible within ~1s?") so a finding is a rubric failure with evidence attached, not a vibe.
+Turn the step log into **named findings** with the timed rubric in [references/rubric.md](references/rubric.md) — read it now. It converts Nielsen's heuristics into concrete questions ("was the result visible within ~1s?") so a finding is a rubric failure with evidence attached, not a vibe.
 
-Two heuristics earn extra weight because they're the ones automated walks surface best and teams miss most:
+Two heuristics earn extra weight, being the ones automated walks surface best and teams miss most:
 
 - **User control & freedom** — can the user undo, cancel, go back, escape a state they landed in by mistake? Watch every point where you felt trapped.
-- **Recognition rather than recall** — does the UI show what's needed at the moment of decision, or must the user remember it from a previous screen? Watch every point where you had to hold something in your head.
+- **Recognition rather than recall** — is what's needed visible at the moment of decision? Watch every point where you had to hold something in your head.
 
-Work at the **micro level**: a finding is about one interaction ("the email field accepts an invalid address and only errors after submit"), not a whole-flow grade ("signup is confusing"). Whole-flow verdicts can't be fixed or re-tested; micro findings can.
+Work at the **micro level**: one interaction ("the email field only errors after submit"), not a whole-flow grade ("signup is confusing"). Whole-flow verdicts can't be fixed or re-tested; micro findings can.
 
-Give every finding a **stable, descriptive ID** — `<flow>-<what>`, e.g. `signup-email-late-validation`, `checkout-no-back-from-payment`. The ID must describe the friction, not its position in a list, so that when the flow is fixed and you re-run, the same underlying issue keeps the same ID and a diff shows exactly what closed. Never use bare sequence numbers.
+Give every finding a **stable, descriptive ID** — `<flow>-<what>`, e.g. `signup-email-late-validation`. The ID describes the friction, not its position, so a re-run diffs cleanly by ID and shows exactly what closed. Never bare sequence numbers.
+
+Then **synthesise the findings into 2–4 named problems.** A finding is an observation; a problem is what a cluster of them *means* — "arrival is empty of purpose", not ten separate complaints about one screen. Each problem cites the finding IDs behind it. Problems are what gets designed against; findings are what prove them.
+
+### 3b. Align the problems with the user
+
+**Stop and get agreement before spending anything downstream.**
+
+Stages 2 and 3 run **blind** — don't ask the user what they think is wrong while walking or scoring, because a steered walk finds the friction they already suspected and misses the rest. This gate is the first point of human input, placed after the evidence exists and before any design work does.
+
+Present each problem with its findings, then ask:
+
+- Anything missing — friction you know about that the walk didn't reach?
+- Anything you disagree with, or that looks mis-rated?
+- Anything mis-clustered — one problem that's really two, or two that are really one?
+
+Revise until the user agrees, then carry the aligned problems into stages 4 and 5. Everything after this — critique, research, fix directions, wireframes — is expensive and shaped entirely by this list.
 
 ### 4. Report
 
-Create one artifacts directory per run — `friction-audit/<flow>-<YYYYMMDD>/` under the current working directory — holding the snapshots you saved while driving and the `findings.md` below. A stable home makes the run visualisable and lets a re-run diff cleanly against the last.
+One artifacts directory per run: `friction-audit/<flow>-<YYYYMMDD>/` under the working directory, holding the snapshots and `findings.md`. A stable home lets a re-run diff cleanly against the last.
 
-Write findings to `findings.md` (in that directory) using [assets/findings-template.md](assets/findings-template.md). The report carries: the run goal, the per-flow step-log evidence, and the named findings (each with ID, flow, the triple that exposed it, the heuristic it fails, and a severity). This is the artifact `impeccable` reads and the baseline a re-run diffs against — keep it human-readable and stable in structure so diffs stay legible.
+Write `findings.md` with [assets/findings-template.md](assets/findings-template.md), which fixes the section order. Two rules that order enforces:
+
+- **Lead with a summary** — goal, flow, driver, a one-paragraph verdict, the aligned problems as bullets, headline counts. A reader should get the story in thirty seconds without reconstructing it from a ranked list.
+- **Problems before findings**, each citing its IDs; the findings follow as the layer that proves them, then the step log. State the conclusion, then show the work — and state it **once**, so no restatement further down can drift out of sync.
+
+This is what `impeccable` reads and what a re-run diffs against; keep the structure stable so diffs stay legible.
 
 ### 5. Route to impeccable, then close
 
-Close the browser (`playwright-cli close`) — the audit is done driving.
+Close the browser — the audit is done driving. Then hand off to `impeccable`, which owns both the critique and the fixes:
 
-Hand the findings to `impeccable`, which owns both the critique and the fixes:
+- **Critique:** invoke `impeccable` in `critique` mode against the audited surface with `findings.md` as evidence, so its review is grounded in observed behaviour rather than a static read.
+- **Research the precedent, before generating anything.** Take the aligned problems as-is; don't re-derive pain points here. For each, research how well-regarded products solve *that specific* problem, and read enough to say what each does right. A fix direction invented in a vacuum is a guess; the precedent is what makes it an argument.
+- **Fan out fix directions:** invoke `impeccable` in `shape` mode with each problem plus its precedent, asking for **three divergent directions per problem**. Render each as a low-fi wireframe grounded in the surface's current code. Fidelity and framing: [references/wireframe-style.md](references/wireframe-style.md), read before drawing. Render mechanics and the fallback: [references/open-design.md](references/open-design.md). (Not `design-an-interface`; deprecated.)
+- **Close with the trail:** end `findings.md` with `## Inspiration — where to look next` — per problem, the products worth studying and one line on what each does right. The research is worth more as a trail the user can follow than as a citation buried in a fix direction.
 
-- **Critique the current experience:** invoke `impeccable` in `critique` mode against the audited surface, feeding it `findings.md` as the evidence so its heuristic review is grounded in observed behaviour, not a static read.
-- **Fan out fix directions:** from the findings, name the 2–3 **main** pain points (highest-severity or most-repeated friction). For each, research how well-regarded apps solve the same problem — don't invent in a vacuum — and carry that prior art in as reference. Then invoke `impeccable` in `shape`/redesign mode with each pain point as a problem statement plus its precedent, asking for **three divergent fix directions per pain point**. Then render each direction as a concrete low-fidelity wireframe PNG with Open Design — author one self-contained low-fi HTML page per direction, grounded in the audited surface's current code, and have Open Design rasterize it so each direction is viewable as a whole page, not just described. See [references/open-design.md](references/open-design.md) for the render loop and the ASCII fallback when Open Design is unavailable. `impeccable` generates the options and you supply the problem, the evidence, and the precedent — Open Design only draws them. (Do not reach for `design-an-interface`; it is deprecated.)
-
-Tell the user what you handed off and what `impeccable` came back with. Don't editorialise a second critique of your own on top.
+Report what you handed off and what came back. Don't editorialise a second critique on top.
 
 ## Re-runs (did the fix land?)
 
-When asked to re-audit after changes, re-drive the same flows, regenerate `findings.md`, and diff against the previous one **by finding ID**: an ID that's gone is fixed, an ID that survived isn't, a new ID is a regression. Report the delta, not a fresh wall of findings — the point of stable IDs is that the second run answers "did we fix it?" in one glance.
+Re-drive the same flow, regenerate `findings.md`, and diff by finding ID: an ID that's gone is fixed, one that survived isn't, a new one is a regression. Report the delta, not a fresh wall of findings — that one-glance answer is the whole point of stable IDs.
 
 ## Scope boundaries
 
-- **You don't critique or redesign** — `impeccable` does. You produce evidence and named findings and route them. Rendering a wireframe of `impeccable`'s fix direction is *drawing someone else's idea*, not forming your own design opinion — the direction is `impeccable`'s; Open Design only makes it viewable.
-- **You don't write tests** — the walk is throwaway observation, not a suite. If the user wants regression tests, that's `playwright-cli`'s job.
-- **You don't do participant recruiting, fidelity ladders, video, or network mocking** — this is a single automated agent walking a live flow, nothing more.
+- **You don't critique or redesign** — `impeccable` does. Rendering its fix direction is drawing someone else's idea, not forming your own.
+- **You don't hunt bugs** — defects and automation artifacts are listed out of scope (stage 2), never scored as friction. A broken thing needs fixing, not redesigning.
+- **You don't write tests** — the walk is throwaway observation. Regression tests are `playwright-cli`'s job.
+- **You don't do participant recruiting, fidelity ladders, video, or network mocking** — one agent, one live flow.
