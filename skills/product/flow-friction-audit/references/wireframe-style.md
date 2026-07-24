@@ -2,13 +2,35 @@
 
 Governs every wireframe this skill renders. [open-design.md](open-design.md) covers the *mechanics* of getting a page to a PNG; this file decides what that page is allowed to look like. Where they disagree, this file wins.
 
-The target fidelity is [`../assets/wireframe-reference.png`](../assets/wireframe-reference.png) — a designer's own sketch of a Next-steps redesign. Open it before drawing. Note what it does: hand-drawn boxes, a hand font, one blue annotation arrow, a written note explaining the intent, generous empty space, and exactly one idea on the page.
-
 ## The line
 
 **A wireframe communicates structure and intent. The moment it looks like a working screen, it is a prototype and it is wrong.**
 
 Fidelity is a claim about certainty. A polished screen says "this is decided" and invites feedback on the padding; a sketch says "this is the shape, argue with it" and invites feedback on the idea — which is the only feedback worth having at this stage. Over-rendering a direction *costs* you the critique you rendered it for.
+
+## What good looks like
+
+Picture a designer's own sketch of the change, and copy that: hand-drawn boxes on a white page, a hand-style font, empty space left empty, one blue arrow pointing from the thing that changed to a handwritten note explaining why — and **exactly one idea on the page**. Everything not part of the idea is a rectangle or a ruled line. It reads in three seconds and could not be mistaken for a build.
+
+```
+┌─────────────────────────────────────────────┐
+│  ┌──────┐  ┌─────────────────────────────┐  │
+│  │      │  │  Next steps                 │  │
+│  │      │  │  ─────────────────────      │  │
+│  │      │  │  ▓▓▓▓▓▓░░░░░░░░░░░░░░░      │  │
+│  │      │  │                             │  │
+│  │      │  │  ☑ Connect your channels  › │  │
+│  │      │  │  ☐ Invite your team       › │  │
+│  │      │  │  ☐ Set up workflows       › │  │
+│  └──────┘  └─────────────────────────────┘  │
+│      ↖                                      │
+│       ╲__ moves out of the corner card,     │
+│           onto the main page                │
+└─────────────────────────────────────────────┘
+              2A · first action broken
+```
+
+That's the whole grammar: boxes for regions, rules for text, one annotated arrow for the intent, a label naming the direction and the problem. Whatever renders it, the output should look like that — not like a screenshot of the shipped product with one thing moved.
 
 ## Layout
 
