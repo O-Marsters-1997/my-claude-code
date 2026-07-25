@@ -4,6 +4,7 @@
 **Audited:** {url} · {date}
 **Flow walked:** {flow name}
 **Driven in:** {playwright-cli | claude-in-chrome against the user's authenticated session — and why}
+**Not exercised:** {steps deliberately not completed, and why — so a reader can tell observed claims from inferred ones}
 
 ## Summary
 
@@ -28,22 +29,23 @@ The aligned problems — what the findings *mean*, agreed with the user before a
 
 **Evidence:** `{finding-id}`, `{finding-id}`, `{finding-id}`
 
-<!-- repeat per problem, 2–4 total -->
+<!-- repeat per problem, 2–4 total. Each finding appears under exactly one problem. -->
 
 ---
 
 ## Findings
 
-The observation layer the problems are drawn from. Ranked most severe first. Each ID is stable across re-runs — it describes the friction, not its position — so a later run can diff by ID to show what closed.
+The observation layer the problems are drawn from. Ranked most severe first. Each ID describes the friction, not its position.
 
 ### {flow}-{what}  ·  {blocker | major | minor}
 
 - **Flow:** {which flow, which step}
 - **What happened:** {the element → expected → actual triple that exposed it}
+- **Evidence:** {step-log row(s), and `file:line` for anything read from source}
 - **Fails:** {rubric heuristic, e.g. "6 · Recognition rather than recall"}
 - **Why it's friction:** {one line — the user's felt experience}
 
-<!-- repeat per finding -->
+<!-- repeat per finding. Defects and automation artifacts do not belong in this file at all. -->
 
 ---
 
@@ -58,10 +60,15 @@ The raw walk each finding is drawn from. Kept so the critique and any re-run can
 
 ---
 
-## Handoff
+## Critique
 
-- **Critique:** {what impeccable's critique mode returned against these findings}
-- **Fix directions:** {three divergent directions per problem, each with its low-fi wireframe — `![{direction-id} — {problem}]({direction-id}.png)`. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
+{impeccable's critique, folded in — not linked. Design Health score, the specificity verdict, the P0s, and any check that failed critically. State whether it ran with isolated sub-agents; if not, say that its agreement with these findings is not corroboration.}
+
+---
+
+## Fix directions
+
+{Three divergent directions per problem. Each names the problem and the critique point it answers, with its low-fi wireframe — `![{direction-id} — {problem}]({direction-id}.png)`. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
 
 ---
 
