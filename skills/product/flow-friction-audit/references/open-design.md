@@ -23,19 +23,34 @@ Per fix direction:
    - Everything about how it looks — greyscale, placeholders, annotation style, labelling, spacing — comes from [wireframe-style.md](wireframe-style.md). Don't re-decide it here.
    - Optionally seed consistent styling from a built-in direction: `od tools directions --json` lists them (`modern-minimal`, `tech-utility`, etc.); `od tools directions --id <id>` prints palette/fonts/posture to bind into `:root`. For pure wireframes a neutral grayscale is usually better — leave this as an option, not a requirement.
 
-3. **Register it as a project artifact** so it renders in the UI:
+3. **Register it as a project artifact** so it opens in the UI:
    ```bash
-   od artifacts create --name <dir>/<direction-id>.html --input ./<local>.html [--project <id-or-name>]
+   od artifacts create --name <run-dir>/<direction-id>.html --input ./<local>.html \
+     --manifest ./<direction-id>.artifact.json [--project <id-or-name>]
    ```
-   Omitting `--project` uses the active project. Existing target paths are rejected. `--encoding utf8|base64` if the HTML needs it.
+   Omitting `--project` uses the active project. Existing target paths are rejected. `--encoding utf8|base64` if the HTML needs it. See [Making them viewable](#making-them-viewable-in-the-ui) — registering is not the same as being findable.
 
 4. **Export a PNG** for embedding in `findings.md`:
    ```bash
-   od export <dir>/<direction-id>.html --project <id> --format image --image-format png --page --out ./<direction-id>.png
+   od export <run-dir>/<direction-id>.html --project <id> --format image --image-format png --page --out ./<direction-id>.png
    ```
-   Save PNGs into the run's artifacts dir (`friction-audit/<flow>-<YYYYMMDD>/`) alongside the snapshots, and reference them from `findings.md` (`![1A — pre-seeded demo thread](1A-demo-thread.png)`) in place of / next to the ASCII block. Keep the ASCII as a text fallback if you like, but the PNG is the artifact.
+   Save PNGs into the run's artifacts dir and reference them from `findings.md` (`![1A — pre-seeded demo thread](1A-demo-thread.png)`). The HTML is the source; the PNG is what the report embeds.
 
-**Naming:** tie each artifact to the fix-direction label already used in `findings.md` (e.g. `pain1-1A-demo-thread`) so a re-run diffs cleanly, matching the skill's existing stable-ID discipline.
+**Naming:** tie each artifact to the fix-direction label already used in `findings.md` (e.g. `p1-1A-provable-criteria`), matching the skill's stable-ID discipline.
+
+**Don't persist the generator.** A script you wrote to emit the HTML is scaffolding, not a deliverable — the run directory holds `findings.md`, the HTML sources and the PNGs, nothing else.
+
+## Making them viewable in the UI
+
+Registering an artifact is not the same as being able to find it. Three things go wrong, all of them silently:
+
+- **The web UI is not on the daemon port.** The daemon serves the API only — `GET /` returns 404 — and the UI runs alongside it, in practice on **daemon port + 1** (daemon `:54610` → UI `:54611`; the packaged single-port mode serves both on `:7456`). Confirm with `curl -s http://127.0.0.1:<port>/ | grep -o '<title>[^<]*'` and give the user the URL. An audit whose wireframes were never opened in the UI was assessed as loose files.
+- **Re-registering under a new namespace on every pass.** `artifacts create` rejects an existing path, so a second render pass tempts you into `v2/`, `v3-<epoch>/`… and the project ends up holding three copies of twelve wireframes with nothing marking which is current. **Use one namespace per run, named after the run** (`<flow>-<YYYYMMDD>/`), and when a frame changes, delete and re-register that path rather than minting a new prefix.
+- **No manifest means no readable name.** Without `--manifest`, the daemon infers one and sets `title` to the raw path, so the UI lists filenames. Pass a manifest with a real `title` (the direction ID plus the problem it solves) and `kind: "html"`.
+
+Verify before handing off: `curl -s http://127.0.0.1:<daemon-port>/api/projects/<id>/files` should list exactly this run's frames, once each, under one namespace.
+
+**`--input` copies, it does not reference.** The file is written into `~/open-design/.od/projects/<id>/<name>`, so the run directory and the OD copy diverge the moment you edit the HTML. Re-register after any edit, or the UI shows a stale frame while the report shows the new one.
 
 ## Graceful degradation
 
@@ -43,9 +58,10 @@ If `od`/`odo` isn't installed, the daemon isn't reachable, or `od export` report
 
 ## Things to verify before relying on this (don't assume)
 
-- **Project bootstrapping headlessly.** `od artifacts create`/`export` need a project (`--project <id-or-name>`, or the active one). There is no `od projects create` subcommand; `list_projects` exists on the `od mcp` surface. Confirm the intended headless path: reuse the active project, create one via the web UI once, or via an API/MCP call.
+- **Project bootstrapping headlessly.** `od artifacts create`/`export` need a project (`--project <id-or-name>`, or the active one). There is no `od projects create` subcommand and no `od projects` list; enumerate with `GET /api/projects` on the daemon. Confirm the intended headless path: reuse the active project, or create one via the web UI once.
 - **Export prerequisite.** Confirm `od export --format image` works with `odo`/`pnpm tools-dev` running (desktop reachable) and states a clear error otherwise — so the fallback above triggers correctly.
 - **`--input` encoding/size** for `artifacts create` (`--encoding utf8|base64`) for typical wireframe HTML.
+- **The UI's project route.** The web app is a client-routed SPA, so every path returns 200 and you cannot probe for the right one — open the project from the list on `/` rather than constructing a deep link.
 
 ## Further reading
 

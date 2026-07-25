@@ -54,6 +54,16 @@ Annotations carry the intent, and are what separate a wireframe from a picture o
 - Mark behaviour that a static frame can't show — what appears on scroll, what happens on submit, what's conditional.
 - Keep them in the margin or overlaid on empty space, never crowding the structure.
 
+### Placing them
+
+A note positioned by eye will collide with the next note or land on the UI. Two notes at `top:700px` and `top:762px` look 62px apart until the first one wraps to four lines, and then they overlap into mush. So don't position notes by hand:
+
+- **Reserve a margin column** for annotations — a right-hand strip outside the frame, wide enough to wrap in — and put every note in it.
+- **Stack notes in normal document flow** inside that column, so each one's height is measured, not assumed, and the next is pushed down. Never absolute coordinates for the note itself.
+- **Anchor the arrow, not the note.** Measure the target element at render time and draw the connector from the note's edge to it. Then the note can move without the arrow lying.
+- **Arrows don't cross the UI.** A connector that runs diagonally through the content it describes obscures the thing being annotated. If the arrow has to cross the frame, the note is in the wrong place.
+- **Check the render, not the markup.** Open every frame and read it. Overlapping annotation text is the single most common wireframe defect and it is invisible in the source.
+
 ## Grounding
 
 Draw from the audited surface's real code and layout (see [open-design.md](open-design.md) step 1) so the frame reads as *this* product being modified, not a generic app. Structure comes from reality; **fidelity comes from this file.** Grounding the layout in the real screen is not licence to reproduce the real screen's finish.
