@@ -1,6 +1,8 @@
 # Open Design — rendering fix directions as low-fi wireframes
 
-Used in stage 5's fan-out to turn each of `impeccable`'s fix directions into a viewable PNG. `impeccable` still owns the ideas; this is only the render/export engine. Optional — degrade to ASCII wireframes if any part of this isn't available (see bottom).
+Used in stage 5 to turn each fix direction into a viewable wireframe frame. The ideas arrive already argued in prose; this is only the render engine. Optional — degrade to ASCII wireframes if any part of this isn't available (see bottom).
+
+**HTML is the deliverable.** One self-contained `.html` per direction, registered in Open Design and linked from `findings.md` — that's the whole output. Don't export the proposed-state frames to PNG: a PNG is a second copy of the same frame that stops matching the HTML the moment either is edited, and the HTML is the one that's viewable, editable and diffable. A PNG of the *current* state is fine where a before-shot genuinely helps the argument, and never required.
 
 **What the page should look like is not decided here.** Fidelity, framing, labelling and annotation are governed by [wireframe-style.md](wireframe-style.md) — read it before authoring, and follow it over anything below if the two ever drift.
 
@@ -30,15 +32,13 @@ Per fix direction:
    ```
    Omitting `--project` uses the active project. Existing target paths are rejected. `--encoding utf8|base64` if the HTML needs it. See [Making them viewable](#making-them-viewable-in-the-ui) — registering is not the same as being findable.
 
-4. **Export a PNG** for embedding in `findings.md`:
-   ```bash
-   od export <run-dir>/<direction-id>.html --project <id> --format image --image-format png --page --out ./<direction-id>.png
-   ```
-   Save PNGs into the run's artifacts dir and reference them from `findings.md` (`![1A — pre-seeded demo thread](1A-demo-thread.png)`). The HTML is the source; the PNG is what the report embeds.
+4. **Read the rendered frame** and link it from `findings.md` (`[1A — pre-seeded demo thread](1A-demo-thread.html)`). Open it rather than trusting the markup — overlapping annotations are invisible in source and obvious on screen (see [wireframe-style.md](wireframe-style.md#placing-them)).
 
 **Naming:** tie each artifact to the fix-direction label already used in `findings.md` (e.g. `p1-1A-provable-criteria`), matching the skill's stable-ID discipline.
 
-**Don't persist the generator.** A script you wrote to emit the HTML is scaffolding, not a deliverable — the run directory holds `findings.md`, the HTML sources and the PNGs, nothing else.
+**Don't persist the generator.** A script you wrote to emit the HTML is scaffolding, not a deliverable — the run directory holds `findings.md` and the HTML frames, nothing else.
+
+`od export … --format image` still exists if you need a current-state before-shot; it needs the desktop runtime's bundled Chromium, which is why `odo` is the binary to start.
 
 ## Making them viewable in the UI
 

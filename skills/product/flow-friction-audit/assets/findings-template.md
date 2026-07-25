@@ -5,6 +5,7 @@
 **Flow walked:** {flow name}
 **Driven in:** {playwright-cli | claude-in-chrome against the user's authenticated session — and why}
 **Not exercised:** {steps deliberately not completed, and why — so a reader can tell observed claims from inferred ones}
+**Alignment doc:** {Notion link — the agreed problem space this run designs against}
 
 ## Summary
 
@@ -68,7 +69,7 @@ The raw walk each finding is drawn from. Kept so the critique and any re-run can
 
 ## Fix directions
 
-{Three divergent directions per problem. Each names the problem and the critique point it answers, with its low-fi wireframe — `![{direction-id} — {problem}]({direction-id}.png)`. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
+{Three divergent directions per problem, each argued in prose before it was drawn. Each names the problem and the critique point it answers, with its precedent, and links its low-fi wireframe — `[{direction-id} — {problem}]({direction-id}.html)`. HTML is the wireframe deliverable; no PNG copies. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
 
 ---
 

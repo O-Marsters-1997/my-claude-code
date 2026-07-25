@@ -1,6 +1,6 @@
 # Wireframe style — fidelity and layout for stage 5
 
-Governs every wireframe this skill renders. [open-design.md](open-design.md) covers the *mechanics* of getting a page to a PNG; this file decides what that page is allowed to look like. Where they disagree, this file wins.
+Governs every wireframe this skill renders. [open-design.md](open-design.md) covers the *mechanics* of getting a page rendered and viewable; this file decides what that page is allowed to look like. Where they disagree, this file wins.
 
 ## The line
 
