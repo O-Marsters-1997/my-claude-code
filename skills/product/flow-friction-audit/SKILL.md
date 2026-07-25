@@ -99,7 +99,7 @@ When the audited product's source is available, read the components behind each 
 
 **Stop and get agreement before spending anything downstream.** Stages 2 and 3 run **blind** — a steered walk finds the friction the user already suspected and misses the rest — so this gate is the first point of human input, after the evidence exists and before any design work does.
 
-Align **on a document, not in chat.** Publish the problems as a Notion page in the Team Growth project home and iterate there: a settled problem space is worth more than an agreement one person remembers — the team reads the same statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking.
+Align **on a document, not in chat.** Publish the problems as a new child page under the growth team's Notion home, **📈 Home**, and iterate there: a settled problem space is worth more than an agreement one person remembers — the team reads the same statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking.
 
 The page carries a descriptive title, the flow's goal with an honest assessment of how well the flow serves it, and a `## problems` list — things to solve outright or areas to mitigate. **No solution ideas on this page.** An idea smuggled in as a problem gets agreed by proxy and quietly becomes the only direction anyone designs.
 

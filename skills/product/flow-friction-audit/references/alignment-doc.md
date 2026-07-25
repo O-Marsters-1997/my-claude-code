@@ -1,6 +1,14 @@
 # The alignment doc — stage 3b's output, and `shape` mode's input
 
-The artifact the 3b gate produces: a Notion page in the **Team Growth project home** holding the agreed problem space for one flow. It exists so alignment survives the conversation that produced it — the team reads one statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking, without re-deriving the problems each time.
+The artifact the 3b gate produces: a Notion page holding the agreed problem space for one flow. It exists so alignment survives the conversation that produced it — the team reads one statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking, without re-deriving the problems each time.
+
+## Where it goes
+
+A **new child page** under the growth team's Notion home:
+
+> **📈 Home** — `https://app.notion.com/p/3b3810036f9d8246bca5011749c51244`
+
+One page per audited flow. Create a child page; never edit Home itself — it's the team's landing page (roadmap, dashboards, Slack and Linear links), not a place to append findings to.
 
 `findings.md` in the audited repo stays the evidence layer. This page is the product layer. Link each to the other once and don't restate one inside the other.
 
