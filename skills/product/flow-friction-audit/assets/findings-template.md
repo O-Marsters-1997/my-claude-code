@@ -18,6 +18,8 @@
 
 {n} findings ({n} blocker · {n} major · {n} minor)
 
+**Recommended next:** {the bundle and its order, from Convergence — so a reader who stops here still leaves with a decision}
+
 ---
 
 ## Problems
@@ -67,9 +69,15 @@ The raw walk each finding is drawn from. Kept so the critique and any re-run can
 
 ---
 
+## Convergence
+
+{The read across all directions, made before any were drawn: which theses collapse into one, what composes vs. what excludes, and the recommended bundle in ship order — ship now / this quarter / rewrite. Plus the required field: the cheapest change that repairs the walked blocker, even when it is none of the directions below.}
+
+---
+
 ## Fix directions
 
-{Three divergent directions per problem, each argued in prose before it was drawn. Each names the problem and the critique point it answers, with its precedent, and links its low-fi wireframe — `[{direction-id} — {problem}]({direction-id}.html)`. HTML is the wireframe deliverable; no PNG copies. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
+{The directions the convergence gate selected — generated three per problem, wireframed only where selected, so the count varies by problem. Each argued in prose before it was drawn. Each names the problem and the critique point it answers, the signal that would prove it worked, its precedent, and links its low-fi wireframe — `[{direction-id} — {problem}]({direction-id}.html)`. HTML is the wireframe deliverable; no PNG copies. Fidelity per references/wireframe-style.md: one direction per frame, one frame per screen.}
 
 ---
 

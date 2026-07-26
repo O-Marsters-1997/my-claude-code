@@ -21,6 +21,8 @@
   {"query": "take clean screenshots of every page on the marketing site so I can drop them in the board deck", "should_trigger": false},
   {"query": "we aligned on the three onboarding problems in that notion doc last week (Team Growth > 'Blank-slate onboarding doesn't earn the first thread'). can you take those and come back with some actual design directions? don't re-litigate the problems, they're settled", "should_trigger": true},
   {"query": "here's the agreed problem set for the invite flow — https://notion.so/plain/invite-flow-problems. research how other tools handle each one and shape a few fix directions with wireframes", "should_trigger": true},
+  {"query": "activation is our Q3 goal metric and we're missing it badly. can you go through the new-workspace setup at app.staging.plain.com yourself and tell me where it actually loses people", "should_trigger": true},
+  {"query": "our activation metric counts a workspace as set up once they connect 2 channels and add 3 members. I don't think that's measuring the right thing — help me redefine it for Q4", "should_trigger": false},
   {"query": "read this notion doc and summarise the main points into a slack message for the team https://notion.so/plain/invite-flow-problems", "should_trigger": false},
   {"query": "we've got a list of problems with the billing page in this doc, can you turn them into linear tickets with estimates", "should_trigger": false}
 ]

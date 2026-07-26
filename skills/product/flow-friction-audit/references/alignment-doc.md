@@ -41,8 +41,15 @@ Publish the draft, then ask:
 - Anything missing — friction you know about that the walk didn't reach?
 - Anything you disagree with, or that looks mis-rated?
 - Anything mis-clustered — one problem that's really two, or two that are really one?
+- Which of these get design work, and which is load-bearing? They're rarely peers, and stage 5's budget is set by this answer.
 
 Edit the page rather than the conversation, so the agreement and the artifact never diverge. Iterate until the user agrees.
+
+## Goal metrics — fetched here, never carried
+
+The team's current goal metrics live in the **Q3 Roadmap** — `https://app.notion.com/p/team-plain/Q3-Roadmap-3a5810036f9d8027905ce48603a7d09f`. Fetch them at this gate. **Don't copy the definitions into this skill** — they're quarterly and Plain-specific, nothing here would signal they'd gone stale, and a stale metric that reads as authoritative silently reframes an audit; a pointer stays correct, a copy doesn't. And **don't fetch them before the walk** — handed "valuable set-up means two channels connected and a workflow live" at scope, the audit measures the flow against that definition instead of seeing it, and the finding that the definition *is* the problem never happens.
+
+They enter as context, not a rubric: what the business is trying to move says which problems matter, and feeds the budget question above — a problem sitting on the primary goal earns weight one outside it doesn't. **A metric can be wrong, and the evidence may say so.** Where a metric assumes something the walk contradicts, state it plainly in the problem it belongs to: a definition of set-up that counts configuration describes the starting point rather than the goal, and a workspace can satisfy it while being unable to reply to anyone. Surface the contradiction; redesigning the metric belongs to the team.
 
 ## Re-entry context
 
