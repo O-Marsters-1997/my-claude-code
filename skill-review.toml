@@ -1,0 +1,33 @@
+# skill-review configuration.
+#
+# Every value below is what skill-review uses when there is no config file at all,
+# so deleting this file changes nothing.
+
+# Each [[field]] is one control on a thread card and one key on every suggestion in
+# the handoff payload. Delete a block to drop the field; add one to introduce your
+# own. Suggestions are sorted by the FIRST field, in the order its values are listed.
+
+[[field]]
+name    = "priority"
+label   = "Priority"
+values  = ["high", "medium", "low"]
+default = "medium"
+
+[[field]]
+name    = "category"
+label   = "Category"
+values  = ["instructions", "tools", "examples", "error_handling", "structure", "references"]
+default = "instructions"
+
+[[field]]
+name    = "cause"
+label   = "Cause"
+values  = ["instructions", "execution"]
+default = "instructions"
+
+# The skill that applies the suggestions. An absolute path to a skill directory or a
+# SKILL.md; its name is read from the frontmatter and used in the handoff prompt and
+# on the Submit button.
+#
+[updater]
+skill = "/Users/ollymarsters/Documents/personal/ai-development/my-claude-code/skills/meta/skill-updater"
