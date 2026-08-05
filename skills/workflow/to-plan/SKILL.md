@@ -31,7 +31,7 @@ built, which `to-tickets` then breaks into several tickets. Six cards means six 
 **Nothing gates anything.** A missing PRD is not a blocker — plan from whatever exists. Do not send
 the user backwards to create an artifact first.
 
-This skill produces the **technical design document** — it owns the HOW that the PRD deliberately leaves out. Where the PRD specifies WHAT and WHY in product language, this plan specifies HOW in technical language: data models, schema shapes, API contracts, module boundaries, and integration points. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design.
+This skill produces the **technical design document** — it owns the build. The PRD carries the concepts and whatever technical context shapes the scope; this plan specifies how it gets built: data models, schema shapes, API contracts, module boundaries, integration points, and the order the work lands in. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design. Where the PRD already settles a concept or a contract, carry it through rather than re-deciding it.
 
 Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./plans/`.
 
