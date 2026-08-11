@@ -97,9 +97,17 @@ Ask the user:
 - **Where do these get filed — Linear or GitHub?**
 
 Settle the tracker here, in this approval — not from config, and not from a guess made silently at
-write time. Propose an answer rather than asking cold: if the source's provenance (step 1) is a
-Linear project or a Notion page, propose Linear; otherwise propose GitHub. The user confirming a
-proposal is one word; a wrong silent guess is a batch of tickets in the wrong place.
+write time. Propose an answer rather than asking cold, taking the first signal that applies:
+
+1. **Where the repo sits.** Anything under `~/Documents/plain/` is Plain work — propose **Linear**.
+   This outranks provenance because it still holds when the plan came from a local `./plans/*.md`
+   file, which provenance on its own would misread as GitHub.
+2. **The source's provenance** (step 1). A Linear project or a Notion page → **Linear**. Anything
+   else → **GitHub**, which is also the fallback for personal repos.
+
+Both are proposals, not rules. The user confirming one is a single word, whereas a wrong silent
+guess is a whole batch of tickets in the wrong tracker — and a path check quietly stops matching if
+the checkout ever moves, so never let it decide unconfirmed.
 
 For Linear, settle the **project** in the same breath — take it from the source's Linear project if
 it had one, else ask. The **team** is not yours to resolve: `create-adhoc-linear-issue` does that in
