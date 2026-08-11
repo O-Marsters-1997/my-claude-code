@@ -8,8 +8,8 @@ description: >
   feature, ask which one before drafting. Use when the user wants to go from PRD to plan, break
   down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an
   approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or
-  mentions "tracer bullets". For turning a source straight into GitHub issues without a plan, use
-  to-tickets instead.
+  mentions "tracer bullets". For turning a source straight into tickets (Linear or GitHub) without
+  a plan, use to-tickets instead.
 ---
 
 # PRD to Plan
@@ -39,7 +39,7 @@ Break a PRD into a phased implementation plan using vertical slices (tracer bull
 
 ### 1. Locate the input (PRD by default)
 
-A PRD is the default source and takes priority. It exists in two forms, either of which is fine: a local `./docs/prd-<feature>.md` file (the artifact `to-prd` writes) or a `[PRD]`-titled GitHub issue (a copy of the same content). Prefer the file when both are present — it needs no network and is what `to-prd` treats as canonical.
+A PRD is the default source and takes priority. It exists in several forms, any of which is fine: a local `./docs/prd-<feature>.md` file (the artifact `to-prd` writes), a Notion project doc, or a `[PRD]`-titled GitHub issue — the last two being copies of the same content. Prefer the file when more than one is present: it needs no network and is what `to-prd` treats as canonical.
 
 If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
 
@@ -48,7 +48,7 @@ Otherwise the goal is to **skip straight to a plan** from whatever artifact exis
 - an approach doc at `./docs/approach.md`
 - a raw conversation summary or transcript the user has pasted
 
-If none of these and no PRD exist, ask the user to paste one or point you to a file or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
+If none of these and no PRD exist, ask the user to paste one or point you to a file, a Notion page, or a Linear or GitHub issue. Whatever the source, treat it as the WHAT/WHY input and produce the same technical design plan described below.
 
 **A plan covers one feature.** An approach doc or a pasted conversation is portfolio-level — it may hold several. If the target feature isn't obvious from the invocation, ask which one before drafting; don't silently plan all of them or pick the first.
 
