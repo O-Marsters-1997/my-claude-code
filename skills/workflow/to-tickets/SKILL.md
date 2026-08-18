@@ -7,8 +7,9 @@ description: >
   tickets. Use when the user wants to convert a plan to tickets or issues, create tickets from a
   plan file, cut Linear tickets, file GitHub issues from a plan, go from PRD to tickets, cut
   tickets from a PRD, turn a conversation into issues, or break work into grabbable items. The
-  tracker is settled during the run — never route away because the user named Linear or GitHub. If
-  the user wants the technical design worked out first, run to-plan instead.
+  tracker is settled during the run — never route away because the user named Linear or GitHub. In a
+  repo that uses treepad, also emits a Batch Manifest so the tickets materialise as stacked
+  worktrees. If the user wants the technical design worked out first, run to-plan instead.
 ---
 
 # Plan to Tickets
@@ -210,5 +211,20 @@ Report the created ticket identifiers with their states, and the blocking relati
 
 From this point `ticket-tracker` owns the tickets — it reads and moves them between states. This
 skill does not track what it files.
+
+### 7. Emit the treepad Batch Manifest (optional)
+
+Check for a treepad batches directory:
+
+```bash
+ls "$(git rev-parse --git-common-dir)/treepad/batches/"
+```
+
+**Absent** — skip, and say nothing. Most repos do not use treepad and the step is a no-op there.
+
+**Present** — write `<feature>.toml` into that directory, per
+[`references/treepad-manifest.md`](references/treepad-manifest.md). It declares the blocking graph
+from step 4 as ordered Chains, which treepad materialises into stacked worktrees. Write it from the
+graph you already hold — never read the relations back off the tracker.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
