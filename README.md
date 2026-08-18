@@ -91,6 +91,12 @@ These skills help you think through problems before writing code.
 
 These skills help you write, refactor, and fix code.
 
+- **code-review** — Review a diff since a fixed point on two axes in parallel — Standards (repo conventions plus a Fowler smell baseline) and Spec (does it match the originating issue) — plus a third Greptile axis on Greptile-enabled repos that triages the PR bot's findings before you push.
+
+  ```
+  npx skills add O-Marsters-1997/skills --skill code-review
+  ```
+
 - **tdd** — Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.
 
   ```
