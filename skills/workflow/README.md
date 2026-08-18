@@ -19,7 +19,7 @@ done
 went uninstalled. Nesting one directory further to tidy things up breaks installation, with no
 error to tell you.
 
-The routines the suite calls (`../product/grill-with-docs`, `../product/source-synthesis`,
+The routines the suite calls (`../product/grilling`, `../product/source-synthesis`,
 `../product/design-an-interface`, `../product/triage-issue`) install the same way.
 
 **Keep every `description` a folded block scalar (`description: >`).** A plain one-line description
@@ -103,7 +103,7 @@ create a missing artifact — if they have what the stage needs, run the stage.
 
 ## Orchestrators vs routines
 
-From `../product/grill-with-docs/SKILL.md`, and it applies suite-wide:
+The suite-wide convention:
 
 > A **user-invoked skill** orchestrates a workflow and may call **model-invoked routines**. A routine
 > is not triggered directly by the user — it is delegated to from within another skill's flow.
@@ -116,7 +116,7 @@ appear in the map above:
 
 | Routine | Called by | For |
 |---|---|---|
-| `../product/grill-with-docs` | `chat-to-approach`, `to-prd`, `to-roadmap` | the canonical grilling loop — never re-inline it |
+| `../product/grilling` | `chat-to-approach`, `to-prd`, `to-roadmap` | the canonical grilling loop — never re-inline it |
 | `../product/source-synthesis` | `chat-to-approach` | the optional `## Background Research` section of `approach.md` |
 | `../product/design-an-interface` | `to-plan` | designing a module boundary twice before committing to one |
 | `../product/triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |

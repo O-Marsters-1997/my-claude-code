@@ -115,7 +115,7 @@ Items already settled in the existing doc are **treated as prior truth**. Do not
 
 ## Phase 3 — Alignment Grilling (Safeguard)
 
-Before writing anything, run a focused grilling session using the `grill-with-docs` skill. This is the safeguard: stress-test the extraction before committing it to a durable file. `grill-with-docs` owns the grilling loop — defer to it rather than re-running the questioning yourself. This section only scopes *what* to grill; the *how* lives in `grill-with-docs`.
+Before writing anything, run a focused grilling session using the `grilling` skill. This is the safeguard: stress-test the extraction before committing it to a durable file. `grilling` owns the grilling loop — defer to it rather than re-running the questioning yourself. This section only scopes *what* to grill; the *how* lives in `grilling`.
 
 Grill only on:
 

@@ -88,7 +88,7 @@ looked.
 
 ### 3. Grill for scope and behaviour
 
-Run the grilling session using the `grill-with-docs` skill — it owns the grilling loop; defer to it
+Run the grilling session using the `grilling` skill — it owns the grilling loop; defer to it
 rather than re-inlining the questioning here. Keep the focus on scope, behaviour and the concepts
 being introduced, not on build order.
 

@@ -6,7 +6,7 @@
       "id": 1,
       "name": "approach-doc-present-skips-grilling",
       "prompt": "make me a roadmap",
-      "expected_output": "Because ./docs/approach.md exists, the skill takes the approach path: it detects the doc via an artifact-scan preflight, treats it as settled truth, does NOT re-parse a conversation or invoke grill-with-docs, asks only light prioritisation questions to tier the doc's features, and renders a Now/Next/Later kanban to roadmap.html. The approach doc is left unmodified.",
+      "expected_output": "Because ./docs/approach.md exists, the skill takes the approach path: it detects the doc via an artifact-scan preflight, treats it as settled truth, does NOT re-parse a conversation or invoke grilling, asks only light prioritisation questions to tier the doc's features, and renders a Now/Next/Later kanban to roadmap.html. The approach doc is left unmodified.",
       "files": [
         {
           "path": "./docs/approach.md",
@@ -15,7 +15,7 @@
       ],
       "assertions": [
         {"text": "The agent detects ./docs/approach.md exists (references an artifact-scan preflight or equivalent detection) before choosing a path"},
-        {"text": "The agent takes the approach path: it does NOT invoke or delegate to the grill-with-docs skill"},
+        {"text": "The agent takes the approach path: it does NOT invoke or delegate to the grilling skill"},
         {"text": "The agent does NOT ask the user to paste a conversation and does NOT re-parse source conversation text"},
         {"text": "The agent does NOT modify ./docs/approach.md"},
         {"text": "The agent asks light prioritisation questions to assign the approach doc's features to Now / Next / Later"},

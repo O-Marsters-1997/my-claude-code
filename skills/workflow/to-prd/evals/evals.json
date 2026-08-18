@@ -31,7 +31,7 @@
           "text": "The agent does NOT re-interview on scope/audience/product decisions already settled in the priors (e.g. does not re-ask whether the warning should block, or who the audience is)"
         },
         {
-          "text": "Any grilling (step 3, via grill-with-docs) is confined to genuine deltas or gaps not answered by the priors, not a full re-interview"
+          "text": "Any grilling (step 3, via grilling) is confined to genuine deltas or gaps not answered by the priors, not a full re-interview"
         },
         {
           "text": "The doc's Goal and Current state (or equivalents) are consistent with the approach doc and ideate report (diff-based doc freshness, non-blocking CLI warning, Markdown-only scope)"
@@ -81,7 +81,7 @@
       "id": 2,
       "name": "nothing-on-disk-full-interview",
       "prompt": "I want to write a project doc for a new feature, but I haven't written anything down yet.",
-      "expected_output": "With no Linear brief, no ./docs/approach.md and no ./ideas/reports/*-ideate.md available, the skill falls back to the full interview unchanged: it asks the user for a detailed problem description (step 1), explores the repo (step 2), and grills via grill-with-docs (step 3) before writing the doc.",
+      "expected_output": "With no Linear brief, no ./docs/approach.md and no ./ideas/reports/*-ideate.md available, the skill falls back to the full interview unchanged: it asks the user for a detailed problem description (step 1), explores the repo (step 2), and grills via grilling (step 3) before writing the doc.",
       "files": [],
       "assertions": [
         {
@@ -94,7 +94,7 @@
           "text": "The agent explores the repo to ground the doc (step 2)"
         },
         {
-          "text": "The agent runs the grilling session via the grill-with-docs skill (step 3), not a re-inlined questioning loop"
+          "text": "The agent runs the grilling session via the grilling skill (step 3), not a re-inlined questioning loop"
         },
         {
           "text": "The agent asks whether a prototype exists or would help (step 4) rather than skipping it silently"

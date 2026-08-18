@@ -125,7 +125,7 @@ Give the one-line verdict, name the top 2–3 lifts in the conversation, then: "
 
 Goal: a tight decision record so skill-creator inherits *decisions*, not a research dump.
 
-Re-read `.claude/skill-brief/sources.md`, **including the user's per-skill notes** — those override your original recommendations. If any note raises a clarifying question or contradicts a recommendation (e.g. asks to lift from a skill you flagged as a full-match duplicate), invoke **`/grill-with-docs`** to stress-test the decision *before* writing `capture.md` — don't silently bake the contradiction in. Preserve the catalog numbers from `sources.md` verbatim when referencing skills. Then write `.claude/skill-brief/capture.md`:
+Re-read `.claude/skill-brief/sources.md`, **including the user's per-skill notes** — those override your original recommendations. If any note raises a clarifying question or contradicts a recommendation (e.g. asks to lift from a skill you flagged as a full-match duplicate), invoke **`/grilling`** to stress-test the decision *before* writing `capture.md` — don't silently bake the contradiction in. Preserve the catalog numbers from `sources.md` verbatim when referencing skills. Then write `.claude/skill-brief/capture.md`:
 
 ```markdown
 # Skill brief — capture: {name}

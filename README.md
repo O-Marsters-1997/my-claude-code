@@ -48,7 +48,7 @@ done
 The suite calls four routines that are not stages. These sit at depth 2, so they install normally:
 
 ```
-for s in grill-with-docs source-synthesis design-an-interface triage-issue; do
+for s in grilling source-synthesis design-an-interface triage-issue; do
   npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
 done
 ```
@@ -57,10 +57,22 @@ done
 
 These skills help you think through problems before writing code.
 
-- **grill-with-docs** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
+- **grilling** — The interview loop itself: rounds of questions along the frontier of the design tree, each with a recommended answer. Model-invoked; the suite delegates here.
 
   ```
-  npx skills add O-Marsters-1997/skills --skill grill-with-docs
+  npx skills add O-Marsters-1997/skills --skill grilling
+  ```
+
+- **grill-me** — Slash-command front door to `grilling`. `/grill-me`.
+
+  ```
+  npx skills add O-Marsters-1997/skills --skill grill-me
+  ```
+
+- **grill-me-with-docs** — Grilling that also challenges your plan against `CONTEXT.md`, sharpens terminology, and writes glossary entries and ADRs inline. `/grill-me-with-docs`.
+
+  ```
+  npx skills add O-Marsters-1997/skills --skill grill-me-with-docs
   ```
 
 - **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents.
