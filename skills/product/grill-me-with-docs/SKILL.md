@@ -12,8 +12,10 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 
 Ask one question at a time via `AskUserQuestion`. Never batch — each answer may change what you ask next. For each question:
 
-- Include 2–4 concrete options based on your analysis of the codebase and the plan. Single-select for decisions where the choices are mutually exclusive; multi-select when they aren't.
-- `AskUserQuestion` automatically provides an "Other" option for free-form input — don't add one manually.
+- Give exactly 3 concrete options grounded in your analysis of the codebase and the plan, plus a fourth: "Chat about this", for when the user isn't ready to decide.
+- Put your recommended option first, with `(Recommended)` appended to its label. Always have a recommendation — never ask a question you have no opinion on.
+- `AskUserQuestion` adds a free-form "Other" option automatically — don't add one yourself.
+- If "Chat about this" is picked, drop into a normal exchange: ask what needs clarifying, discuss it, then re-ask the question — revised if the discussion changed it — once that's settled.
 - If a question can be answered by exploring the codebase, explore the codebase instead of asking.
 
 </what-to-do>
