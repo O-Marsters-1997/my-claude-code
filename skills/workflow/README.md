@@ -21,7 +21,7 @@ went uninstalled. Nesting one directory further to tidy things up breaks install
 error to tell you.
 
 The routines the suite calls (`../product/grilling`, `../product/source-synthesis`,
-`../product/design-an-interface`, `../product/triage-issue`) install the same way.
+`../product/triage-issue`) install the same way.
 
 **Keep every `description` a folded block scalar (`description: >`).** A plain one-line description
 containing `": "` is invalid YAML, and a skill whose frontmatter won't parse is dropped from
@@ -145,7 +145,6 @@ appear in the map above:
 |---|---|---|
 | `../product/grilling` | `chat-to-approach`, `to-prd` | the canonical grilling loop — never re-inline it |
 | `../product/source-synthesis` | nobody — run it yourself | the optional `## Background Research` section of `approach.md`; `chat-to-approach` only preserves it |
-| `../product/design-an-interface` | `to-plan` | designing a module boundary twice before committing to one |
 | `../product/triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |
 
 ## Not in scope

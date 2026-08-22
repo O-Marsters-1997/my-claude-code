@@ -61,8 +61,6 @@ Before slicing, identify technical decisions that are unlikely to change through
 - **Database schema shape** — table names, key columns, relationships
 - **Key data models** — names, fields, and their responsibilities
 - **Module boundaries** — what each module owns and exposes. Prefer **deep modules**: substantial functionality behind a simple, stable interface that can be tested in isolation (as opposed to a shallow module, whose interface is complex relative to what it does). Note which modules warrant isolated tests.
-
-  When a module boundary is central to the design and the right shape isn't obvious, run the `design-an-interface` skill on it before committing — it generates several radically different shapes in parallel and compares them. A boundary is the most expensive thing in this document to get wrong: slices are re-derived freely by `to-tickets`, but every slice is built against the interface. Use it sparingly, on the one or two boundaries the feature actually hinges on.
 - **API / interface contracts** — endpoint shapes, function signatures (at the module boundary level, not internal implementation)
 - **Integration points** — third-party services, async boundaries, storage adapters
 - **Key flows / algorithms** — non-trivial logic described at the level of "what calls what"

@@ -45,10 +45,10 @@ done
 | `to-tickets` | feature | a plan | GitHub issues |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
-The suite calls four routines that are not stages. These sit at depth 2, so they install normally:
+The suite calls three routines that are not stages. These sit at depth 2, so they install normally:
 
 ```
-for s in grilling source-synthesis design-an-interface triage-issue; do
+for s in grilling source-synthesis triage-issue; do
   npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
 done
 ```
@@ -73,18 +73,6 @@ These skills help you think through problems before writing code.
 
   ```
   npx skills add O-Marsters-1997/skills --skill grill-me-with-docs
-  ```
-
-- **design-an-interface** — Generate multiple radically different interface designs for a module using parallel sub-agents.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill design-an-interface
-  ```
-
-- **request-refactor-plan** — Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill request-refactor-plan
   ```
 
 ## Development
@@ -115,12 +103,6 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill improve-codebase-architecture
   ```
 
-- **migrate-to-shoehorn** — Migrate test files from `as` type assertions to @total-typescript/shoehorn.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill migrate-to-shoehorn
-  ```
-
 - **scaffold-exercises** — Create exercise directory structures with sections, problems, solutions, and explainers.
 
   ```
@@ -128,18 +110,6 @@ These skills help you write, refactor, and fix code.
   ```
 
 ## Tooling & Setup
-
-- **setup-pre-commit** — Set up Husky pre-commit hooks with lint-staged, Prettier, type checking, and tests.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill setup-pre-commit
-  ```
-
-- **git-guardrails-claude-code** — Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, etc.) before they execute.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill git-guardrails-claude-code
-  ```
 
 - **clean-comments** — Set up a `/clean-comments` command and a PreToolUse hook that blocks git commits when staged code files contain self-documenting comments.
 
@@ -161,8 +131,3 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill ubiquitous-language
   ```
 
-- **obsidian-vault** — Search, create, and manage notes in an Obsidian vault with wikilinks and index notes.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill obsidian-vault
-  ```
