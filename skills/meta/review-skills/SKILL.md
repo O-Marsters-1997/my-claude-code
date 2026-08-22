@@ -1,6 +1,7 @@
 ---
 name: review-skills
 description: Audit all skills available in the current project context for conflicts, quality issues, and replicable patterns. Use when user wants to review skills, audit skills, check skill quality, find conflicting or overlapping skills, improve skill descriptions, check what skills are installed, or mentions "review-skills". Always use this skill when the user wants to understand the health or completeness of their skill setup.
+disable-model-invocation: true
 ---
 
 # Review Skills

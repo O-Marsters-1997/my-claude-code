@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "code-review": {
+      "source": "O-Marsters-1997/skills",
+      "sourceType": "github",
+      "skillPath": "skills/code/code-review/SKILL.md",
+      "computedHash": "a720fce8bc095295e81aec6d0bc26d96e5345aa23a563f1c4513dd82fbd8462c"
+    }
+  }
+}
