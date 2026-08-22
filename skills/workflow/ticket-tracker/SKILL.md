@@ -1,14 +1,12 @@
 ---
 name: ticket-tracker
 description: >
-  Live triage board over GitHub issues — reads the current tickets via the gh CLI and moves each
-  between states (backlog → ready → in-progress → in-review → done) using status labels. This is
-  the *ticket-level* board, complementing the *feature-level* ./roadmap.html rather than replacing
-  it: a roadmap card is a feature that becomes several tickets here. Use when the user asks "where
-  are my tickets", "show the board", "what's in progress", "move issue N to in-review", "what's
-  ready to pick up", "update the ticket status", "mark N done", or otherwise wants to see or
-  change where work sits. Trigger whenever the request is about the *current state* of GitHub
-  issues rather than generating a new roadmap or filing a new issue.
+  Use when the request is about the *current state* of GitHub issues rather than creating new
+  ones: "where are my tickets", "show the board", "what's in progress", "what's ready to pick
+  up", "move issue N to in-review", "mark N done", "update the ticket status". Live triage board
+  over GitHub issues via the gh CLI, moving each between backlog -> ready -> in-progress ->
+  in-review -> done using status labels. This is the ticket-level board; ./roadmap.html is the
+  feature-level one. To file new tickets, use /to-tickets.
 ---
 
 # Ticket Tracker
@@ -98,7 +96,7 @@ This skill tracks tickets; it does not investigate or file them. To add new work
 
 - Bugs / reported problems → defer to **triage-issue** (investigate + file), then the new issue
   lands in **backlog**.
-- Planned work → defer to **to-tickets**, then label the batch
+- Planned work → point the user at **`/to-tickets`**, then label the batch
   **ready**.
 
 Do not duplicate those flows. When a ticket-tracker request implies creating an issue, hand off,

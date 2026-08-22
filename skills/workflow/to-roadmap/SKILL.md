@@ -1,21 +1,18 @@
 ---
 name: to-roadmap
 description: >
-  Prioritise the features in ./docs/approach.md into a Now / Next / Later kanban board, rendered as
-  a self-contained ./roadmap.html. Each card is a feature, not a ticket — something to be built,
-  which one run of to-prd → to-plan → to-tickets later breaks down into several tickets. The board
-  is portfolio-level and holds many features at once. The approach doc is settled
-  truth — this skill assigns tiers and reasons about ordering, it never re-litigates what was
-  decided. Use whenever the user wants to prioritise, sequence, or visualise what to build: "make me
-  a roadmap", "turn the approach into a roadmap", "generate a kanban", "what should I build first",
-  "prioritise these features", "refresh the roadmap", or "what's Now vs Later". Requires
-  ./docs/approach.md — if it is missing, route to chat-to-approach first rather than interviewing
-  here.
+  Prioritises settled features into a Now / Next / Later kanban board, rendered as a
+  self-contained ./roadmap.html. Each card is a feature, not a ticket — one card later becomes
+  several tickets via /to-prd -> /to-plan -> /to-tickets. Boards the features in
+  ./docs/approach.md, or the "## Accepted ideas" in ./ideas/CONTEXT.md when there is no approach
+  doc. The approach doc is settled truth: this assigns tiers and reasons about ordering, it
+  never re-litigates what was decided.
+disable-model-invocation: true
 ---
 
 ## Overview
 
-Turn the settled features in `./docs/approach.md` into a visual product roadmap: a standalone HTML
+Turn the features you have settled on into a visual product roadmap: a standalone HTML
 kanban with three columns (Now / Next / Later) where each card is a **feature**, not a ticket — a
 thing to be built, which the spine later breaks down into several tickets.
 
@@ -34,48 +31,45 @@ FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-
 features at once. Crossing to the spine means picking one card — six cards means six independent
 runs of `to-prd → to-plan → to-tickets`, each producing its own several tickets.
 
-**Nothing gates anything — with one deliberate exception, here.** Everywhere else in the suite a
-missing upstream artifact is a deliberate skip, not a blocker. This skill is the exception: it
-requires `./docs/approach.md` and routes to `chat-to-approach` if it's absent, because that skill
-owns conversation → structure (see Phase 0 for why).
+**Nothing gates anything.** Board from `./docs/approach.md`, from `## Accepted ideas` in
+`./ideas/CONTEXT.md`, or from a short list the user gives you. The one thing this skill will not do
+is build a roadmap by parsing a raw conversation — `chat-to-approach` owns that (see Phase 0).
 
 Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder
 matrices.
 
 ---
 
-## Phase 0 — Load the approach doc
+## Phase 0 — Load the source
 
-Run `artifact-scan` as a preflight to detect `./docs/approach.md` — defer to it, don't reimplement
-its file checks.
+Two sources, in priority order. Run `artifact-scan` as a preflight if it's installed rather than
+reimplementing its file checks.
 
-**If `./docs/approach.md` exists**, read it and extract, treating every item as already agreed:
+**1. `./docs/approach.md`** — the alignment doc, and the richer source. Read it and extract,
+treating every item as already agreed:
 
 - All features (Name, Problem, Value, Dependencies) → cards
 - Constraints → a note below the board, not cards
 - Principles → use to inform tier suggestions (e.g. "ship weekly" → fewer Now items)
 - Open questions → carry forward verbatim into the Open Questions section
 
-Do not modify `./docs/approach.md`.
+**2. `## Accepted ideas` in `./ideas/CONTEXT.md`** — the ideas the user has decided to build,
+whether `ideate` promoted them or they were hand-added. One line each, one card each. Accepting is
+the selection, so board the whole section rather than asking which of them to include.
 
-**If it does not exist**, stop and route — do not interview, and do not build a roadmap from a
-conversation:
+Do not modify either file.
 
-> "There's no `./docs/approach.md` yet. Run `chat-to-approach` first to capture what you're
-> building — paste the conversation and it'll write the alignment doc. Then re-run this and I'll
-> prioritise it."
+**If both exist**, the approach doc wins: it has been grilled, and it carries the constraints,
+principles and open questions a bare idea list doesn't.
 
-Offer to invoke `chat-to-approach` there and then. **Why route instead of absorbing the
-conversation:** `chat-to-approach` owns conversation → structure, including the grilling that
-resolves ambiguity before anything is committed. Duplicating that here means two skills parsing
-transcripts differently and drifting apart, and a roadmap built on ungrilled assumptions. One source
-of alignment truth, one skill that produces it.
-
-If the user pasted a conversation *and* an approach doc exists, the doc wins — point them at
-`chat-to-approach` to fold the new material into alignment first, then re-run this.
+**If neither exists**, ask the user for the features to board — a short list, one line each — and
+mention that `ideate` or `chat-to-approach` leaves a durable source next time. What you must not do
+is build the board by parsing a pasted conversation: `chat-to-approach` owns conversation →
+structure, including the grilling that resolves ambiguity before anything is committed. Two skills
+parsing transcripts differently is how a board ends up built on ungrilled assumptions.
 
 A feature too vague to tier is not a licence to re-litigate it. Say so, and either ask the user for
-a tier directly or point them back to `chat-to-approach` to sharpen the doc.
+a tier directly or point them back at the source to sharpen it.
 
 ---
 
@@ -161,8 +155,8 @@ don't repeat the roadmap verbatim.
 
 - How many features are on the board and how they're distributed (N Now / N Next / N Later)
 - How many open questions were flagged
-- The source was `./docs/approach.md`, left unmodified — to change what's on the board, run
-  `chat-to-approach` to update alignment, then re-run this to refresh
+- Which source was used, left unmodified — to change what's on the board, edit the source
+  (`chat-to-approach` for the approach doc, or the `## Accepted ideas` list directly) and re-run
 - The next step: pick one card and run `to-prd` on it. Each card is its own pass down the spine.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.

@@ -1,6 +1,14 @@
 ---
 name: architecture-review
-description: Critical, evidence-grounded architectural assessment — boundaries, coupling, data flow, failure modes, information hiding. An orchestrator maps the system, detects the stack, fans out seven parallel reviewer subagents (one per quality dimension), and synthesises a consolidated report with an explicit verdict and a prioritised recommendations roadmap. The vocabulary is technology-agnostic but the probes adapt to the stack. Use when the user wants an architecture review, a design health check, a staff-level read on architectural risk, or wants to assess coupling and cohesion. Trigger on phrases like "review my architecture", "assess this system's design", "is this codebase well-architected", "architecture health check", "evaluate coupling and cohesion", "where's the design risk", or "design review before we scale". Diagnoses only — does not refactor or apply fixes.
+description: >
+  Use when the user wants an architecture review, a design health check, a staff-level read on
+  architectural risk, or an assessment of coupling and cohesion: "review my architecture", "is
+  this codebase well-architected", "architecture health check", "where's the design risk",
+  "design review before we scale". Maps the system, detects the stack, fans out seven parallel
+  reviewers (one per quality dimension — boundaries, coupling, data flow, failure modes,
+  information hiding), and synthesises a verdict plus a prioritised roadmap. Diagnoses only —
+  does not refactor. For a diff or PR, use code-review; to actually apply refactors, use
+  improve-codebase-architecture.
 ---
 
 # Architecture Review

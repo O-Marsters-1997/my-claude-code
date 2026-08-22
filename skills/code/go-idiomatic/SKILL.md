@@ -1,16 +1,18 @@
 ---
 name: go-idiomatic
 description: >
-  Idiomatic Go code style, best practices, organisation, and engineering patterns. Trigger this
-  skill proactively whenever working on Go code — writing, reviewing, refactoring, designing
-  packages, discussing where a helper should live, reducing repetition in a Go project, or any
-  Go implementation task. Also the entry point for Go testing patterns and design patterns. Use it
-  even when the user hasn't asked for style guidance — clean, idiomatic Go that follows established
-  best practices should be the default, not an afterthought.
-  Trigger phrases: "go code", "golang", "idiomatic go", "go review", "go refactor", "go style",
-  "go package", "go project", "utils package", "write a test in Go", "go benchmark", "go patterns".
-user-invocable: true
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent
+  Go engineering standards for this repo — idiomatic style, package layout, error handling,
+  concurrency, testing and design patterns.
+  TRIGGER — load BEFORE writing or editing Go, not after: any .go file or go.mod/go.sum/go.work
+  is being created or edited; the prompt names Go, Golang, goroutine, channel, interface, struct,
+  `go test`, `go build`, golangci-lint, gofmt, table-driven test, or benchmark; or the working
+  directory contains go.mod and the task is implementation, refactor, review or test-writing.
+  Trigger on plain feature requests inside a Go repo — "add an endpoint", "extract a helper",
+  "where should this live", "reduce this duplication", "write a test for this" — the user will
+  not say "idiomatic"; the .go file is the trigger. Do not wait to be asked for style guidance,
+  and load it even when another skill (tdd, simplify) is already active.
+  SKIP only when no Go file is involved and Go is not named.
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash(go:*), Bash(golangci-lint:*), Bash(git:*), Agent
 ---
 
 # Go Idiomatic

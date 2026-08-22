@@ -1,6 +1,13 @@
 ---
 name: code-review
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?) — plus, on Greptile-enabled repos, a third Greptile axis that pulls the PR bot's findings forward and diagnoses each as fix-or-decline before the PR is raised. Standards and Spec run as parallel sub-agents and are reported side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: >
+  Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to
+  "review since X". Reviews changes since a fixed point (commit, branch, tag, or merge-base)
+  along two parallel axes — Standards (does this follow the repo's documented coding standards?)
+  and Spec (does this match what the originating issue asked for?) — reported side by side. On
+  Greptile-enabled repos, adds a third axis that pulls the PR bot's findings forward and
+  diagnoses each as fix-or-decline before the PR is raised. For whole-system design assessment
+  rather than a diff, use architecture-review.
 ---
 
 Review of the diff between `HEAD` and a fixed point the user supplies, along two axes:

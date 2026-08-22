@@ -11,12 +11,6 @@ description: >
   brief", or "turn this into a skill-creator prompt". Trigger proactively whenever
   someone is about to start a skill-creator session from a raw idea and hasn't sourced
   prior art yet — the sourcing pass is exactly what prevents building a duplicate.
-compatibility:
-  tools:
-    - Bash
-    - Read
-    - Write
-    - Skill
 ---
 
 # Skill Brief

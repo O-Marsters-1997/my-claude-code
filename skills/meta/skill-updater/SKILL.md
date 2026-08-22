@@ -1,11 +1,11 @@
 ---
 name: skill-updater
-description: Update an existing skill with new context, patterns, or improvements. Edits the skill at its source repo (not the installed copy) and opens a draft PR for the change. Use when user wants to update a skill, modify a skill, add a pattern to a skill, improve an existing skill, edit a SKILL.md, tweak skill instructions, change skill behaviour, or mentions "update skill", "edit skill", "change skill", "add to skill". Also use when invoked programmatically with a skill name, path, and improvement_suggestions[] payload from skill-feedback-collector. Do NOT use for creating new skills from scratch — use write-a-skill or skill-creator for that.
+description: Update an existing skill with new context, patterns, or improvements. Edits the skill at its source repo (not the installed copy) and opens a draft PR for the change. Use when user wants to update a skill, modify a skill, add a pattern to a skill, improve an existing skill, edit a SKILL.md, tweak skill instructions, change skill behaviour, or mentions "update skill", "edit skill", "change skill", "add to skill". Also use when invoked programmatically with a skill name, path, and improvement_suggestions[] payload from skill-feedback-collector. Do NOT use for creating new skills from scratch — use skill-creator for that.
 ---
 
 # Skill Updater
 
-Lightweight, in-place updates to an existing skill's SKILL.md. Edits live in the source repo and are shipped as a draft PR — never to the installed copy. For creating new skills or running evals/benchmarks, use write-a-skill or skill-creator instead.
+Lightweight, in-place updates to an existing skill's SKILL.md. Edits live in the source repo and are shipped as a draft PR — never to the installed copy. For creating new skills or running evals/benchmarks, use skill-creator instead.
 
 ## Programmatic input path
 

@@ -1,16 +1,13 @@
 ---
 name: artifact-scan
 description: >
-  Front door to the product workflow suite — scans the repo for the product artifacts, reports what
-  exists, and names the one skill to run next. Detects the ideate report, approach doc, roadmap,
-  PRD, plan files, and tickets, then routes based on what the user already has rather than enforcing
-  a fixed order. Use whenever the user asks "which skill should I use?", "what product docs already
-  exist?", "where are we in the workflow?", "what should I run next?", "do we have a roadmap/PRD/plan
-  yet?", or "what's left before I start coding?". This routes between *skills* — for "what feature
-  should I build next?" use ideate instead. A roadmap card is a feature that fans out into its own
-  to-prd → to-plan → to-tickets run, so feature-level artifacts are counted, never ticked off. Also
-  invoke this as a preflight routine from other product skills that need to know which artifacts are
-  already present before acting.
+  Use whenever the user asks "which skill should I use?", "where are we in the workflow?",
+  "what should I run next?", "what product docs already exist?", "do we have a roadmap/PRD/plan
+  yet?", or "what's left before I start coding?". Front door to the product workflow suite:
+  detects the ideate report, approach doc, roadmap, PRDs, plan files and tickets, then names the
+  one skill to run next based on what exists rather than a fixed order. Routes between *skills* —
+  for "what feature should I build next?" use ideate. Also usable as a preflight routine from
+  other product skills.
 ---
 
 # Artifact Scan

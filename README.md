@@ -149,12 +149,6 @@ These skills help you write, refactor, and fix code.
 
 ## Writing & Knowledge
 
-- **write-a-skill** — Create new skills with proper structure, progressive disclosure, and bundled resources.
-
-  ```
-  npx skills add O-Marsters-1997/skills --skill write-a-skill
-  ```
-
 - **edit-article** — Edit and improve articles by restructuring sections, improving clarity, and tightening prose.
 
   ```

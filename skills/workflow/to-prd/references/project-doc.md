@@ -105,7 +105,7 @@ one — Help Center Redesign — uses three. Section *names* flex too (`Problem`
 rather than filling it with restated filler; a doc padded to hit every heading reads worse than a
 short one that covers what matters.
 
-**Both shapes want the first four.** Everything after that is picked to fit.
+**Both shapes want TL;DR, Problem, Why and Goal.** Everything after those is picked to fit.
 
 <project-doc-template>
 
@@ -113,6 +113,13 @@ short one that covers what matters.
 
 Two or three sentences a reader can stop after, plus the recording or prototype. State what this
 docks, changes or introduces, and for whom. Worth writing even when the doc is short.
+
+## Contents
+
+Navigation for what follows, in the order it appears. Which sections appear depends on the doc, so
+build the list from what you actually wrote rather than from this template's menu. In Notion a
+native table-of-contents block does this and stays current on its own; the Markdown twin needs the
+list written out.
 
 ## Problem  *(or: Current state)*
 

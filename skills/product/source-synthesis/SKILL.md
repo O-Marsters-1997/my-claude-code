@@ -2,9 +2,6 @@
 name: source-synthesis
 description: >
   Deep synthesis of a curated reading list — blog posts, tutorials, docs, articles — tailored to a specific use case or build goal. Use whenever the user provides URLs (public links to educational content) and wants a thorough, opinionated synthesis rather than a raw summary. Trigger on phrases like "synthesise these sources", "give me a lit review of", "I want to read up on X, here are some links", "help me digest these articles", "summarise these tutorials for my use case", "I'm about to build X, here's my reading list", or whenever the user pastes a list of URLs alongside a goal or project description. Also trigger proactively when the user provides multiple URLs and a description of something they're trying to learn or build — even if they don't say "synthesise".
-compatibility:
-  tools:
-    - WebFetch
 ---
 
 # Source Synthesis

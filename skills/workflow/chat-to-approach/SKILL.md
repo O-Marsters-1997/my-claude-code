@@ -1,17 +1,13 @@
 ---
 name: chat-to-approach
 description: >
-  Convert a pasted AI conversation summary or transcript into a canonical alignment document at
-  ./docs/approach.md — the single source of truth for what we are building and why. Grills only on
-  ambiguities, conflicts and deltas, never on settled decisions. The doc is portfolio-level: it
-  holds many features at once, which to-roadmap prioritises into a Now/Next/Later board before
-  each feature runs the per-feature spine (to-prd → to-plan → to-tickets) on its own. Use for a
-  multi-feature conversation; if the user already knows the one feature they want built now,
-  prefer to-prd. Trigger when the user pastes a summary and wants to capture alignment, extract
-  decisions, or record what was agreed — phrases like "turn this chat into an approach", "extract
-  our alignment", "write an approach doc from this", "what did we decide (save it)", "capture our
-  decisions", or "create an alignment doc". Use it even if the user just pastes a conversation
-  summary and says "save this" or "let's capture this".
+  Converts a pasted AI conversation summary or transcript into a canonical alignment document at
+  ./docs/approach.md — the single source of truth for what we are building and why. Grills only
+  on ambiguities, conflicts and deltas, never on settled decisions. The doc is portfolio-level:
+  it holds many features at once, which /to-roadmap prioritises into a Now/Next/Later board
+  before each feature runs the per-feature spine on its own. For a single already-chosen
+  feature, use /to-prd instead.
+disable-model-invocation: true
 ---
 
 ## Overview

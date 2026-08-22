@@ -1,15 +1,18 @@
 ---
 name: frontend-best-practices
 description: >
-  Framework-agnostic frontend engineering best practices. Fire this skill whenever building,
-  reviewing, or refactoring any frontend component, hook, state, form, or UI logic — even when
-  no framework is named. It detects the project's framework and loads only the matching guidance.
-  Use it proactively; clean component architecture, state, async, forms, accessibility,
-  performance, and TypeScript discipline should be the default, not an afterthought.
-  Trigger words: frontend, component, hook, jsx, tsx, props, react, useState, useEffect, solid,
-  solidjs, signal, createSignal, store, accessibility, a11y, web performance, web vitals.
-user-invocable: true
-allowed-tools: Read Edit Write Glob Grep Bash Agent
+  Frontend engineering standards — component architecture, state, async, forms, accessibility,
+  performance and TypeScript discipline. Detects the project's framework and loads only the
+  matching guidance.
+  TRIGGER — load BEFORE writing or editing frontend code, not after: any .tsx, .jsx, .vue,
+  .svelte, or component/hook file is being created or edited; the prompt names a component,
+  hook, prop, state, form, modal, route, page, React, Next, Solid, signal, useState, useEffect,
+  createSignal, store, context, a11y, or web vitals. Trigger on plain feature requests in a
+  frontend repo — "add a button", "wire up this form", "make this load faster", "fix this
+  rerender" — the user will not say "best practices"; the component file is the trigger. Load it
+  even when another skill (tdd, impeccable, simplify) is already active.
+  SKIP only for backend-only work with no UI file touched.
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Agent
 ---
 
 # Frontend

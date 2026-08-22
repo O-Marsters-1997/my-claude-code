@@ -1,18 +1,13 @@
 ---
 name: to-prd
 description: >
-  Turn a feature idea into a project doc (PRD) for one feature — what we're building, how it behaves,
-  and the scope boundary — through interview, codebase exploration and a phased cut-line, saved to
-  ./docs/prd-<feature>.md and published to Notion. The per-feature spine (to-prd → to-plan →
-  to-tickets) starts here once a feature is chosen. Covers exactly one feature: if handed a
-  multi-feature source (approach doc, roadmap, ideate report), ask which feature this doc is for —
-  each roadmap card is its own run down the spine. Trigger on "write a project doc", "project doc for
-  X", "write a PRD", "spec this out", "scope this project", "I want to build X", "I have an idea for
-  a feature", "help me scope this feature", "let's plan a new feature", or "define the requirements
-  for X". Reads the Linear project brief, ./docs/approach.md and ./ideas/reports/*-ideate.md as
-  priors if they exist, so it doesn't re-ask what's settled — but needs none of them, and interviews
-  from nothing. Prefer over ideate when the user already knows what they want built; use
-  artifact-scan if they don't know where they are in the workflow.
+  Turns one feature idea into a project doc (PRD) — what we're building, how it behaves, and the
+  scope boundary — through interview, codebase exploration and a phased cut-line, saved to
+  ./docs/prd-<feature>.md and published to Notion. Covers exactly one feature: given a
+  multi-feature source, ask which one. Reads any approach doc, ideate report or Linear brief as
+  priors so it doesn't re-ask what's settled, but needs none. Starts the per-feature spine
+  (/to-prd -> /to-plan -> /to-tickets).
+disable-model-invocation: true
 ---
 
 ## Where this sits
@@ -58,7 +53,7 @@ already answer — only ask what is genuinely unknown:
    It answers problem, why, who (with named customers), risks and shipping sequence. Carry the named
    customers through as evidence rather than re-asking who wants this.
 3. **On-disk priors** — the approach doc (`./docs/approach.md`) and the ideate report
-   (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them. Treat their
+   (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them if it's installed; otherwise `ls` the two paths. Treat their
    captured decisions (problem, scope, audience, product decisions) as already-answered; confirm and
    grill deltas only.
 
@@ -163,7 +158,7 @@ File it from the Markdown file, not a re-render, or the two copies drift.
 `include_discussions: true`, read the threads and fold them in — don't re-derive the doc and
 overwrite what reviewers wrote.
 
-Then hand off: `to-plan` turns this doc into the implementation plan.
+Then hand off: `/to-plan` turns this doc into the implementation plan.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke
 skill-feedback-collector passing this skill's name and path.
