@@ -9,7 +9,8 @@ description: >
   down a PRD, create an implementation plan, plan phases from a PRD, plan straight from an
   approach doc (./docs/approach.md) or a pasted conversation, "skip straight to a plan", or
   mentions "tracer bullets". For turning a source straight into tickets (Linear or GitHub) without
-  a plan, use to-tickets instead.
+  a plan, use `/to-tickets` instead.
+disable-model-invocation: true
 ---
 
 # PRD to Plan
@@ -43,7 +44,7 @@ A PRD is the default source and takes priority. It exists in several forms, any 
 
 If a PRD is already in the conversation — or the user points you to one — use it and skip the rest of this step; behave exactly as the PRD path always has.
 
-Otherwise the goal is to **skip straight to a plan** from whatever artifact exists. To locate inputs, run the `artifact-scan` skill as a preflight — it reports which artifacts are present. Do not re-implement its detection here. Build the plan from the first available of:
+Otherwise the goal is to **skip straight to a plan** from whatever artifact exists. If `artifact-scan` is installed, run it as a preflight rather than re-implementing its detection; if it isn't, `ls ./docs/approach.md 2>/dev/null` is the whole check. Build the plan from the first available of:
 
 - an approach doc at `./docs/approach.md`
 - a raw conversation summary or transcript the user has pasted

@@ -75,8 +75,8 @@ Before anything else, check whether `./ideas/CONTEXT.md` exists in the target re
    - **Phase 3** uses CONTEXT.md's `## Competitive landscape` as the starting point unless
      the user requests a refresh or `last_updated` is more than 6 months ago — if stale, do
      a targeted refresh of only what looks outdated.
-   - **Phase 5** dedupes against `## Implemented ideas` and `## Proposed ideas (pending)` —
-     do not re-propose these. You may iterate on a pending idea (extend, split, combine) but
+   - **Phase 5** dedupes against `## Implemented ideas`, `## Accepted ideas` and
+     `## Proposed ideas (pending)` — do not re-propose these. You may iterate on a pending idea (extend, split, combine) but
      name that explicitly.
 
 **If it does not exist**, proceed to Phase 1 as normal. Phase 7 handles the bootstrap offer.
@@ -195,8 +195,8 @@ momentum.
 
 ## Phase 5 — Generate ideas
 
-*If `./ideas/CONTEXT.md` was loaded in Phase 0, check `## Implemented ideas` and
-`## Proposed ideas (pending)` before generating. Do not re-propose either list. You may
+*If `./ideas/CONTEXT.md` was loaded in Phase 0, check `## Implemented ideas`, `## Accepted
+ideas` and `## Proposed ideas (pending)` before generating. Do not re-propose either list. You may
 iterate on a pending idea — extend, split, or combine it — but label it "iteration on [title]"
 so the user knows.*
 
@@ -261,8 +261,8 @@ if it doesn't.
 
 **If `./ideas/CONTEXT.md` exists:**
 1. Ask the user via `AskUserQuestion`: *"Before I update the context file — were any previously
-   proposed ideas actually shipped since our last session? I'll move them to Implemented."*
-   Update `## Implemented ideas` and `## Proposed ideas (pending)` accordingly.
+   proposed or accepted ideas actually shipped since our last session? I'll move them to
+   Implemented."* Update the three idea sections accordingly.
 2. Bump `last_updated` in the YAML frontmatter.
 3. Append any new competitor weaknesses or Eureka moments to `## Competitive landscape` and
    `## First-principles insights`.
@@ -300,7 +300,9 @@ The report proposes a recommended idea, but the user makes the final call on wha
    forward as the build target — offer the report's recommended idea as the default, with the
    other ideas selectable.
 2. Record the choice in one line at the top of the report under a `## Selected build target`
-   heading: the idea title plus its tracer-bullet first slice.
+   heading: the idea title plus its tracer-bullet first slice. Selecting it is accepting it, so
+   move that line from `## Proposed ideas (pending)` to `## Accepted ideas` in `CONTEXT.md` —
+   that section is what `to-roadmap` boards.
 3. Hand off: invoke `to-prd` with the chosen idea (and its first slice) as the starting
    brief — that skill treats the ideate report as an on-disk prior, so the selection flows
    straight into the PRD interview.

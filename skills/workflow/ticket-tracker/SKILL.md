@@ -98,7 +98,7 @@ This skill tracks tickets; it does not investigate or file them. To add new work
 
 - Bugs / reported problems → defer to **triage-issue** (investigate + file), then the new issue
   lands in **backlog**.
-- Planned work → defer to **to-tickets**, then label the batch
+- Planned work → point the user at **`/to-tickets`**, then label the batch
   **ready**.
 
 Do not duplicate those flows. When a ticket-tracker request implies creating an issue, hand off,

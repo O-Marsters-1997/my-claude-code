@@ -79,10 +79,21 @@ by each ideation run.*
 
 ---
 
+## Accepted ideas
+
+*Ideas you've decided to build, not yet shipped. `to-roadmap` boards this section when there
+is no approach doc, so accepting is what puts an idea on the board. Promoted from Proposed by
+an `ideate` run, or hand-added here in the same format for anything ideation missed.*
+
+- [YYYY-MM-DD] [Idea title] — [one-sentence summary]
+
+---
+
 ## Proposed ideas (pending)
 
-*Ideas recommended by past ideation runs that haven't shipped yet. The `ideate` skill will
-not re-propose these — it may iterate on them. Move to Implemented when shipped.*
+*Ideas recommended by past ideation runs that you haven't decided on yet. The `ideate` skill
+will not re-propose these — it may iterate on them. Move to Accepted when you decide to build
+one, to Implemented when it ships.*
 
 - [YYYY-MM-DD] [Idea title] — [one-sentence summary]
 ```

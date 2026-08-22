@@ -9,7 +9,8 @@ description: >
   tickets from a PRD, turn a conversation into issues, or break work into grabbable items. The
   tracker is settled during the run — never route away because the user named Linear or GitHub. In a
   repo that uses treepad, also emits a Batch Manifest so the tickets materialise as stacked
-  worktrees. If the user wants the technical design worked out first, run to-plan instead.
+  worktrees. If the user wants the technical design worked out first, run `/to-plan` instead.
+disable-model-invocation: true
 ---
 
 # Plan to Tickets
@@ -44,7 +45,7 @@ A plan is a technical design document: its architectural decisions (data models,
 
 ### 1. Locate the source
 
-If the user named a source, use it. Otherwise detect what exists by running the `artifact-scan` skill as a preflight — it reports whether a plan file or a PRD is present. Apply the priority order above: prefer a plan file, then a PRD, then a conversation already in context.
+If the user named a source, use it. Otherwise detect what exists: run `artifact-scan` as a preflight if it's installed, else `ls ./plans/*.md ./docs/prd-*.md 2>/dev/null`. Apply the priority order above: prefer a plan file, then a PRD, then a conversation already in context.
 
 Two cases where the priority order is the wrong answer:
 

@@ -5,7 +5,8 @@ board. This file is the map for humans working on the suite.
 
 ## Installing
 
-Install all eight — the skills call each other, so a partial install leaves broken handoffs:
+Install all eight — the skills hand off to each other, so a partial install leaves those handoffs
+dangling. (`artifact-scan` is the exception: every caller falls back to a one-line `ls`.)
 
 ```
 for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-plan to-tickets ticket-tracker; do
@@ -43,23 +44,23 @@ shape of the suite changes, update this file *and* all eight blocks.
 ```
 DOORS — optional, pick whichever matches what you have
                                                             PORTFOLIO LEVEL
-  ideate ──────────────┐                                    many features at once
-  (no idea yet)        │
-                       ├──→  approach.md  ──→  roadmap.html
-  chat-to-approach ────┘     (alignment)       (Now/Next/Later)
-  (handoff from a chat)                              │
-                                                     │ pick ONE card
-  a scoped task ───────────────────────────────┐     │
-  (you already know what you want)             │     │
-                                               ▼     ▼
-                                    ┌───────────────────────────┐
-                                    │  to-prd  →  to-plan  →    │  FEATURE LEVEL
-                                    │  to-tickets               │  one feature per run
-                                    └───────────────────────────┘
-                                                     │
-                                                     ▼
-                                              ticket-tracker
-                                              (live state on GitHub)
+  ideate ─────→ ideas/CONTEXT.md ────────────────────────┐   many features at once
+  (no idea yet)  (## Accepted ideas)                     │
+                                                         ▼
+  chat-to-approach ────→  approach.md  ────────→  roadmap.html
+  (handoff from a chat)   (alignment)             (Now/Next/Later)
+                                                         │
+  a scoped task ──────────────────────────────┐          │ pick ONE card
+  (you already know what you want)            │          │
+                                              ▼          ▼
+                                   ┌───────────────────────────┐
+                                   │  to-prd  →  to-plan  →    │  FEATURE LEVEL
+                                   │  to-tickets               │  one feature per run
+                                   └───────────────────────────┘
+                                                 │
+                                                 ▼
+                                          ticket-tracker
+                                          (live state on GitHub)
 ```
 
 ## Two rules that explain everything else
@@ -93,12 +94,12 @@ create a missing artifact — if they have what the stage needs, run the stage.
 | Skill | Level | Takes | Produces |
 |---|---|---|---|
 | `artifact-scan` | — | nothing | a report + one routing recommendation (also the preflight routine) |
-| `ideate` | portfolio | the codebase | `./ideas/reports/YYYY-MM-DD-ideate.md`, `./ideas/CONTEXT.md` |
+| `ideate` | portfolio | the codebase | `./ideas/reports/YYYY-MM-DD-ideate.md`, `./ideas/CONTEXT.md` with `## Accepted ideas` |
 | `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
-| `to-roadmap` | portfolio | `./docs/approach.md` | `./roadmap.html` |
-| `to-prd` | feature | anything above, or an interview | `./docs/prd-<feature>.md` + a `[PRD]` issue |
+| `to-roadmap` | portfolio | `./docs/approach.md`, `## Accepted ideas`, or user list | `./roadmap.html` |
+| `to-prd` | feature | anything above, or an interview | `./docs/prd-<feature>.md` + Notion 📜 Project Docs (or GitHub issue if requested) |
 | `to-plan` | feature | a PRD | `./plans/<feature>.md` |
-| `to-tickets` | feature | a plan | GitHub issues |
+| `to-tickets` | feature | a plan | Linear or GitHub issues + optional treepad Batch Manifest |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
 ## Orchestrators vs routines
@@ -109,15 +110,17 @@ The suite-wide convention:
 > is not triggered directly by the user — it is delegated to from within another skill's flow.
 
 Every skill in this directory is an orchestrator except `artifact-scan`, which is both (a front door
-when the user asks, a preflight when a skill calls it).
+when the user asks, a preflight when a skill calls it). `to-plan` and `to-tickets` are slash-only
+(`disable-model-invocation: true`) — not every feature warrants both stages, and while they were
+model-invocable the pair collided on prompts like "break this PRD down into work".
 
 The routines these orchestrators call live **outside** this directory. They are not stages and never
 appear in the map above:
 
 | Routine | Called by | For |
 |---|---|---|
-| `../product/grilling` | `chat-to-approach`, `to-prd`, `to-roadmap` | the canonical grilling loop — never re-inline it |
-| `../product/source-synthesis` | `chat-to-approach` | the optional `## Background Research` section of `approach.md` |
+| `../product/grilling` | `chat-to-approach`, `to-prd` | the canonical grilling loop — never re-inline it |
+| `../product/source-synthesis` | nobody — run it yourself | the optional `## Background Research` section of `approach.md`; `chat-to-approach` only preserves it |
 | `../product/design-an-interface` | `to-plan` | designing a module boundary twice before committing to one |
 | `../product/triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |
 
