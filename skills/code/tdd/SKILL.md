@@ -5,11 +5,21 @@ description: Use when implementing any feature or fixing any bug. TDD is the def
 
 # Test-Driven Development
 
+## Load the language standards skill first
+
+**Before writing the first test, load the standards skill for the language you are about to write.**
+This skill owns the *loop*; the language skill owns the *code*. Loading this one does not satisfy
+the other, and being mid-task is not a reason to skip it.
+
+| Files you are about to touch | Also load |
+|---|---|
+| `*.go` | `go-idiomatic` |
+| `*.tsx` `*.jsx` `*.vue` `*.svelte` | `frontend-best-practices` |
+| `class=` / `className=` / `components/ui/` | `tailwind-shadcn` |
+
 ## Philosophy
 
 > Examples in this skill use TypeScript and Go interchangeably. The principles are language-agnostic — apply them in whatever language you write.
->
-> If a dedicated testing skill exists for your language (e.g. `golang-testing` for Go), use it alongside this one. This skill owns the workflow and philosophy; the language skill owns idiomatic test patterns.
 
 **Core principle**: Tests should verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't.
 

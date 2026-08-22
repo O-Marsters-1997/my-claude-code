@@ -1,15 +1,14 @@
 ---
 name: ideate
 description: >
-  Surface product opportunities for this codebase — new features, competitive gaps, strategic bets —
-  grounded in what the code actually does and calibrated against the real market. Use whenever the
-  user asks "what should I build next?", "any ideas for this project?", "where should this go from
-  here?", "what could I add?", "what are competitors doing?", "how do I grow this?", "help me find
-  gaps", or "what's missing?". Also trigger for roadmap ideation, product discovery, opportunity
-  analysis, or competitive positioning. Trigger even if the user doesn't say "ideate" — if the
-  question is *what to build next in this project*, this skill applies. Portfolio-level: it surfaces
-  many candidate features at once, each of which later runs the per-feature spine (to-prd → to-plan
-  → to-tickets) on its own. For "which skill should I run next?" use artifact-scan instead.
+  Use whenever the user asks what to build next in this project: "what should I build next?",
+  "any ideas for this project?", "where should this go from here?", "what could I add?", "what
+  are competitors doing?", "how do I grow this?", "help me find gaps", "what's missing?".
+  Trigger for roadmap ideation, product discovery, opportunity analysis and competitive
+  positioning, even when the user never says "ideate". Surfaces product opportunities grounded
+  in what the code actually does and calibrated against the real market, portfolio-level — many
+  candidate features at once, each of which later runs /to-prd on its own. For "which skill
+  should I run next?" use artifact-scan.
 ---
 
 # Ideate

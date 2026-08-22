@@ -1,16 +1,17 @@
 ---
 name: goquery-parsing
 description: >
-  Generate robust, maintainable Go HTML parsers using goquery. Use whenever given an HTML snapshot
-  and asked to extract structured data from it — product listings, articles, job boards, tables,
-  search results, any page where you need to pull out fields and return typed Go structs. Produces
-  stable CSS selectors, idiomatic goquery code, and parsers that survive minor markup changes.
-  Trigger phrases: "goquery", "parse html", "scrape this", "extract from html", "html parser",
-  "web scraping", "parse this page", "extract data from html", "html snapshot", "parse the page",
-  "write a scraper", "write a parser", "extract these fields". Also trigger when the user pastes
-  raw HTML and asks for structured data out of it, even without naming goquery explicitly.
-user-invocable: true
-allowed-tools: Read Write Edit Bash(go:*) Bash(gofmt:*) Bash(goimports:*)
+  Builds robust, maintainable Go HTML parsers with goquery — stable CSS selectors, typed structs,
+  and parsers that survive minor markup changes.
+  TRIGGER — load BEFORE writing the parser, not after: raw HTML or a .html file is in context and
+  structured data is wanted out of it; goquery is imported or `Find(`/`Attr(`/`Each(` is being
+  written; the prompt names goquery, scraper, parser, extract, scrape, crawl, or selector
+  alongside HTML or a page. Trigger on plain requests — "pull the prices off this page", "get
+  these fields out of this markup", "turn this listing into structs" — the user will not name
+  goquery; the HTML plus a Go repo is the trigger.
+  SKIP when the extraction target is JSON or an API response rather than markup, or when the
+  project is not Go.
+allowed-tools: Read, Write, Edit, Bash(go:*), Bash(gofmt:*), Bash(goimports:*)
 ---
 
 # goquery-parsing

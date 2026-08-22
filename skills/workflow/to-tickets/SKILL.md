@@ -1,15 +1,12 @@
 ---
 name: to-tickets
 description: >
-  Break a source — an implementation plan file (default), a PRD, or (only when neither exists) a
-  raw conversation — into independently-grabbable tickets in Linear or GitHub, using tracer-bullet
-  vertical slices. Cuts tickets for one feature per run: one roadmap card / one PRD becomes several
-  tickets. Use when the user wants to convert a plan to tickets or issues, create tickets from a
-  plan file, cut Linear tickets, file GitHub issues from a plan, go from PRD to tickets, cut
-  tickets from a PRD, turn a conversation into issues, or break work into grabbable items. The
-  tracker is settled during the run — never route away because the user named Linear or GitHub. In a
-  repo that uses treepad, also emits a Batch Manifest so the tickets materialise as stacked
-  worktrees. If the user wants the technical design worked out first, run `/to-plan` instead.
+  Breaks a source — an implementation plan file (default), a PRD, or (only when neither exists)
+  a raw conversation — into independently-grabbable tickets in Linear or GitHub, using
+  tracer-bullet vertical slices. Cuts tickets for one feature per run: one roadmap card or one
+  PRD becomes several tickets. The tracker is settled during the run. In a repo that uses
+  treepad, also emits a Batch Manifest so the tickets materialise as stacked worktrees. If the
+  technical design isn't worked out yet, run /to-plan first.
 disable-model-invocation: true
 ---
 

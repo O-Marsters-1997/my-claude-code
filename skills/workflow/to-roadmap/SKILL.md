@@ -1,16 +1,13 @@
 ---
 name: to-roadmap
 description: >
-  Prioritise the features you have settled on into a Now / Next / Later kanban board, rendered as
-  a self-contained ./roadmap.html. Each card is a feature, not a ticket — something to be built,
-  which one run of to-prd → to-plan → to-tickets later breaks down into several tickets. The board
-  is portfolio-level and holds many features at once. The approach doc is settled
-  truth — this skill assigns tiers and reasons about ordering, it never re-litigates what was
-  decided. Use whenever the user wants to prioritise, sequence, or visualise what to build: "make me
-  a roadmap", "turn the approach into a roadmap", "generate a kanban", "what should I build first",
-  "prioritise these features", "refresh the roadmap", or "what's Now vs Later". Boards the features
-  in ./docs/approach.md, or the ## Accepted ideas in ./ideas/CONTEXT.md when there is no approach
-  doc.
+  Prioritises settled features into a Now / Next / Later kanban board, rendered as a
+  self-contained ./roadmap.html. Each card is a feature, not a ticket — one card later becomes
+  several tickets via /to-prd -> /to-plan -> /to-tickets. Boards the features in
+  ./docs/approach.md, or the "## Accepted ideas" in ./ideas/CONTEXT.md when there is no approach
+  doc. The approach doc is settled truth: this assigns tiers and reasons about ordering, it
+  never re-litigates what was decided.
+disable-model-invocation: true
 ---
 
 ## Overview

@@ -1,7 +1,8 @@
 ---
 name: readme-generator
 model: haiku
-description: Generate a simple, honest README.md for the current project — focused on what it does and why, how to install, and how to use it with a minimal example. Use whenever the user wants to write, generate, regenerate, or refresh a README, or runs /readme. Trigger on phrases like "write a readme", "generate the readme", "make me a readme", "the project needs docs", "no readme yet", "refresh the readme", or whenever the user is at the root of a project with no README and is talking about documentation.
+description: Generates a simple, honest README.md for the current project — what it does and why, how to install, how to use it with a minimal example. Use for "write a readme", "generate the readme", "refresh the readme".
+disable-model-invocation: true
 ---
 
 # README Generator

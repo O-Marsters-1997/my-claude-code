@@ -1,6 +1,13 @@
 ---
 name: grilling
-description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
+description: >
+  Interrogates a plan, design or decision one question at a time until nothing is silently
+  assumed. Use when the user wants their thinking stress-tested rather than executed: "grill
+  me", "grill me on this", "poke holes in this", "stress-test this plan", "challenge this
+  design", "what am I missing here", "argue against this", "pressure-test this decision", or
+  "interview me about this before we build". Trigger when the user presents a plan and asks
+  for pushback instead of implementation, even without the word "grill". For a session that
+  also checks the plan against CONTEXT.md and existing ADRs, use grill-me-with-docs instead.
 ---
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.

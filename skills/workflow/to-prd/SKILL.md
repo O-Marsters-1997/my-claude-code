@@ -1,16 +1,13 @@
 ---
 name: to-prd
 description: >
-  Turn a feature idea into a project doc (PRD) for one feature — what we're building, how it behaves,
-  and the scope boundary — through interview, codebase exploration and a phased cut-line, saved to
-  ./docs/prd-<feature>.md and published to Notion. Starts the per-feature spine (to-prd → /to-plan
-  → /to-tickets) once a feature is chosen, and covers exactly one feature: if handed a multi-feature
-  source, ask which one — each roadmap card is its own run down the spine. Trigger on "write a
-  project doc", "project doc for X", "write a PRD", "spec this out", "scope this project", "I want to build X", "I have an idea for
-  a feature", "help me scope this feature", "let's plan a new feature", or "define the requirements
-  for X". Reads any approach doc, ideate report or Linear brief as priors so it doesn't re-ask
-  what's settled, but needs none — it interviews from nothing. Prefer over ideate when the user
-  already knows what they want built; use artifact-scan if they're unsure where they are.
+  Turns one feature idea into a project doc (PRD) — what we're building, how it behaves, and the
+  scope boundary — through interview, codebase exploration and a phased cut-line, saved to
+  ./docs/prd-<feature>.md and published to Notion. Covers exactly one feature: given a
+  multi-feature source, ask which one. Reads any approach doc, ideate report or Linear brief as
+  priors so it doesn't re-ask what's settled, but needs none. Starts the per-feature spine
+  (/to-prd -> /to-plan -> /to-tickets).
+disable-model-invocation: true
 ---
 
 ## Where this sits

@@ -1,17 +1,13 @@
 ---
 name: compare-tools
 description: >
-  Help the user select the right technology, library, or tool for a specific use case in the
-  current project. Explores the codebase first to understand its shape, then aligns with the
-  user on high-level priorities (community support, maintenance, vendor lock-in, extensibility,
-  etc.), researches the market, and outputs a structured recommendation report to ./ideas/ that
-  includes every viable option with doc links, a side-by-side comparison table, and a ranked
-  recommendation list with a compatibility score out of 100 derived from a rubric built from the
-  user's own priorities. Use whenever the user asks "which library should I use", "help me pick
-  a tool", "what's the best X for this project", "compare these technologies", "should I use X
-  or Y", "what are my options for Z", or any similar technology selection question. Trigger even
-  if the user doesn't phrase it as a comparison — if they need to *choose* a technology for their
-  current project, this skill applies.
+  Use whenever the user needs to *choose* a technology, library or tool for this project:
+  "which library should I use", "help me pick a tool", "what's the best X for this", "compare
+  these technologies", "should I use X or Y", "what are my options for Z". Trigger even when it
+  isn't phrased as a comparison. Explores the codebase, aligns on priorities (community support,
+  maintenance, lock-in, extensibility), researches the market, and writes a report to ./ideas/
+  with every viable option, doc links, a comparison table, and a ranked list scored out of 100
+  against the user's own priorities.
 ---
 
 # Compare Tools

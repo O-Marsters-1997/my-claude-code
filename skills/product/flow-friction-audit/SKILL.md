@@ -1,6 +1,16 @@
 ---
 name: flow-friction-audit
-description: Drive a live web flow through a real browser, turn the run into evidence-backed friction findings, then route those findings into the impeccable skill for critique and redesign. Use whenever the user wants to find where a real user gets stuck, confused, or slowed down in an actual working flow — "audit the signup flow", "where's the friction in checkout", "walk through onboarding and tell me what's clunky", "usability audit of the live app", "why do people drop off on this page". Trigger even when the user says "usability", "UX audit", "friction", "drop-off", or "walk the flow" without naming this skill, and even when they only point you at a URL and ask what's wrong with the experience. Trigger before any URL or credentials exist — settling the goal, the flow and the environment is this skill's own first step, so use it for "go through checkout live and find the friction points", "the staging URL is in the ticket", or "re-run the friction audit on the address step", and ask for what's missing from inside the skill rather than before it. Also use when the problems are already agreed and the user wants the design half — "shape fix directions from this problems doc", "we've aligned on the problems, now design against them" — which re-enters this skill at its fan-out stage. NOT for static mockups, Figma files, or design critique of something that isn't running (use impeccable directly for those) and NOT for writing Playwright test suites (use playwright-cli).
+description: >
+  Drives a live web flow through a real browser, turns the run into evidence-backed friction
+  findings, then routes them into the impeccable skill for critique and redesign. Use whenever
+  the user wants to know where a real user gets stuck, confused or slowed down in a running
+  flow — "audit the signup flow", "where's the friction in checkout", "walk through onboarding
+  and tell me what's clunky", "usability audit of the live app", "why do people drop off here".
+  Trigger on "usability", "UX audit", "friction", "drop-off" or "walk the flow" without this
+  skill being named, and when the user only supplies a URL and asks what's wrong with the
+  experience. Trigger before any URL or credentials exist — settling the goal, flow and
+  environment is this skill's own first step, so ask for what's missing from inside the skill.
+  Also use to run the design half alone from an agreed problems doc.
 allowed-tools: Bash(playwright-cli:*), Bash(od:*), Bash(odo:*)
 ---
 

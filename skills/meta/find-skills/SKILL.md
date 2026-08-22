@@ -9,11 +9,6 @@ description: >
   Also trigger proactively before any skill-creator session when the user hasn't searched
   yet — finding what exists prevents duplicate effort. Output is a ranked table plus a
   thematic synthesis document, never a new skill.
-compatibility:
-  tools:
-    - WebSearch
-    - WebFetch
-    - Bash
 ---
 
 # Find Skills

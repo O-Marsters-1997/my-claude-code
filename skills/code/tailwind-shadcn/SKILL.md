@@ -1,16 +1,16 @@
 ---
 name: tailwind-shadcn
-description: >-
-  shadcn/ui + Tailwind CSS discipline. Auto-detects the framework — React
-  projects use the official shadcn CLI + Base UI primitives; SolidJS projects
-  use the shadcn-solid CLI + Kobalte primitives (Zaidan components). Use
-  proactively whenever building new UI or refactoring existing UI — component
-  styling, class/className props, CSS variables, design tokens, responsive
-  layouts, component variants, or any time you're about to reach for an
-  arbitrary Tailwind value. Triggers on: "style this component", "add a color",
-  "make this responsive", "refactor the styling", "add a variant", any use of
-  class/className or Tailwind classes, or whenever you are about to reach for an
-  arbitrary Tailwind value like [24px].
+description: >
+  shadcn/ui + Tailwind CSS standards. Auto-detects the framework — React uses the shadcn CLI
+  with Base UI primitives, SolidJS uses shadcn-solid with Kobalte.
+  TRIGGER — load BEFORE writing or editing any styling, not after: a `class=` or `className=`
+  attribute is being added or changed; tailwind.config.*, globals.css, or anything under
+  components/ui/ is touched; the prompt names Tailwind, shadcn, a variant, a design token, a
+  CSS variable, a responsive breakpoint, dark mode, or a colour; or an arbitrary bracket value
+  like [24px] or [#1a1a1a] is about to be written. Trigger on plain requests — "style this",
+  "add a colour", "make this responsive", "match the other buttons" — the user will not say
+  "Tailwind discipline"; the class attribute is the trigger.
+  SKIP only when no styling and no component file is touched.
 allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(bunx --bun shadcn@latest *), Bash(npx shadcn-solid@latest *), Bash(pnpm dlx shadcn-solid@latest *), Bash(bunx --bun shadcn-solid@latest *)
 ---
 
