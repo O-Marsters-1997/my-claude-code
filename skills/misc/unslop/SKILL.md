@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells from any writing. Must always apply.
+description: 'Strip AI tells from prose and put voice back in. TRIGGER: load BEFORE writing user-facing prose, not after. Covers a PR title or body, README, docs page, commit message, issue or ticket text, Slack or email message, article, or release note. Trigger on plain requests like "raise a PR", "write this up", "document this", "draft a message". The user will not say "unslop", the prose itself is the trigger. SKIP for code, config, tests, and log output.'
 ---
 
 # Unslop
