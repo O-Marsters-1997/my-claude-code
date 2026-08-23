@@ -67,7 +67,9 @@ If you have not already explored the codebase, do so to understand the current s
 
 Break the plan into **tracer bullet** issues. Each issue is a thin vertical slice that cuts through ALL integration layers end-to-end, NOT a horizontal slice of one layer.
 
-Re-derive slices freely — do not map plan phases 1:1 to issues.
+Re-derive slices freely. Do not map plan phases 1:1 to issues, and do not carry a plan's numbering
+into a ticket title. A ticket called "Phase 3" or "Slice 2" is proof the slice was copied rather than
+re-derived, so name it for what it delivers.
 
 Slices may be 'HITL' or 'AFK'. HITL slices require human interaction, such as an architectural decision or a design review. AFK slices can be implemented and merged without human interaction. Prefer AFK over HITL where possible.
 
@@ -76,6 +78,8 @@ Slices may be 'HITL' or 'AFK'. HITL slices require human interaction, such as an
 - A completed slice is demoable or verifiable on its own
 - Prefer many thin slices over few thick ones
 - Respect the plan's **deep modules** — substantial functionality behind a simple, stable, isolation-testable interface (vs shallow modules). A slice should build or extend a deep module behind its interface, not splay logic across shallow ones.
+- A blocking edge is only real if you can **name the artifact** the blocked slice needs from its blocker: a type, table, route, file, or exported function. No nameable artifact means no edge. **Sequence in the source is not a dependency.** A plan lists phases in an order because prose has to be linear, not because each phase waits on the one before it. Given an ordered list and no criteria, the cheapest consistent answer is "each waits for the previous", and that answer is almost always wrong.
+- Slice by feature, never by layer. "Extract helpers", then "core function", then "CLI wiring", then "docs" is a horizontal decomposition wearing four ticket titles, and it is serial by construction.
 </vertical-slice-rules>
 
 ### 4. Quiz the user
@@ -87,10 +91,36 @@ Present the proposed breakdown as a numbered list. For each slice, show:
 - **Blocked by**: which other slices (if any) must complete first
 - **Plan phases / user stories covered**: which phases and user stories from the plan this addresses
 
+#### Measure the graph before proposing it
+
+Print these three numbers alongside the breakdown, every run:
+
+- **Day-one width** — how many slices have no blockers. This is how many agents can start at once.
+- **Longest chain** — the deepest path through the blocking graph.
+- **Acceptance criteria per slice** — a count each.
+
+Target shape: day-one width of 3 or more, longest chain of 4 or less, roughly 3 acceptance criteria a
+slice. A slice carrying 10 criteria is doing several things, and splitting it usually produces slices
+that do not block each other.
+
+**Stop and re-derive when day-one width is 1 and there are more than 3 slices.** Width 1 means the
+fleet runs one agent and the parallelism is decorative. Never create a width-1 graph without the user
+explicitly telling you to proceed.
+
+Depth is a review-latency multiplier, so shallow and wide beats deep and narrow. It costs a staggered
+start, since each layer waits for the layer below to *open* a pull request rather than to merge, and
+then a serial merge tail, since a stack merges bottom-up. The last layer's agent can start early and
+still land last.
+
+Some convergence is genuine. Every phase of command-center really did touch `loop.go`, `server.go`
+and `plan.go`, and forcing those apart would have produced tickets that conflict rather than tickets
+that parallelise. So the gate asks you to justify each edge, not to invent independence: if the
+slices truly stack, name the shared file or type that forces it and carry on.
+
 Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
-- Are the dependency relationships correct?
+- Which blocking edges are wrong? For each one kept, what artifact does it wait on?
 - Should any slices be merged or split further?
 - Are the correct slices marked as HITL and AFK?
 - **Where do these get filed — Linear or GitHub?**
