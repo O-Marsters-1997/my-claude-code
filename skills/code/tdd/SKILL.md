@@ -71,6 +71,26 @@ Ask: "What should the public interface look like? Which behaviors are most impor
 
 **You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
 
+#### When there is no user to ask
+
+A spawned executor working a ticket has nobody to answer these questions. Do not stall waiting, and
+do not invent scope. Substitute the written sources instead:
+
+- **Interface changes** — the ticket's "What to build", then the source plan's technical design
+  decisions. A named type, route or module boundary there is settled; implement it rather than
+  reopening it.
+- **Which behaviours to test** — the ticket's acceptance criteria. They are already the prioritised
+  list this section would ask the user for. Test each one, and stop there.
+- **Plan approval** — unavailable. Proceed without it and make the plan reviewable instead.
+
+If a question survives all three, the ticket has a real gap. Take the reading that keeps the slice
+narrowest, write the assumption into the PR body under a heading the reviewer will actually see, then
+carry on. An executor that stops to ask blocks the fleet behind it; one that quietly widens scope
+ships a diff nobody asked for. Recording the assumption is what makes the third option safe.
+
+Never tick an acceptance criterion you could not verify. Name it in the PR body and say what stopped
+you.
+
 ### The Iron Law
 
 ```
