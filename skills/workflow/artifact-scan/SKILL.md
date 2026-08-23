@@ -20,7 +20,7 @@ the user at exactly one next skill. No interview, no grilling, no writing. Just 
 ```
 PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
-                            ./docs/approach.md  →  ./roadmap.html
+                            ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
 ```
@@ -40,7 +40,7 @@ An earlier artifact being absent is not a problem to solve — it is usually a d
 |------------------|-----------|--------------------------------------------------------|------------------------|
 | ideate report    | portfolio | `ls ./ideas/reports/*-ideate.md`                       | `ideate`               |
 | approach doc     | portfolio | `test -f ./docs/approach.md`                           | `chat-to-approach`     |
-| roadmap board    | portfolio | `test -f ./roadmap.html`                               | `to-roadmap`           |
+| roadmap board    | portfolio | `test -f ./ideas/roadmap.html`                               | `to-roadmap`           |
 | PRD              | feature   | `ls ./docs/prd-*.md` and `gh issue list` for `[PRD]`   | `to-prd`               |
 | plan file        | feature   | `ls ./plans/*.md`                                      | `to-plan`              |
 | tickets          | feature   | `gh issue list` — any issue NOT titled `[PRD]`         | `to-tickets`           |
@@ -52,7 +52,7 @@ mid-spine; it does not mean "the plan stage is done". Report counts and names, n
 
 1. **Scan local files** in one pass:
    ```bash
-   ls ./ideas/reports/*-ideate.md ./docs/approach.md ./roadmap.html \
+   ls ./ideas/reports/*-ideate.md ./docs/approach.md ./ideas/roadmap.html \
       ./docs/prd-*.md ./plans/*.md 2>/dev/null
    ```
 2. **Scan GitHub issues** once, then split by title:

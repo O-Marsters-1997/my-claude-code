@@ -5,7 +5,7 @@ description: >
   ones: "where are my tickets", "show the board", "what's in progress", "what's ready to pick
   up", "move issue N to in-review", "mark N done", "update the ticket status". Live triage board
   over GitHub issues via the gh CLI, moving each between backlog -> ready -> in-progress ->
-  in-review -> done using status labels. This is the ticket-level board; ./roadmap.html is the
+  in-review -> done using status labels. This is the ticket-level board; ./ideas/roadmap.html is the
   feature-level one. To file new tickets, use /to-tickets.
 ---
 
@@ -20,13 +20,13 @@ so it is never stale.
 ```
 PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
-                            ./docs/approach.md  →  ./roadmap.html
+                            ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                                                  ^^^^^^^^^^^^^^ you are here
 ```
 
-`./roadmap.html` and this board are **different altitudes, not rival copies**. A roadmap card is a
+`./ideas/roadmap.html` and this board are **different altitudes, not rival copies**. A roadmap card is a
 *feature* — something to be built — and one card fans out into several tickets, which is what this
 board tracks. Do not tell the user the roadmap is superseded, and do not render a feature-level
 roadmap from issues; a board full of tickets is not a roadmap.

@@ -118,7 +118,7 @@ create a missing artifact — if they have what the stage needs, run the stage.
 | `ideate` | portfolio | the codebase | `./ideas/reports/YYYY-MM-DD-ideate.md`, `./ideas/CONTEXT.md` with `## Accepted ideas` |
 | `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
 | `capture-idea` | portfolio | one ad-hoc idea | a line in `## Accepted ideas` in `./ideas/CONTEXT.md` |
-| `to-roadmap` | portfolio | `./docs/approach.md`, `## Accepted ideas`, or user list | `./roadmap.html` |
+| `to-roadmap` | portfolio | `./docs/approach.md`, `## Accepted ideas`, or user list | `./ideas/roadmap.html` |
 | `to-prd` | feature | anything above, or an interview | `./docs/prd-<feature>.md` + Notion 📜 Project Docs (or GitHub issue if requested) |
 | `to-plan` | feature | a PRD | `./plans/<feature>.md` |
 | `to-tickets` | feature | a plan | Linear or GitHub issues + optional treepad Batch Manifest |

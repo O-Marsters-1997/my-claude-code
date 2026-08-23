@@ -9,7 +9,7 @@
       "expected_output": "A short scan report showing no artifacts are present, with a recommendation of to-prd because the user arrived with a feature they want to build. The absence of an ideate report or approach doc must not divert them into ideation.",
       "files": [],
       "assertions": [
-        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./roadmap.html), PRD (./docs/prd-*.md or a gh issue titled [PRD]), plan file (./plans/*.md), and tickets (non-PRD gh issues)"},
+        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./ideas/roadmap.html), PRD (./docs/prd-*.md or a gh issue titled [PRD]), plan file (./plans/*.md), and tickets (non-PRD gh issues)"},
         {"text": "The report states that none of the artifacts were found"},
         {"text": "The report recommends exactly one skill, and it is to-prd — the user said they want to add a feature, so they are not asking to ideate"},
         {"text": "The report does NOT tell the user to run ideate, chat-to-approach, or to-roadmap first in order to fill in missing upstream artifacts"},
@@ -57,12 +57,12 @@
           "content": "# Approach\n\n_Last updated 2026-05-02_\n\n## Problem\n\nUsers can't tell what to build next.\n\n## Features\n\n### Freshness score\n\n### Saved views\n"
         },
         {
-          "path": "./roadmap.html",
+          "path": "./ideas/roadmap.html",
           "content": "<!doctype html><title>Roadmap</title><h1>Now / Next / Later</h1><div class=\"card\">Freshness score</div><div class=\"card\">Saved views</div>"
         }
       ],
       "assertions": [
-        {"text": "The report marks the approach doc (./docs/approach.md) and roadmap (./roadmap.html) as present"},
+        {"text": "The report marks the approach doc (./docs/approach.md) and roadmap (./ideas/roadmap.html) as present"},
         {"text": "The report groups artifacts so portfolio-level items (ideate report, approach doc, roadmap) are distinguishable from feature-level items (PRD, plan, tickets)"},
         {"text": "The scan attempts a GitHub lookup (gh issue list) to check for a [PRD] issue and for tickets, and also checks for local ./docs/prd-*.md files"},
         {"text": "The recommendation is to pick a single roadmap card / feature and run to-prd on it, rather than running to-prd across the whole roadmap at once"}
@@ -83,7 +83,7 @@
           "content": "# Approach\n\n_Last updated 2026-04-11_\n"
         },
         {
-          "path": "./roadmap.html",
+          "path": "./ideas/roadmap.html",
           "content": "<!doctype html><title>Roadmap</title>"
         },
         {

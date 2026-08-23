@@ -1,6 +1,6 @@
 {
   "skill_name": "to-plan",
-  "notes": "Evals assume the subagent runs with cwd set to a real codebase checkout so it can explore architecture while planning. The skill accepts a PRD (default), an approach doc (./docs/approach.md), a roadmap (./roadmap.html), or a raw conversation, and writes a phased tracer-bullet plan to ./plans/. Backward-compat: with a PRD in the conversation it must behave exactly as before. Input detection is delegated to the artifact-scan skill — to-plan references it one level deep rather than re-implementing detection.",
+  "notes": "Evals assume the subagent runs with cwd set to a real codebase checkout so it can explore architecture while planning. The skill accepts a PRD (default), an approach doc (./docs/approach.md), a roadmap (./ideas/roadmap.html), or a raw conversation, and writes a phased tracer-bullet plan to ./plans/. Backward-compat: with a PRD in the conversation it must behave exactly as before. Input detection is delegated to the artifact-scan skill — to-plan references it one level deep rather than re-implementing detection.",
   "evals": [
     {
       "id": 1,

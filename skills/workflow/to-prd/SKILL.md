@@ -15,7 +15,7 @@ disable-model-invocation: true
 ```
 PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
-                            ./docs/approach.md  →  ./roadmap.html
+                            ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                  ^^^^^^ you are here

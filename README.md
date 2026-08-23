@@ -39,7 +39,7 @@ done
 | `artifact-scan` | — | nothing | a report + one routing recommendation |
 | `ideate` | portfolio | the codebase | `./ideas/reports/YYYY-MM-DD-ideate.md` |
 | `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
-| `to-roadmap` | portfolio | `./docs/approach.md` | `./roadmap.html` (cards are features) |
+| `to-roadmap` | portfolio | `./docs/approach.md` | `./ideas/roadmap.html` (cards are features) |
 | `to-prd` | feature | one feature | `./docs/prd-<feature>.md` + a `[PRD]` issue |
 | `to-plan` | feature | a PRD | `./plans/<feature>.md` |
 | `to-tickets` | feature | a plan | GitHub issues |

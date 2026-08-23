@@ -2,7 +2,7 @@
 name: to-roadmap
 description: >
   Prioritises settled features into a Now / Next / Later kanban board, rendered as a
-  self-contained ./roadmap.html. Each card is a feature, not a ticket — one card later becomes
+  self-contained ./ideas/roadmap.html. Each card is a feature, not a ticket — one card later becomes
   several tickets via /to-prd -> /to-plan -> /to-tickets. Boards the features in
   ./docs/approach.md, or the "## Accepted ideas" in ./ideas/CONTEXT.md when there is no approach
   doc. The approach doc is settled truth: this assigns tiers and reasons about ordering, it
@@ -21,7 +21,7 @@ thing to be built, which the spine later breaks down into several tickets.
 ```
 PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
-                            ./docs/approach.md  →  ./roadmap.html
+                            ./docs/approach.md  →  ./ideas/roadmap.html
                                                     ^^^^^^^^^^^^ you are here
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
@@ -109,9 +109,11 @@ everything looks like Now, something is wrong — push back and ask.
 
 ## Phase 2 — Generate the board
 
-Write a complete, self-contained HTML file to `./roadmap.html` in the current working directory.
+Write a complete, self-contained HTML file to `./ideas/roadmap.html` in the current working directory.
+Run `mkdir -p ./ideas` first — the directory may not exist yet. It shares a home with the ideate
+reports so a project only has one path to gitignore.
 
-**Always write the file.** Other skills detect this stage with `test -f ./roadmap.html`, so a board
+**Always write the file.** Other skills detect this stage with `test -f ./ideas/roadmap.html`, so a board
 that only ever existed as a chat artifact leaves the repo looking like no roadmap was made. Render
 it as an artifact too if the interface supports it, but the file is the deliverable, not the copy.
 

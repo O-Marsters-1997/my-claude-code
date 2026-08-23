@@ -22,7 +22,7 @@ ideas, grounded in the code's actual shape and calibrated against the real marke
 PORTFOLIO — many features        ideate  or  chat-to-approach
                                  ^^^^^^ you are here
                                         ↓
-                            ./docs/approach.md  →  ./roadmap.html
+                            ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
 ```

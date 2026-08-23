@@ -1,12 +1,12 @@
 {
   "skill_name": "to-roadmap",
-  "notes": "Evals run with cwd set to a scratch working directory. ./docs/approach.md is this skill's only source. If present, the skill treats it as settled truth, tiers its features into Now/Next/Later, and renders a self-contained kanban to roadmap.html. If absent, the skill must NOT interview or parse a pasted conversation — it routes to chat-to-approach, which owns conversation-to-structure including the grilling pass. Keeping one conversation parser in the suite prevents two skills drifting apart and prevents a roadmap built on ungrilled assumptions.",
+  "notes": "Evals run with cwd set to a scratch working directory. ./docs/approach.md is this skill's only source. If present, the skill treats it as settled truth, tiers its features into Now/Next/Later, and renders a self-contained kanban to ./ideas/roadmap.html. If absent, the skill must NOT interview or parse a pasted conversation — it routes to chat-to-approach, which owns conversation-to-structure including the grilling pass. Keeping one conversation parser in the suite prevents two skills drifting apart and prevents a roadmap built on ungrilled assumptions.",
   "evals": [
     {
       "id": 1,
       "name": "approach-doc-present-skips-grilling",
       "prompt": "make me a roadmap",
-      "expected_output": "Because ./docs/approach.md exists, the skill takes the approach path: it detects the doc via an artifact-scan preflight, treats it as settled truth, does NOT re-parse a conversation or invoke grilling, asks only light prioritisation questions to tier the doc's features, and renders a Now/Next/Later kanban to roadmap.html. The approach doc is left unmodified.",
+      "expected_output": "Because ./docs/approach.md exists, the skill takes the approach path: it detects the doc via an artifact-scan preflight, treats it as settled truth, does NOT re-parse a conversation or invoke grilling, asks only light prioritisation questions to tier the doc's features, and renders a Now/Next/Later kanban to ./ideas/roadmap.html. The approach doc is left unmodified.",
       "files": [
         {
           "path": "./docs/approach.md",
@@ -20,7 +20,7 @@
         {"text": "The agent does NOT modify ./docs/approach.md"},
         {"text": "The agent asks light prioritisation questions to assign the approach doc's features to Now / Next / Later"},
         {"text": "The tiering is reasoned, not arbitrary: the agent justifies at least one tier placement against the prioritisation lens (value / effort / dependency / risk) — e.g. tiering user authentication toward Now because it blocks quick capture"},
-        {"text": "A self-contained roadmap.html is written with three columns (Now / Next / Later) and no JavaScript"},
+        {"text": "A self-contained ./ideas/roadmap.html is written with three columns (Now / Next / Later) and no JavaScript"},
         {"text": "The three features from approach.md (user authentication, quick capture, weekly review view) each appear as a card"},
         {"text": "The open question about emailed vs in-app weekly review is carried forward into the Open Questions section verbatim"},
         {"text": "The finishing receipt notes the source was ./docs/approach.md and that it was left unmodified"}
@@ -34,7 +34,7 @@
       "files": [],
       "assertions": [
         {"text": "The agent determines ./docs/approach.md does not exist"},
-        {"text": "The agent does NOT write roadmap.html"},
+        {"text": "The agent does NOT write ./ideas/roadmap.html"},
         {"text": "The agent does NOT parse the transcript into a set of feature cards and does NOT assign Now / Next / Later tiers"},
         {"text": "The agent does NOT run a grilling pass itself on the ambiguous items (stats dashboard, onboarding)"},
         {"text": "The agent names chat-to-approach as the skill to run first, and offers to invoke it with the pasted conversation"},
