@@ -1,6 +1,6 @@
 {
   "skill_name": "to-tickets",
-  "notes": "All evals assume the subagent runs with cwd set to a real repo checkout with a GitHub remote (gh available). Issue creation is the deliverable; when a live gh is unavailable, assert on the issue-body drafts the agent proposes before create. Each case exercises one of the three sources — plan file (default), PRD issue, raw conversation — and pins the source-reference header the issue body must use.",
+  "notes": "All evals assume the subagent runs with cwd set to a real repo checkout with a GitHub remote (gh available). Issue creation is the deliverable; when a live gh is unavailable, assert on the issue-body drafts the agent proposes before create. Cases 1-3 exercise one source each — plan file (default), PRD issue, raw conversation — and pin the source-reference header the issue body must use. Their 'created in dependency order' assertion checks only that blocked-by references resolve to issues that already exist; a pure chain satisfies it trivially, so it says nothing about whether the graph is worth running. Case 4 is the one that grades shape.",
   "evals": [
     {
       "id": 1,
@@ -50,6 +50,29 @@
         {"text": "Each created (or drafted) issue body opens with a '## Source conversation' header"},
         {"text": "No issue body uses '## Source plan' or '## Parent PRD' as its source-reference header"},
         {"text": "Issues are created in dependency order with blocked-by fields referencing real earlier issue numbers"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "phase-numbered-plan-must-not-become-a-chain",
+      "prompt": "break this plan into grabbable GitHub issues",
+      "expected_output": "The agent re-derives slices instead of mapping the five phases 1:1, reports day-one width / longest chain / acceptance-criteria counts before creating anything, and produces a graph wider than one. The email and Slack channels are siblings on the dispatch core rather than chained to each other, and no ticket is titled after a phase number.",
+      "files": [
+        {
+          "path": "./plans/notifications.md",
+          "content": "# Notifications — Implementation Plan\n\nSource PRD: #40\n\n## Technical design decisions\n\nData model: `notifications(id, user_id, kind, payload, sent_at)`, `notification_prefs(user_id, channel, enabled)`.\nModule boundary: the `notify` package owns a `Channel` interface; each transport implements it.\nRoutes: `POST /notify` enqueues, `GET /settings/notifications` renders preferences.\n\n## Phase 1 — Notification record and dispatch core\n\nUser story 1: As a service I can record a notification and dispatch it.\nAcceptance: POST /notify persists a row and calls the registered Channel.\n\n## Phase 2 — Email channel\n\nUser story 2: As a user I receive notifications by email.\nAcceptance: the email Channel sends via SMTP and stamps sent_at.\n\n## Phase 3 — Slack channel\n\nUser story 3: As a user I receive notifications in Slack.\nAcceptance: the Slack Channel posts via webhook and stamps sent_at.\n\n## Phase 4 — Preference table and settings page\n\nUser story 4: As a user I can turn each channel on or off.\nAcceptance: notification_prefs rows persist; GET /settings/notifications reflects them.\n\n## Phase 5 — Docs\n\nAcceptance: the README documents the Channel interface.\n"
+        }
+      ],
+      "assertions": [
+        {"text": "Before creating anything, the agent reports three numbers for the proposed graph: day-one width, longest chain, and an acceptance-criteria count per slice"},
+        {"text": "Day-one width is 2 or more — at least two slices carry no blockers. A graph where only one slice is grabbable is a failure even if every blocked-by reference is valid"},
+        {"text": "The proposed graph is not a pure chain: it is NOT the case that every slice except the first is blocked by exactly one predecessor forming a single line of five"},
+        {"text": "No ticket title contains a phase or slice ordinal ('Phase 1', 'Phase 2', 'Slice 3'); each is named for what it delivers"},
+        {"text": "The email-channel and Slack-channel slices are siblings — both blocked by the dispatch-core slice that introduces the Channel interface, and NEITHER blocked by the other"},
+        {"text": "The number of tickets is not exactly five with one per plan phase; the agent re-derives rather than transcribing the phase list"},
+        {"text": "The Phase 5 docs work is folded into the slices it documents rather than filed as its own ticket blocked by everything else"},
+        {"text": "Every blocking edge the agent keeps is justified by naming a concrete artifact (the Channel interface, the notifications table, the /notify route) that the blocked slice needs from its blocker"},
+        {"text": "If a treepad Batch Manifest is written, the email and Slack slices appear in separate chains with `base` set to the dispatch-core slice's branch, not flattened into one linear chain"}
       ]
     }
   ]
