@@ -4,7 +4,21 @@ model: haiku
 description: Remove self-documenting comments from source files, leaving only comments that explain why, document non-obvious behaviour, or record external constraints. Use when user wants to clean comments, remove redundant comments, strip obvious comments, or run /clean-comments on staged files before committing.
 ---
 
-# Clean Comments
+# Clean comments
+
+## The standard
+
+`~/.claude/rules/comments.md` decides what earns a comment. It is the only
+copy. Read it before editing a file and apply it as written.
+
+Do not restate it here, and do not work from memory of it. A subagent running
+this skill may not have it loaded, so read the file. If a case it does not
+cover comes up, the fix belongs in `comments.md`, not in this skill.
+
+Deleting a directive is the one unrecoverable mistake this skill can make.
+`comments.md` permits them outright: `//go:build`, `// +build`, `//go:generate`,
+`//nolint`, `// @ts-expect-error`, `// eslint-disable-*`, `# type: ignore`,
+`# noqa`, shebangs. They are not comments to weigh. Leave them.
 
 ## Quick start
 
@@ -20,28 +34,25 @@ Run on specific files:
 
 ## Workflow
 
-1. If arguments are provided, treat them as file paths to clean
-2. If no arguments, get staged files: `git diff --cached --name-only --diff-filter=ACM`
-3. Filter to code files (`.go`, `.ts`, `.tsx`, `.js`, `.jsx`, `.py`, `.rs`)
-4. For each file, read it, identify self-documenting comments, remove them, and write the file back
-5. Re-stage any modified files: `git add <file>`
-6. Report what was removed and from which files; if nothing needed removing, say so
+1. Read `~/.claude/rules/comments.md`
+2. If arguments are provided, treat them as file paths to clean
+3. If no arguments, get staged files: `git diff --cached --name-only --diff-filter=ACM`
+4. Filter to code files (`.go`, `.ts`, `.tsx`, `.js`, `.jsx`, `.py`, `.rs`)
+5. For each file, read it, remove the comments that fail the standard, write it back
+6. Re-stage any modified files: `git add <file>`
+7. Report what was removed and from which files; if nothing needed removing, say so
 
-## What to remove vs keep
+Comment-only edits. Never change code in the same pass.
 
-**Remove** comments that:
-- Describe what a function, variable, or type does when the name makes it obvious (`// increment counter` above `count++`)
-- Restate the type or return value in prose (`// returns a string`)
-- Echo a straightforward operation (`// open the file` above `os.Open(...)`)
-- Label sections of code that are already clearly delimited (`// loop over items`)
+## The commit hook
 
-**Keep** comments that:
-- Explain *why* a decision was made, not *what* the code does
-- Document non-obvious behaviour, edge cases, or gotchas
-- Record constraints imposed by external systems, specs, or bugs
-- Provide context a reader cannot derive from the code alone (e.g. `// workaround for upstream issue #123`)
-- Are godoc / JSDoc / rustdoc public API documentation
+`~/.claude/hooks/check-staged-comments.sh` runs on `PreToolUse` for Bash and
+blocks `git commit` when the staged diff adds comment lines. It ignores
+directives, and reads `#` as a comment marker in Python only.
 
-## Hook script
+Trimming a long doc comment counts as adding lines, so a cleanup pass trips it.
+When every remaining comment earns its place, say so and commit with:
 
-`scripts/check-staged-comments.sh` — runs before `git commit` and prompts to run `/clean-comments` if staged code files are detected.
+```
+CC_COMMENTS_REVIEWED=1 git commit ...
+```
