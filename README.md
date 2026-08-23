@@ -119,6 +119,8 @@ These skills help you write, refactor, and fix code.
 
 ## Writing & Knowledge
 
+- **unslop** — Strip AI tells from prose and put voice back in: puffery, AI vocabulary, em dashes, inline-header lists, hedging, passive voice. Vendored from [cursor/plugins](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md), not installed.
+
 - **edit-article** — Edit and improve articles by restructuring sections, improving clarity, and tightening prose.
 
   ```
