@@ -15,10 +15,15 @@ Do not restate it here, and do not work from memory of it. A subagent running
 this skill may not have it loaded, so read the file. If a case it does not
 cover comes up, the fix belongs in `comments.md`, not in this skill.
 
-Deleting a directive is the one unrecoverable mistake this skill can make.
-`comments.md` permits them outright: `//go:build`, `// +build`, `//go:generate`,
-`//nolint`, `// @ts-expect-error`, `// eslint-disable-*`, `# type: ignore`,
-`# noqa`, shebangs. They are not comments to weigh. Leave them.
+Deleting a load-bearing directive is the one unrecoverable mistake this skill
+can make. Leave these alone: `//go:build`, `// +build`, `//go:generate`,
+`// prettier-ignore`, `# fmt:`, `# -*- coding:`, shebangs.
+
+Suppressions are not on that list. `@ts-ignore`, `eslint-disable`,
+`# type: ignore`, `//nolint` are debt under `comments.md` § Suppressions.
+Report them and say what each is silencing. Never delete one in this pass:
+removing a suppression breaks the build or the lint run, which is a code
+change, and this skill does not make those.
 
 ## Quick start
 
