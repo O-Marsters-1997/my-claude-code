@@ -276,18 +276,17 @@ makes a comment redundant — and redundant comments rot as the code evolves.
 - Avoid abbreviations that aren't Go conventions (`ctx`, `err`, `id`, `r`, `w` are fine; `b` for
   a business object is not).
 
-Write a comment only when the **why** would surprise a future reader:
-
-- A constraint imposed by an external system.
-- A workaround for a known upstream bug.
-- A non-obvious invariant the code relies on.
+`~/.claude/rules/comments.md` decides what earns a comment. It is the authority and this
+skill does not restate or soften it. Read it before editing a file and apply it as written,
+including its line cap and its exported-identifiers-only rule for doc comments. `internal/`
+is not public API.
 
 Never explain _what_ the code does — the code already does that. Comments that say "increment
 counter" next to `count++`, or "returns error if nil" above `if err != nil`, add noise and train
 readers to skip comments entirely.
 
-When reviewing Go code for comment quality, use the `clean-comments` skill — it audits the codebase
-and removes explanatory comments systematically, leaving only the why.
+When reviewing Go code for comment quality, use the `clean-comments` skill. Do not instruct it
+to match the file's existing comment density.
 
 ---
 
