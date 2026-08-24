@@ -4,9 +4,10 @@ description: >
   Breaks a source — an implementation plan file (default), a PRD, or (only when neither exists)
   a raw conversation — into independently-grabbable tickets in Linear or GitHub, using
   tracer-bullet vertical slices. Cuts tickets for one feature per run: one roadmap card or one
-  PRD becomes several tickets. The tracker is settled during the run. In a repo that uses
-  treepad, also emits a Batch Manifest so the tickets materialise as stacked worktrees. If the
-  technical design isn't worked out yet, run /to-plan first.
+  PRD becomes several tickets. The tracker is settled during the run. In a repo that runs
+  command-centre, also emits `[[task]]` blocks into its config; in a plain treepad repo, emits a
+  Batch Manifest instead so the tickets materialise as stacked worktrees. If the technical design
+  isn't worked out yet, run /to-plan first.
 disable-model-invocation: true
 ---
 
@@ -240,15 +241,48 @@ Report the created ticket identifiers with their states, and the blocking relati
 From this point `ticket-tracker` owns the tickets — it reads and moves them between states. This
 skill does not track what it files.
 
-### 7. Emit the treepad Batch Manifest (optional)
+### 7. Emit the dependency graph for whatever orchestrates this repo
 
-Check for a treepad batches directory:
+Two things can read this graph, and they conflict if both get written: check for command-centre
+first, since a command-centre repo already uses treepad internally to cut its worktrees, and a
+Batch Manifest on top would hand the same worktrees to treepad's own `Reconcile` too.
+
+**command-centre** — check for its config:
+
+```bash
+ls "$(git rev-parse --show-toplevel)/../.claude/command-centre.toml" 2>/dev/null
+```
+
+**Absent** — fall through to the treepad check below.
+
+**Present** — for each ticket just created, write or update a `[[task]]` block in that file:
+
+```toml
+[[task]]
+ticket_url = "<the ticket's URL>"
+repo       = "<the checkout's [[repo]] name>"
+branch     = "<repo-prefix>-<issue-number>-<short-slug>"
+blocked_by = ["<ticket URL>", …]
+```
+
+Edges only, no chain semantics: a fan-out (one ticket blocking four) is four `[[task]]` blocks,
+each naming that one blocker — the app derives every base itself. Branch names follow whatever's
+already in the file for that `[[repo]]` (e.g. `cc-33-fan-out`); check an existing `branch` value
+there before inventing a new prefix.
+
+**Upsert on `ticket_url`.** Read the file first. A `[[task]]` block already carrying this ticket's
+`ticket_url` gets its fields replaced in place, so re-running over an edited feature updates rows
+rather than minting duplicates. Otherwise append a new block.
+
+Command-centre present means skip the treepad Batch Manifest below entirely — don't write both.
+
+**treepad (only when command-centre is absent)** — check for a treepad batches directory:
 
 ```bash
 ls "$(git rev-parse --git-common-dir)/treepad/batches/"
 ```
 
-**Absent** — skip, and say nothing. Most repos do not use treepad and the step is a no-op there.
+**Absent** — skip, and say nothing. Most repos use neither and the step is a no-op there.
 
 **Present** — write `<feature>.toml` into that directory, per
 [`references/treepad-manifest.md`](references/treepad-manifest.md). It declares the blocking graph
