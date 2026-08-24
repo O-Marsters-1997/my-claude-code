@@ -74,6 +74,30 @@
         {"text": "Every blocking edge the agent keeps is justified by naming a concrete artifact (the Channel interface, the notifications table, the /notify route) that the blocked slice needs from its blocker"},
         {"text": "If a treepad Batch Manifest is written, the email and Slack slices appear in separate chains with `base` set to the dispatch-core slice's branch, not flattened into one linear chain"}
       ]
+    },
+    {
+      "id": 5,
+      "name": "cross-repo-plan-emits-seams",
+      "prompt": "break this plan into grabbable GitHub issues",
+      "expected_output": "The agent cuts a producer-repo ticket and a consumer-repo ticket, treats the consumer's dependency on the producer as a gating edge (not same-repo blocked_by), and writes seams = [\"order-status-enum\"] into only the consumer's [[task]] block in command-centre.toml — the producer's block carries no seams field.",
+      "files": [
+        {
+          "path": "./plans/order-status-sync.md",
+          "content": "# Order status sync — Implementation Plan\n\nSource PRD: #58\n\n## Technical design decisions\n\nA seam named `order-status-enum` is already recorded (via /to-seams): `services` is the producer and will land the new `OrderStatus` enum at `packages/core-graphql/src/schema.ts`; `support-app` is the consumer building its UI against the agreed shape now, before `services` merges.\n\n## Phase 1 — services lands the OrderStatus enum\n\nUser story 1: As the GraphQL schema, I expose the new OrderStatus enum values.\nAcceptance: the schema change lands in `services` and is queryable.\n\n## Phase 2 — support-app renders the new statuses\n\nUser story 2: As a support agent I see the new order statuses in the UI, built against the agreed enum shape ahead of the services merge.\nAcceptance: the UI renders every OrderStatus value from the seam's agreed shape.\n"
+        },
+        {
+          "path": "../.claude/command-centre.toml",
+          "content": "max_agents = 3\nport = 7777\n\n[[repo]]\nname = \"services\"\npath = \"services\"\n\n[[repo]]\nname = \"support-app\"\npath = \"support-app\"\n\n[[seam]]\nname = \"order-status-enum\"\nproducer_repo = \"services\"\nlands_at = [\"packages/core-graphql/src/schema.ts\"]\n"
+        }
+      ],
+      "assertions": [
+        {"text": "The agent cuts one ticket in services (the enum landing) and one ticket in support-app (the UI), not a single combined ticket"},
+        {"text": "The cross-repo dependency is treated as a gating edge for the draft gate, not as a same-repo blocked_by chain — the agent does not claim the consumer is unlocked only once the producer merges in the blocked_by sense"},
+        {"text": "The support-app ticket's [[task]] block in command-centre.toml includes seams = [\"order-status-enum\"]"},
+        {"text": "The services ticket's [[task]] block carries no seams field at all — seams is written only for the consumer, never as seams = []"},
+        {"text": "The agent does not invent a new seam name or re-run /to-seams; it references the existing order-status-enum seam by the name already in command-centre.toml"},
+        {"text": "Both [[task]] blocks are upserted on ticket_url alongside the two pre-existing [[repo]] blocks, which are left unmodified"}
+      ]
     }
   ]
 }

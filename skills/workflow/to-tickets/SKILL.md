@@ -263,12 +263,20 @@ ticket_url = "<the ticket's URL>"
 repo       = "<the checkout's [[repo]] name>"
 branch     = "<repo-prefix>-<issue-number>-<short-slug>"
 blocked_by = ["<ticket URL>", …]
+seams      = ["<seam name>", …]
 ```
 
 Edges only, no chain semantics: a fan-out (one ticket blocking four) is four `[[task]]` blocks,
 each naming that one blocker — the app derives every base itself. Branch names follow whatever's
 already in the file for that `[[repo]]` (e.g. `cc-33-fan-out`); check an existing `branch` value
 there before inventing a new prefix.
+
+**`seams`** names an agreed-but-unlanded interface in another repo that this ticket's agent needs
+pasted into its prompt — written by `/to-seams`, never by this skill. Only a ticket whose slice is
+a *consumer* of a seam carries the field; omit it entirely rather than writing `seams = []`, which
+is the same "no seams" state a task with the field left out already gets. If a slice you're
+cutting depends on an interface that hasn't landed anywhere yet, that's a sign to run `/to-seams`
+first, then reference the name it gives you — this skill does not invent seam names.
 
 **Upsert on `ticket_url`.** Read the file first. A `[[task]]` block already carrying this ticket's
 `ticket_url` gets its fields replaced in place, so re-running over an edited feature updates rows
