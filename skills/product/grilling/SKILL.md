@@ -16,10 +16,10 @@ The **frontier** is every decision whose prerequisites are already settled: the 
 
 For each question:
 
-- Give exactly 3 concrete options grounded in your analysis, plus a fourth: "Chat about this", for when the user isn't ready to decide.
+- Give exactly 3 concrete options grounded in your analysis, plus a fourth: "Chat about this", for when the user isn't ready to decide. Every question carries all four, no exceptions.
 - Put your recommended option first, with `(Recommended)` appended to its label. Always have a recommendation — never ask a question you have no opinion on.
-- `AskUserQuestion` adds a free-form "Other" option automatically — don't add one yourself.
-- If "Chat about this" is picked, drop into a normal exchange: ask what needs clarifying, discuss it, then re-ask the question — revised if the discussion changed it — once that's settled.
+- `AskUserQuestion` adds a free-form "Other" option automatically. Don't add one yourself, and never drop "Chat about this" because "Other" is already there. Both appear on every question.
+- If "Chat about this" is picked, ask "What would you like to chat about?" and nothing else. Never guess at what might need clarifying or list candidate topics. Discuss whatever they raise, then re-ask the question, revised if the discussion changed it.
 
 Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so ask the rest of the frontier now and come back to the blocked question once the sub-agent reports. The _decisions_ are the user's: put each to them and wait.
 
