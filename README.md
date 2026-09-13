@@ -103,6 +103,12 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill improve-codebase-architecture
   ```
 
+- **tailwind-design-system** — Tailwind v4 design system architecture: CSS-first `@theme` config, the brand/semantic/component token hierarchy, OKLCH colour, CVA variants, native dark mode, and the v3-to-v4 migration checklist. Vendored from [wshobson/agents](https://github.com/wshobson/agents/tree/main/plugins/frontend-mobile-development/skills/tailwind-design-system) (MIT); the description is rewritten as a trigger clause and scoped to token work so it does not collide with `tailwind-shadcn`.
+
+  ```
+  npx skills add O-Marsters-1997/my-claude-code --skill tailwind-design-system
+  ```
+
 - **scaffold-exercises** — Create exercise directory structures with sections, problems, solutions, and explainers.
 
   ```
