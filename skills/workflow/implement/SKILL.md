@@ -16,8 +16,11 @@ skill's own comment guidance.
 Use /tdd where possible, at pre-agreed seams.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
+For the regular checks, run the narrowest command that proves the point (a single test file
+or package, e.g. `go test ./path -run TestName`) rather than the project's full test/lint
+runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass at the end.
 
-Once done, use /code-review to review the work.
+Once done, use /code-review medium to review the work.
 
 Commit your work to the current branch.
 
