@@ -1,0 +1,5 @@
+interface:
+  display_name: "Fleet Dispatch"
+  short_description: "Fan out /implement across tickets in parallel worktrees"
+policy:
+  allow_implicit_invocation: true
