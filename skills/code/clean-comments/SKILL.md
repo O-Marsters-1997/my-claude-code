@@ -1,7 +1,7 @@
 ---
 name: clean-comments
 model: haiku
-description: Remove self-documenting comments from source files, leaving only comments that explain why, document non-obvious behaviour, or record external constraints. Use when user wants to clean comments, remove redundant comments, strip obvious comments, or run /clean-comments on staged files before committing.
+description: Remove comments that fail ~/.claude/rules/comments.md from source files. Use when user wants to clean comments, remove redundant comments, strip obvious comments, or run /clean-comments on staged files before committing.
 ---
 
 # Clean comments

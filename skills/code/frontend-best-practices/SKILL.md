@@ -6,8 +6,9 @@ description: >
   matching guidance.
   TRIGGER — load BEFORE writing or editing frontend code, not after: any .tsx, .jsx, .vue,
   .svelte, or component/hook file is being created or edited; the prompt names a component,
-  hook, prop, state, form, modal, route, page, React, Next, Solid, signal, useState, useEffect,
-  createSignal, store, context, a11y, or web vitals. Trigger on plain feature requests in a
+  hook, prop, state, form, modal, route, page, React, Next, Solid, SolidStart, solid-js, signal,
+  useState, useEffect, createSignal, createStore, createResource, createAsync, <For>, <Show>,
+  store, context, a11y, or web vitals. Trigger on plain feature requests in a
   frontend repo — "add a button", "wire up this form", "make this load faster", "fix this
   rerender" — the user will not say "best practices"; the component file is the trigger. Load it
   even when another skill (tdd, impeccable, simplify) is already active.
@@ -32,21 +33,24 @@ logic, detect the framework and load exactly one reference.
 Detect in this order; stop at the first signal:
 
 1. **Explicit user statement.** If the user names the framework ("this is a Solid project"), honor it.
-2. **`package.json` dependencies** — the strongest signal:
+2. **`package.json` dependencies** — the strongest signal. In a monorepo, read the `package.json`
+   nearest the file being edited, not the root one.
    - `react` / `react-dom` (or `next`) → load `references/react.md`
-   - `solid-js` / `@solidjs/*` (e.g. `@solidjs/router`, `solid-start`) → load `references/solidjs.md`
+   - `solid-js` / `@solidjs/*` (e.g. `@solidjs/router`, `@solidjs/start`) → load `references/solidjs.md`
+   - `tsconfig.json` `"jsxImportSource"` confirms it: `"solid-js"` or `"@solidjs/web"` means Solid.
 3. **The working file's extension + imports.** `.tsx`/`.jsx` with `import … from "react"` or hook
    calls like `useState` → React. `import { createSignal } from "solid-js"`, or JSX that uses
    `<For>`/`<Show>` → SolidJS. (Note: both use `.tsx`, so extension alone is not decisive — read the imports.)
 
 ```bash
 # Quick check:
-cat package.json | grep -E '"(react|react-dom|next|solid-js|@solidjs|solid-start)"'
+grep -E '"(react|react-dom|next|solid-js|@solidjs/[^"]+|solid-start)"' package.json
+grep -E '"jsxImportSource"' tsconfig*.json
 ```
 
-Load **only** the matching reference — don't load both. If the signals genuinely conflict or
-none are present (e.g. a fresh file in an empty repo), ask the user once which framework they're
-using, then proceed.
+Load **only** the matching reference — don't load both. A framework with no reference yet (Vue,
+Svelte) gets the shared principles alone; don't ask. If React and Solid signals genuinely conflict,
+or none are present (a fresh file in an empty repo), ask the user once, then proceed.
 
 **Why this matters (the core divergence):** React re-runs the whole component function on every
 render and relies on dependency arrays + memoization to *prevent* unnecessary work and re-renders.

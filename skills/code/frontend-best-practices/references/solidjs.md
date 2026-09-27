@@ -1,159 +1,169 @@
 # SolidJS reference
 
-Load this when the project depends on `solid-js` / `@solidjs/*` / `solid-start`. It mirrors the nine
-shared taxonomy headings from `SKILL.md`, in order, covering only what is Solid-specific.
+Load this when the project depends on `solid-js` / `@solidjs/*`. It mirrors the nine shared taxonomy
+headings from `SKILL.md`, in order, covering only what is Solid-specific. Deeper material lives in
+`references/solidjs/` — open a file only when the task touches its topic:
 
-## Solid's rendering & reactivity model — read this first
+| File | Read when |
+|---|---|
+| `solidjs/stores.md` | nested/array state, store setters, `produce`/`reconcile`, selection |
+| `solidjs/async.md` | fetching, mutations, `createResource`, router `query`/`createAsync`/`action`, SolidStart, SSR |
+| `solidjs/solid-2.md` | the repo is on Solid 2 (see version check) |
 
-A Solid component function runs **exactly once**, at creation. It is *setup*, not *render*. There is
-no re-render and no virtual DOM. Reactivity is fine-grained: a **signal** is a value with a getter
-and setter, and Solid tracks which DOM nodes and computations *read* the getter. When you set the
-signal, Solid re-runs only those exact subscribers and updates only those exact DOM nodes.
+## Version check — do this first
 
-The consequences that drive everything below — and they are the opposite of React's:
+Solid 1.x is the stable line; Solid 2.0 is at release candidate with a heavily changed API. Most docs,
+tutorials and training data describe 1.x, so the risk runs one way: writing 1.x code in a 2.0 repo.
 
-- **Signals are functions.** Read with `count()`, not `count`. Reading inside JSX or an effect is
-  what subscribes that location to updates. Read the wrong way (destructure, cache in a local) and
-  you sever the subscription — the UI goes stale. *This is the #1 Solid bug.*
-- **Components run once, so there is nothing to memoize for re-render avoidance.** `useMemo`/`memo`
-  have no equivalent purpose. `createMemo` exists only to cache an *expensive derived computation* or
-  to share one computation among many subscribers — not to prevent re-renders (there are none).
-- **Props are live reactive getters, not a plain snapshot.** Destructuring props at the top of a
-  component reads them once at setup and freezes them — they'll never update. Keep props intact and
-  access `props.foo` at point of use, or split them reactively (below).
+```bash
+grep -E '"(solid-js|@solidjs/web)"' package.json
+```
 
-Hold this model; most "it won't update" bugs are a broken subscription, not a missing dependency.
+`solid-js` at `^1.x` → this file is correct as written. `solid-js` at `2.x` (including `2.0.0-rc`/`beta`)
+or `@solidjs/web` present → also read `solidjs/solid-2.md` before writing code; several APIs below are
+renamed or gone there.
 
-### Primitives
+## Solid's model — read this first
 
-- `createSignal(initial)` → `[get, set]`. `const [count, setCount] = createSignal(0); count(); setCount(c => c + 1)`.
-- `createMemo(fn)` → a cached derived getter; recomputes when its tracked deps change, shared by all readers.
-- `createEffect(fn)` → runs after render and re-runs when tracked signals change. For side effects only — don't set signals you also read in it without care.
-- `createResource(source, fetcher)` → async data as a signal with `.loading` and `.error`; re-fetches when `source` changes.
+A Solid component function runs **once**. It is setup, not render. There is no virtual DOM and no
+re-render: JSX expressions, `createMemo` and `createEffect` are *tracking scopes*, and only they re-run
+when a signal they read changes, updating exactly the DOM nodes involved.
+
+Every rule below follows from one question: **is this signal read inside a tracking scope?** A read
+in the component body happens once and freezes. A read inside JSX, a memo, an effect, or a function
+called from one of those stays live. Most "it won't update" bugs are a read in the wrong place, not a
+missing dependency — Solid has no dependency arrays.
+
+Choose derived state in this order, because each step adds cost and a way to go wrong:
+
+1. **Derived function** — `const total = () => price() * qty()`. The default. Re-evaluates per read.
+2. **`createMemo`** — when the derivation is expensive or read in many places; caches, notifies only on change.
+3. **`createEffect`** — only to push state *out* of the reactive system (DOM APIs, storage, third-party
+   widgets, logging). Never to compute one signal from another: `createEffect(() => setB(a() * 2))`
+   causes extra passes and loops, and Solid 2 throws on it.
+
+## Check every Solid diff for these
+
+These are the mistakes a model with React habits makes. `eslint-plugin-solid` catches most of them;
+the rule name is in brackets.
+
+1. **Destructured props or stores** freeze at setup. Read `props.x` at point of use, or
+   `splitProps`/`mergeProps`. Never `{...defaults, ...props}`. [`no-destructure`, `reactivity`]
+2. **Early return in a component** (`if (!props.user) return null`) is evaluated once. Use
+   `<Show>`/`<Switch>`. [`components-return-once`]
+3. **Signal read into a local** (`const n = count()` in the body) is a snapshot. Wrap it in a function.
+4. **Dependency arrays** — `createEffect(fn, [dep])` does nothing useful; the second argument is an
+   initial value. Use `on(dep, fn)` for explicit deps. [`no-react-deps`]
+5. **`.map` in JSX** recreates every row when the array changes. Use `<For>`/`<Index>`. [`prefer-for`]
+6. **Work after `await`** runs without an owner: `useContext`, `onCleanup` and effects there attach to
+   nothing. Capture `getOwner()` first and wrap with `runWithOwner`. See `solidjs/async.md`.
+7. **React DOM props**: `class` not `className`, `for` not `htmlFor`, `style` keys are kebab-case
+   (`{"font-size": "12px"}`) and numbers get no `px`. [`no-react-specific-props`, `style-prop`]
+8. **Event handlers bind once.** `onClick={props.onClick}` captures the handler at setup; write
+   `onClick={e => props.onClick?.(e)}` when it can change.
+9. **In-place store mutation** (`todo.title = x`) bypasses the setter and notifies nobody. Write through
+   `setStore(...)`. See `solidjs/stores.md`.
+10. **`innerHTML`** with untrusted content is an XSS sink. Sanitise or render as text. [`no-innerhtml`]
 
 ## 1. Component architecture & composition
 
-Composition works the same conceptually (children, slots) but the once-only model means setup code
-in the parent doesn't re-run per child update. `children(() => props.children)` helper resolves and
-memoizes children when you need to inspect them. No prop drilling concerns differ; context (below)
-is the escape hatch.
+Composition works as in any JSX framework; the difference is that setup code runs once per instance.
+Use `children(() => props.children)` when you need to inspect or reuse children — reading
+`props.children` twice creates the DOM twice. Choose among components at runtime with `<Dynamic
+component={...}>`. Forward refs by accepting `props.ref` and passing it to the element.
 
 ## 2. State & data flow
 
-Local reactive state is a signal. **Props are reactive getters — never destructure them.** To pull
-specific props while keeping reactivity, use `splitProps(props, ["a", "b"])`; to supply defaults use
-`mergeProps({ size: "md" }, props)`. For nested/object state use a **store** (`createStore`) — it
-gives fine-grained reactivity *per property*, so mutating one field updates only its subscribers.
-Mutate stores with the setter's path syntax or `produce` (Immer-style draft); use `reconcile` to
-diff new data into an existing store (key for #2 below — see list rendering), and `unwrap` to get the
-raw non-reactive object. Derive with `createMemo` rather than storing a synced copy. Context via
-`createContext` + `useContext` shares state without the re-render cost React's context has, because
-only the readers of the changed signal update.
+Local state is a signal; nested or collection state is a store (see `solidjs/stores.md`). Use
+`splitProps(props, ["a"])` to separate props and `mergeProps({ size: "md" }, props)` for defaults —
+both keep reactivity. Context (`createContext` + `<Ctx.Provider value>`) only updates readers when the
+value *contains* signals or a store; a plain object is a one-time snapshot. The idiom is to provide
+`[state, actions]` built from a store, behind a `useX()` that throws when the provider is missing.
+Module-scope signals are fine in a client-only SPA but leak between requests under SSR.
 
 ```tsx
-// Props: ✗ destructuring freezes them at setup — never updates
+// ✗ destructuring freezes props at setup
 function Hi({ name }: Props) { return <p>{name}</p>; }
-// ✓ keep props intact; split reactively when you need locals
-function Hi(props: Props) {
-  const [local] = splitProps(props, ["name"]);
-  return <p>{local.name}</p>;
-}
-
-// Store update: ✗ in-place mutation + same array ref — fine-grained reactivity never fires
-todo.title = title; setTodos([...todos]);
-// ✓ write through the setter path — notifies just that field's subscribers
-setTodos(i => i.id === id, "title", title);
+// ✓
+function Hi(props: Props) { return <p>{props.name}</p>; }
 ```
 
 ## 3. Async & data fetching
 
-Use `createResource` — it models loading/error/success natively (`resource.loading`, `resource.error`)
-and re-fetches when its source signal changes, which also gives you race-safety (Solid tracks the
-latest). Wrap in `<Suspense fallback={...}>` to show a fallback while resources load, and
-`<ErrorBoundary fallback={...}>` to catch errors — these are first-class control-flow components, not
-add-ons. For the empty state, check the resolved value explicitly (`<Show when={data()?.length} fallback={<Empty/>}>`).
+In a `@solidjs/router` or SolidStart app, fetch with `query()` + `createAsync` and mutate with
+`action` — that is the cache/dedupe/revalidate layer the shared principle asks for. Without the router,
+use `createResource`. Both suspend inside `<Suspense>`; wrap with `<ErrorBoundary>`, and model empty
+explicitly. Details, race-safety and SSR in `solidjs/async.md`.
 
 ```tsx
-const [users] = createResource(query, fetchUsers);   // re-fetches when query() changes
-<Suspense fallback={<Spinner />}>
-  <Show when={users()?.length} fallback={<Empty />}>  {/* empty is its own state */}
-    <For each={users()}>{u => <li>{u.name}</li>}</For>
-  </Show>
-</Suspense>
+<ErrorBoundary fallback={(err, reset) => <Retry onClick={reset} />}>
+  <Suspense fallback={<Spinner />}>
+    <Show when={users()?.length} fallback={<Empty />}>
+      <For each={users()}>{u => <li>{u.name}</li>}</For>
+    </Show>
+  </Suspense>
+</ErrorBoundary>
 ```
 
 ## 4. Forms & validation
 
-Bind inputs to signals (`value={name()}` / `onInput={e => setName(e.currentTarget.value)}`). Define a
-Zod schema and infer the type; validate on submit (and optionally per-field via a memo). Solid has no
-re-render cost for controlled inputs, so the React motive for uncontrolled forms doesn't apply — keep
-them controlled. Wire `aria-describedby` to the error node and focus the first invalid field with a
-ref on submit failure.
-
-```tsx
-const Schema = z.object({ email: z.string().email() });
-type Values = z.infer<typeof Schema>;            // one source of truth: type follows schema
-const [email, setEmail] = createSignal("");
-const result = () => Schema.safeParse({ email: email() });   // derived validation
-<input value={email()} onInput={e => setEmail(e.currentTarget.value)}
-  aria-invalid={!result().success} aria-describedby="email-err" />
-<Show when={!result().success}><p id="email-err">{/* result().error message */}</p></Show>
-```
+Controlled inputs cost nothing extra in Solid, so keep them controlled: `value={email()}` +
+`onInput={e => setEmail(e.currentTarget.value)}`. Derive validation from a Zod schema with a function
+or memo, and only show errors after the field is touched or on submit — deriving it eagerly flags
+every field as invalid on first paint. In a router app, `<form action={myAction} method="post">` plus
+`useSubmission(myAction)` gives pending/error state without hand-rolled signals.
 
 ## 5. Accessibility
 
-Semantic-HTML-first is unchanged. Solid uses native DOM attribute names: `for` (not `htmlFor`),
-`class` (not `className`), and standard `aria-*`. Manage focus with `ref` + `onMount`. Because there's
-no re-render, focus isn't disturbed by state updates the way it can be in React — but list reordering
-still matters: see `For` vs `Index` below.
+Semantic HTML first, as in the shared body; Solid uses native attribute names (`for`, `class`,
+`aria-*`). Manage focus with a ref: `let input!: HTMLInputElement; <input ref={input} />`, then
+`input.focus()` in `onMount` or a submit handler. Refs are assigned during render, so they are only
+safe to use from `onMount`, effects, or handlers.
 
 ## 6. Performance & rendering
 
-Solid is fast by default — fine-grained updates mean no wasted component re-runs, so most React-style
-performance work is simply unnecessary. **Don't reach for memoization to prevent re-renders; there
-are none.** Use `createMemo` only when a derived computation is genuinely expensive or shared across
-many subscribers. The real performance levers here:
+There are no re-renders to prevent, so React-style memoisation work is unnecessary. The levers:
 
-- **`<For>` vs `<Index>`**: `<For each={items()}>` keys by item *reference/identity* and moves DOM
-  nodes on reorder — use it for lists of objects. `<Index>` keys by *index* and is for primitives or
-  fixed-position lists. Using the wrong one causes both perf and correctness bugs.
-  ```tsx
-  <For each={todos()}>{t => <Todo item={t} />}</For>   // objects: keyed by identity
-  <Index each={labels()}>{l => <span>{l()}</span>}</Index> // primitives: l is a signal
-  ```
-- **Don't break the reactive graph** by reading signals into plain locals — that's the most common
-  "perf" issue and it's really a correctness one.
-- `batch(() => {...})` coalesces multiple signal writes into one update; `untrack(() => sig())` reads
-  without subscribing. Lazy-load with `lazy(() => import(...))` + `<Suspense>`. Virtualize long lists
-  (`@tanstack/solid-virtual`). Core Web Vitals apply equally.
+- **Control flow over expressions.** `<Show>` and `<For>` keep branches and rows alive; `.map` and
+  heavy ternaries recreate them. `<Show when={user()}>{u => u().name}</Show>` — without `keyed`, the
+  callback gets an accessor, which also narrows the type.
+- **`<For>` vs `<Index>`.** `<For>` keys by item identity (item is a value, index an accessor) — use it
+  for objects that reorder. `<Index>` keys by position (item is an accessor) — use it for primitives
+  and fixed-length lists such as form rows.
+- **Stores:** `reconcile` server data so only changed leaves notify; `createSelector` for
+  "is selected" across a large list.
+- `lazy(() => import(...))` + `<Suspense>` for code splitting; `@tanstack/solid-virtual` for long lists.
+  `batch` is rarely needed — handlers, effects and store setters already batch.
 
 ## 7. TypeScript discipline
 
-Signals are typed by inference or `createSignal<Type>(initial)`. Type component props with
-`type Props = { ... }` and **don't destructure in the signature** (it breaks reactivity) — accept
-`props: Props` and read `props.x`. Children type is `JSX.Element`. `splitProps`/`mergeProps` preserve
-types. Event handlers: use Solid's `JSX.EventHandler` types or annotate `e.currentTarget`. Stores are
-typed by their initial value; `SetStoreFunction<T>` types the setter. Everything else from the shared
-TypeScript section (strict flags, discriminated unions, `satisfies`, schema-inferred types) applies
-unchanged.
+Accept `props: Props` (never destructure in the signature). Component types: `Component<P>`,
+`ParentComponent<P>` (adds optional `children`), `VoidComponent<P>` (forbids children),
+`FlowComponent<P, C>` (required/callback children). Values: `JSX.Element`, `Accessor<T>`, `Setter<T>`.
+Pass-through props: `JSX.HTMLAttributes<HTMLButtonElement>` with `splitProps`. `createSignal<T>()`
+with no initial value is `T | undefined`. Type refs as `let el!: HTMLElement`. Store setters are
+`SetStoreFunction<T>`.
 
 ## 8. Testing principles
 
-Per the shared body, this skill doesn't teach a runner — defer the TDD loop to **`tdd`** and
-browser/e2e to **`playwright`**. Solid-relevant principle: test rendered output and behavior via
-`@solidjs/testing-library` (render, query by accessible role/text), not signal internals, and mock
-the network at the boundary.
+Defer the TDD loop to **`tdd`** and e2e to **`playwright`**. Solid specifics for
+`@solidjs/testing-library` with Vitest:
+
+- `render(() => <Counter />)` takes a **function**, not an element — passing `<Counter />` runs the
+  component outside a root.
+- There is no `rerender`; drive changes by setting signals or through user events.
+- `renderHook(useThing)` for custom primitives; `testEffect(done => createEffect(...))` for effects
+  instead of polling. Test bare primitives inside `createRoot(dispose => ...)`.
 
 ## 9. Project structure & tooling
 
-Standard Solid/Vite conventions: `vite-plugin-solid`, `PascalCase` components, co-located tests.
-`eslint-plugin-solid` catches the high-value Solid mistakes the model is most likely to make —
-reactivity violations like destructured props and signals read without calling — so keep it on; its
-warnings usually point at a real broken subscription.
+`vite-plugin-solid` (it also configures Vitest). Add `eslint-plugin-solid` if missing, with its
+`recommended` or `typescript` flat config — on Solid 2 use its `v2` config. Treat its `reactivity`
+warnings as real broken subscriptions, not noise. Check `tsconfig.json` has `"jsx": "preserve"` and
+`"jsxImportSource": "solid-js"`.
 
 ## Meta-framework pointer
 
-For routing use **`@solidjs/router`**; for full-stack (SSR, server functions, file routing) use
-**SolidStart**. SolidStart adds server/client boundaries and `"use server"` functions on top of Solid
-core — when working in a SolidStart app, get those specifics from SolidStart guidance rather than
-treating everything as client-side. Don't fold the meta-framework into core Solid decisions.
+Routing is `@solidjs/router`; full-stack (SSR, `"use server"` functions, file routing) is SolidStart.
+Both change how data is loaded and where code runs — read `solidjs/async.md` before touching data or
+server code in either.

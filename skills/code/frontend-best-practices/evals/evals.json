@@ -1,45 +1,159 @@
 {
-  "skill_name": "frontend",
+  "skill_name": "frontend-best-practices",
   "evals": [
     {
       "id": 0,
       "name": "react-prop-drilling-and-async-states",
       "prompt": "Refactor this component to drop the prop drilling and add proper loading/error states. The file is UserDashboard.tsx and package.json shows the project's deps.",
       "expected_output": "Detects React from package.json/imports and loads references/react.md. Removes prop drilling (context or restructuring), and adds explicit loading + error (+ ideally empty) states instead of rendering against a possibly-null user. Suggests a query library or at least race-safe effect fetching. Flags the `any` types.",
-      "files": ["fixtures/UserDashboard.tsx", "fixtures/package.react.json"],
+      "files": [
+        "fixtures/UserDashboard.tsx",
+        "fixtures/package.react.json"
+      ],
       "assertions": [
-        {"text": "Detects the framework as React (from package.json deps and/or react imports) and loads references/react.md", "type": "manual"},
-        {"text": "Removes prop drilling — lifts/shares user via context or restructures, rather than threading `user` through Header/Sidebar/Nav/Content", "type": "manual"},
-        {"text": "Adds explicit loading AND error handling instead of rendering against a possibly-null/undefined user", "type": "manual"},
-        {"text": "Recommends a server-state/query approach or makes the effect fetch race-safe (cleanup/ignore/abort)", "type": "manual"},
-        {"text": "Does NOT introduce styling/Tailwind changes or a test-runner tutorial (out of scope)", "type": "manual"}
+        {
+          "text": "Detects the framework as React (from package.json deps and/or react imports) and loads references/react.md",
+          "type": "manual"
+        },
+        {
+          "text": "Removes prop drilling \u2014 lifts/shares user via context or restructures, rather than threading `user` through Header/Sidebar/Nav/Content",
+          "type": "manual"
+        },
+        {
+          "text": "Adds explicit loading AND error handling instead of rendering against a possibly-null/undefined user",
+          "type": "manual"
+        },
+        {
+          "text": "Recommends a server-state/query approach or makes the effect fetch race-safe (cleanup/ignore/abort)",
+          "type": "manual"
+        },
+        {
+          "text": "Does NOT introduce styling/Tailwind changes or a test-runner tutorial (out of scope)",
+          "type": "manual"
+        }
       ]
     },
     {
       "id": 1,
       "name": "solid-list-wont-update-in-place",
-      "prompt": "My SolidJS list won't update when I edit an item in place — what's wrong? See TodoList.tsx; package.json has the deps.",
-      "expected_output": "Detects SolidJS and loads references/solidjs.md. Identifies the root cause: mutating the store object in place (todo.title = ...) plus setting the same array reference does not trigger fine-grained reactivity — must update through the store setter path (setTodos(i => i.id === id, \"title\", value)) or use produce. Explains Solid's once-only / fine-grained signal model rather than React's re-render model.",
-      "files": ["fixtures/TodoList.tsx", "fixtures/package.solid.json"],
+      "prompt": "My SolidJS list won't update when I edit an item in place \u2014 what's wrong? See TodoList.tsx; package.json has the deps.",
+      "expected_output": "Detects SolidJS and loads references/solidjs.md. Identifies the root cause: mutating the store object in place (todo.title = ...) plus setting the same array reference does not trigger fine-grained reactivity \u2014 must update through the store setter path (setTodos(i => i.id === id, \"title\", value)) or use produce. Explains Solid's once-only / fine-grained signal model rather than React's re-render model.",
+      "files": [
+        "fixtures/TodoList.tsx",
+        "fixtures/package.solid.json"
+      ],
       "assertions": [
-        {"text": "Detects the framework as SolidJS and loads references/solidjs.md (not the React reference)", "type": "manual"},
-        {"text": "Identifies the root cause as in-place mutation + reusing the same reference bypassing fine-grained store reactivity", "type": "manual"},
-        {"text": "Fixes it via the store setter path (setTodos(...path...)) or produce/reconcile, not a React-style state replacement workaround", "type": "manual"},
-        {"text": "Explains the cause in Solid's model (components run once, fine-grained signals/stores) rather than React's re-render/deps model", "type": "manual"}
+        {
+          "text": "Detects the framework as SolidJS and loads references/solidjs.md (not the React reference)",
+          "type": "manual"
+        },
+        {
+          "text": "Identifies the root cause as in-place mutation + reusing the same reference bypassing fine-grained store reactivity",
+          "type": "manual"
+        },
+        {
+          "text": "Fixes it via the store setter path (setTodos(...path...)) or produce/reconcile, not a React-style state replacement workaround",
+          "type": "manual"
+        },
+        {
+          "text": "Explains the cause in Solid's model (components run once, fine-grained signals/stores) rather than React's re-render/deps model",
+          "type": "manual"
+        }
       ]
     },
     {
       "id": 2,
       "name": "agnostic-hook-typesafety-and-a11y",
       "prompt": "Review this hook for type safety and accessibility problems. It's in useToggleSearch.tsx.",
-      "expected_output": "Type safety: flags `any[]`/`as any` (use generics with constraints, infer types), the unsafe `results[0]` access (noUncheckedIndexedAccess — first may be undefined, selectFirst can crash), and the loosely-typed return tuple. Accessibility: flags the clickable <div> that should be a <button> (not keyboard accessible / no role), missing label association on the input. Stays principle-level / loads React reference since file uses hooks.",
-      "files": ["fixtures/useToggleSearch.tsx", "fixtures/package.react.json"],
+      "expected_output": "Type safety: flags `any[]`/`as any` (use generics with constraints, infer types), the unsafe `results[0]` access (noUncheckedIndexedAccess \u2014 first may be undefined, selectFirst can crash), and the loosely-typed return tuple. Accessibility: flags the clickable <div> that should be a <button> (not keyboard accessible / no role), missing label association on the input. Stays principle-level / loads React reference since file uses hooks.",
+      "files": [
+        "fixtures/useToggleSearch.tsx",
+        "fixtures/package.react.json"
+      ],
       "assertions": [
-        {"text": "Flags the `any[]` / `as any` and recommends generics with constraints or schema-inferred types", "type": "manual"},
-        {"text": "Flags the unsafe indexed access (results[0] may be undefined; selectFirst() can crash) tied to noUncheckedIndexedAccess / strictness", "type": "manual"},
-        {"text": "Identifies the a11y problem: clickable <div> should be a real <button> (keyboard operable, has role)", "type": "manual"},
-        {"text": "Identifies the missing label/association on the search input", "type": "manual"},
-        {"text": "Addresses both type safety AND accessibility (does not cover only one)", "type": "manual"}
+        {
+          "text": "Flags the `any[]` / `as any` and recommends generics with constraints or schema-inferred types",
+          "type": "manual"
+        },
+        {
+          "text": "Flags the unsafe indexed access (results[0] may be undefined; selectFirst() can crash) tied to noUncheckedIndexedAccess / strictness",
+          "type": "manual"
+        },
+        {
+          "text": "Identifies the a11y problem: clickable <div> should be a real <button> (keyboard operable, has role)",
+          "type": "manual"
+        },
+        {
+          "text": "Identifies the missing label/association on the search input",
+          "type": "manual"
+        },
+        {
+          "text": "Addresses both type safety AND accessibility (does not cover only one)",
+          "type": "manual"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "solid-card-stale-and-react-habits",
+      "prompt": "UserCard.tsx never updates when I pick a different user from the list, and the styling looks wrong. Can you fix it? package.json has the deps.",
+      "expected_output": "Detects Solid 1.x. Finds all reactivity breaks, not just one: destructured props, the early return evaluated once, the effect syncing a signal from props. Fixes with props.x access, <Show>, and a derived function instead of signal+effect. Also fixes className->class and camelCase/number style keys, the clickable div (button), and the img alt.",
+      "files": [
+        "fixtures/UserCard.tsx",
+        "fixtures/package.solid.json"
+      ],
+      "assertions": [
+        {
+          "text": "Removes prop destructuring and reads props.user / props.onSelect at point of use",
+          "type": "manual"
+        },
+        {
+          "text": "Replaces the early return with <Show> (or Switch/Match) and explains it runs once",
+          "type": "manual"
+        },
+        {
+          "text": "Replaces the createSignal+createEffect label sync with a derived function or createMemo",
+          "type": "manual"
+        },
+        {
+          "text": "Changes className to class and style keys to kebab-case strings with units",
+          "type": "manual"
+        },
+        {
+          "text": "Makes the clickable element keyboard accessible (button) and adds img alt",
+          "type": "manual"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "solid-router-data-page",
+      "prompt": "Add a /users/:id page that loads the user and lets me edit their name and save it. We're using solid with the router, see package.json. Mock the API with fetch calls to /api/users.",
+      "expected_output": "Detects @solidjs/router and uses query() + createAsync for loading (with a route preload) and action + useSubmission for the save, rather than createResource + hand-rolled fetch state. Handles loading, error and not-found states with Suspense/ErrorBoundary/Show, and keeps the form accessible.",
+      "files": [
+        "fixtures/package.solid.json"
+      ],
+      "assertions": [
+        {
+          "text": "Loads data with query() + createAsync (not the outdated cache() or a raw fetch in createEffect)",
+          "type": "manual"
+        },
+        {
+          "text": "Saves with an action (form action or useAction) and surfaces pending/error via useSubmission",
+          "type": "manual"
+        },
+        {
+          "text": "Covers loading, error and not-found/empty states declaratively",
+          "type": "manual"
+        },
+        {
+          "text": "Does not destructure props or use early returns in components",
+          "type": "manual"
+        },
+        {
+          "text": "Input has an associated label and errors are announced or linked",
+          "type": "manual"
+        }
       ]
     }
   ]
