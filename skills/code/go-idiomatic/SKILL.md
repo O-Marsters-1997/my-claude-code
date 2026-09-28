@@ -292,11 +292,41 @@ to match the file's existing comment density.
 
 ## Testing
 
-The default for any new function is a table-driven test. Load `references/testing.md` for the full
-suite of patterns: subtests, parallel tests, golden files, mocks, benchmarks, fuzzing, and HTTP
-handler testing.
+This section is the authority on how a Go test is written. Which tests a change needs, and how
+much coverage is enough, is the repo's policy, not this skill's. For the TDD loop, use the `tdd`
+skill.
 
-For the TDD workflow (write the failing test first, then the implementation), use the `tdd` skill.
+Core rules:
+
+1. Test behaviour through the exported API. Default to the black-box `package foo_test`; use
+   `package foo` only when the unit is unexported by design, and `export_test.go` as a last resort.
+2. Assert on outputs and state, not on which calls were made. A test that breaks when the code is
+   refactored without a behaviour change is a change-detector: delete it.
+3. Pick the most faithful double: real, then fake, then stub, then mock. Mock only state-changing
+   calls across a system boundary (sending email, charging a card).
+4. A fake is stateful and honest. One contract suite runs against both the fake and the real
+   implementation. Force error paths with a one-method stub, not failure knobs on the fake.
+5. Test SQL against a real database, never a mocked driver. Use the repo's DB-testing skill for
+   the mechanics if it has one.
+6. Compare with `cmp.Diff(want, got)` from `github.com/google/go-cmp` and report `(-want +got)`.
+   Without go-cmp, compare scalars with `==` and structs field by field. Never `reflect.DeepEqual`.
+7. Failure messages read `Func(in) = got, want want`. Match errors with `errors.Is`/`errors.As`,
+   never by string.
+8. Use a table only when every case is checked the same way: a slice of structs with a `name`
+   field, run with `t.Run(tt.name, ...)`. An `if tt.wantErr` branch means split the test.
+9. `t.Error` to keep going, `t.Fatal` when the rest of the test can't run. Never call `t.Fatal`
+   from a goroutine the test didn't start on.
+10. Helpers take `t`, call `t.Helper()`, fail on setup errors and register `t.Cleanup`. They set
+    up; they don't assert. `TestMain` only for expensive setup shared by the whole package.
+11. No `time.Sleep`. Poll a condition with a deadline or wait on a channel.
+12. `t.Parallel()` only for tests that share no state: no globals, env, working dir or shared rows.
+13. Compare JSON by decoding it, never as bytes. Normalise golden output before comparing, and a
+    human reviews every `-update` diff.
+14. Fuzz parsers of untrusted input, and commit the `testdata/fuzz/` corpus.
+15. Test HTTP handlers through the real router and middleware.
+
+Load `references/testing.md` for worked examples of each kind of test (unit, fake plus contract
+suite, HTTP, golden, fuzz, benchmark) and a golangci-lint snippet that enforces the mechanical rules.
 
 ---
 

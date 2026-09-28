@@ -19,7 +19,7 @@ the other, and being mid-task is not a reason to skip it.
 
 ## Philosophy
 
-> Examples in this skill use TypeScript and Go interchangeably. The principles are language-agnostic — apply them in whatever language you write.
+> Examples in this skill use TypeScript. The principles are language-agnostic. For Go, test style (assertions, tables, doubles, helpers) comes from `go-idiomatic` § Testing, not from these examples.
 
 **Core principle**: Tests should verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't.
 
