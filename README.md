@@ -135,6 +135,8 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
   ```
 
+- **require-go-skills** (hook, wired by `settings.json` and `setup.sh`) — A global PreToolUse hook that blocks the first edit to a Go file until `go-idiomatic` has been loaded in the session, and also `testing-policy` for a `_test.go` in a project that ships that skill. It skips generated files, `vendor/` and paths with no `go.mod`, and fails open if it can't read the transcript. Skip it with `CC_GO_SKILLS_OFF=1`. Tests: `hooks/require-go-skills.test.sh`.
+
 ## Writing & Knowledge
 
 - **unslop** — Strip AI tells from prose and put voice back in: puffery, AI vocabulary, em dashes, inline-header lists, hedging, passive voice. Vendored from [cursor/plugins](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md); the description is rewritten as a trigger clause so it loads before prose work instead of waiting to be invoked.
