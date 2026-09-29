@@ -16,6 +16,14 @@ link statusline-command.sh
 link RTK.md
 link CLAUDE.md
 
+mkdir -p "$CLAUDE/bin"
+if command -v go >/dev/null; then
+  (cd "$REPO/tools/reflect" && go build -ldflags "-X main.library=$REPO" -o "$CLAUDE/bin/reflect" .)
+  echo "reflect: built $CLAUDE/bin/reflect"
+else
+  echo "reflect: go not found, skipped build"
+fi
+
 # settings.json: symlink shared base, or merge with device-specific overrides if present
 if [ -f "$REPO/settings.local.json" ]; then
   jq -s '.[0] * .[1]' "$REPO/settings.json" "$REPO/settings.local.json" > "$CLAUDE/settings.json"

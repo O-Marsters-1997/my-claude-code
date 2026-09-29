@@ -129,6 +129,12 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill clean-comments
   ```
 
+- **reflect** — Log signs of agent confusion (hallucinated paths and symbols, repeated failures, edit churn, your corrections) from plain hooks with no model calls, then run `/reflect` to turn the current session's log into lean amendment proposals for `AGENTS.md`, skills and hooks. Off until `/reflect on` in a repo. Needs Go: `setup.sh` builds `tools/reflect` into `~/.claude/bin/reflect`. Correction detection is adapted from [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
+
+  ```
+  npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
+  ```
+
 ## Writing & Knowledge
 
 - **unslop** — Strip AI tells from prose and put voice back in: puffery, AI vocabulary, em dashes, inline-header lists, hedging, passive voice. Vendored from [cursor/plugins](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md); the description is rewritten as a trigger clause so it loads before prose work instead of waiting to be invoked.
