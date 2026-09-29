@@ -12,6 +12,7 @@ link() { ln -sfn "$REPO/$1" "$CLAUDE/$1"; }
 
 link hooks
 link commands
+link rules
 link statusline-command.sh
 link RTK.md
 link CLAUDE.md

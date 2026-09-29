@@ -14,6 +14,11 @@
           {
             "type": "command",
             "command": "/Users/olly/.claude/hooks/rtk-rewrite.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-staged-comments.sh",
+            "statusMessage": "Checking staged comments"
           }
         ]
       },
@@ -23,6 +28,11 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/require-go-skills.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-written-comments.sh",
+            "statusMessage": "Checking added comments"
           }
         ]
       }
