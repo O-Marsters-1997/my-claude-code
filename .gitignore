@@ -1,2 +1,4 @@
 ideas/
 settings.local.json
+.agents/
+.claude/
