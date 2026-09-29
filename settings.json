@@ -16,6 +16,15 @@
             "command": "/Users/olly/.claude/hooks/rtk-rewrite.sh"
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/require-go-skills.sh"
+          }
+        ]
       }
     ],
     "Stop": [
