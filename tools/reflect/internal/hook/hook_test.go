@@ -196,6 +196,8 @@ func TestEveryEventKindStaysUnderLineBudget(t *testing.T) {
 		t.Fatal(err)
 	}
 	startSession(t, dir, "s", nil)
+	writeFile(t, filepath.Join(dir, "CLAUDE.md"), "rules v2")
+	startSession(t, dir, "s", nil)
 	bad := failure("s", "toolu_1", "/"+fat, fat)
 	bad["agent_id"] = "agent-with-a-long-id-0123456789"
 	fire(t, dir, bad)
@@ -235,27 +237,42 @@ func writeFile(t *testing.T, path, content string) {
 	}
 }
 
+func TestCorrectionRecordsTheToolCallBeforeIt(t *testing.T) {
+	dir, s := newRepo(t)
+	tr := filepath.Join(t.TempDir(), "s.jsonl")
+	writeFile(t, tr, strings.Join([]string{
+		`{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tu1","name":"Read","input":{}}]}}`,
+		`{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tu2","name":"Edit","input":{}}]}}`,
+		`{"type":"user","message":{"content":"no, use tabs"}}`,
+	}, "\n")+"\n")
+	startSession(t, dir, "s", map[string]any{"transcript_path": tr})
+	fire(t, dir, map[string]any{"hook_event_name": "UserPromptSubmit", "session_id": "s", "transcript_path": tr, "prompt": "no, use tabs"})
+	got := kinds(readEvents(t, s), "correction")
+	if len(got) != 1 || got[0].ToolUseID != "tu2" || got[0].Tool != "Edit" {
+		t.Errorf("correction = %+v, want tool_use_id tu2 from Edit", got)
+	}
+}
+
 func TestManifestIsWrittenOnlyWhenInstructionsChange(t *testing.T) {
 	dir, s := newRepo(t)
 	writeFile(t, filepath.Join(dir, "CLAUDE.md"), "v1")
 	startSession(t, dir, "s1", nil)
 	startSession(t, dir, "s2", nil)
 	events := readEvents(t, s)
-	manifests := kinds(events, "manifest")
-	if len(manifests) != 1 || manifests[0].Prev != "" || len(manifests[0].Added) != 1 {
-		t.Fatalf("after two identical sessions manifests = %+v, want one listing CLAUDE.md as added", manifests)
+	if manifests := kinds(events, "manifest"); len(manifests) != 0 {
+		t.Fatalf("baseline wrote %d manifests, want none", len(manifests))
 	}
-	first := manifests[0]
+	baseline := kinds(events, "session")[0].InstrHash
 
 	writeFile(t, filepath.Join(dir, "CLAUDE.md"), "v2")
 	startSession(t, dir, "s3", nil)
-	manifests = kinds(readEvents(t, s), "manifest")
-	if len(manifests) != 2 {
-		t.Fatalf("got %d manifests after an edit, want 2", len(manifests))
+	manifests := kinds(readEvents(t, s), "manifest")
+	if len(manifests) != 1 {
+		t.Fatalf("got %d manifests after an edit, want 1", len(manifests))
 	}
-	second := manifests[1]
-	if second.Prev != first.InstrHash || len(second.Changed) != 1 || len(second.Added) != 0 || len(second.Removed) != 0 {
-		t.Errorf("second manifest = %+v, want one changed file and prev %s", second, first.InstrHash)
+	second := manifests[0]
+	if second.Prev != baseline || len(second.Changed) != 1 || len(second.Added) != 0 || len(second.Removed) != 0 {
+		t.Errorf("manifest = %+v, want one changed file and prev %s", second, baseline)
 	}
 
 	if err := os.Remove(filepath.Join(dir, "CLAUDE.md")); err != nil {
@@ -265,6 +282,17 @@ func TestManifestIsWrittenOnlyWhenInstructionsChange(t *testing.T) {
 	manifests = kinds(readEvents(t, s), "manifest")
 	if last := manifests[len(manifests)-1]; len(last.Removed) != 1 {
 		t.Errorf("manifest after deleting the file = %+v, want one removed", last)
+	}
+}
+
+func TestBaselineWithManyInstructionFilesWritesNoManifest(t *testing.T) {
+	dir, s := newRepo(t)
+	for i := range 50 {
+		writeFile(t, filepath.Join(dir, ".claude", "skills", fmt.Sprintf("s%d", i), "SKILL.md"), "x")
+	}
+	startSession(t, dir, "s", nil)
+	if n := len(kinds(readEvents(t, s), "manifest")); n != 0 {
+		t.Errorf("first session wrote %d manifests, want none", n)
 	}
 }
 
@@ -295,9 +323,11 @@ func TestMirroredSkillsCountOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	startSession(t, dir, "s", nil)
+	writeFile(t, filepath.Join(dir, ".agents", "skills", "x", "SKILL.md"), "two")
+	startSession(t, dir, "s2", nil)
 	manifests := kinds(readEvents(t, s), "manifest")
-	if len(manifests) != 1 || len(manifests[0].Added) != 1 {
-		t.Errorf("manifests = %+v, want the mirrored skill listed once", manifests)
+	if len(manifests) != 1 || len(manifests[0].Changed) != 1 {
+		t.Errorf("manifests = %+v, want the mirrored skill changed once", manifests)
 	}
 }
 

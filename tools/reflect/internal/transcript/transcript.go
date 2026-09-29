@@ -120,3 +120,15 @@ func Count(path string, countPrompts bool) (toolCalls, prompts int) {
 	})
 	return toolCalls, prompts
 }
+
+func LastToolUse(path string) (last Block, ok bool) {
+	_, _ = Each(path, 0, func(e Entry) {
+		_, blocks := e.Parts()
+		for _, b := range blocks {
+			if b.Type == "tool_use" {
+				last, ok = b, true
+			}
+		}
+	})
+	return last, ok
+}

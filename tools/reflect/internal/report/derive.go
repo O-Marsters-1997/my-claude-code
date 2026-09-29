@@ -14,6 +14,7 @@ const (
 	recurMin      = 2
 	priorMin      = 2
 	correctionMin = 0.6
+	confidentMin  = 0.85
 )
 
 const (
@@ -34,8 +35,10 @@ type signal struct {
 
 func (s signal) qualifies() bool {
 	switch s.kind {
-	case hallucination, correction:
+	case hallucination:
 		return len(s.events) >= recurMin || s.prior >= priorMin
+	case correction:
+		return len(s.events) >= recurMin || s.prior >= priorMin || slices.ContainsFunc(s.events, func(e logstore.Event) bool { return e.Conf >= confidentMin })
 	}
 	return true
 }

@@ -31,7 +31,8 @@ in a repo until `/reflect on` writes its hooks into `.claude/settings.local.json
    subagent it spawned, and nothing else. If it prints `no qualifying signals`, say so and
    stop. If the log is missing, tell the user to run `/reflect on` and stop.
 2. For each finding, read the transcript around its `tool_use_id`. Grep the id in the
-   `transcript=` path and read about 20 lines either side. Transcripts older than
+   transcript named on the header line (an event line names its own `transcript=` only for
+   a subagent) and read about 20 lines either side. Transcripts older than
    `cleanupPeriodDays` are gone; work from the logged input and error and say so.
 3. Infer why the agent struggled. Ask what an instruction, skill or hook would have had to
    say to prevent it. A finding with no such answer is dropped, not padded.
