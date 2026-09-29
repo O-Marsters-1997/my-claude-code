@@ -22,7 +22,8 @@ Arguments: `$ARGUMENTS`
 
 If the first argument is `on`, `off`, `status` or `metrics`, run
 `~/.claude/bin/reflect <argument>`, print its output verbatim and stop. Logging is off
-in every repo until `/reflect on`.
+in every repo until `/reflect on`, and the hooks only exist on machines set up with
+`./setup.sh --reflect`.
 
 ## Analyse this session
 

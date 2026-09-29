@@ -1,4 +1,4 @@
-package main
+package hook_test
 
 import (
 	"encoding/json"
@@ -7,20 +7,21 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/detect"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/logstore"
 )
 
-func newRepo(t *testing.T, enabled bool) (dir string, s store) {
+func newRepo(t *testing.T, enabled bool) (dir string, s logstore.Store) {
 	t.Helper()
 	dir = t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, ".git"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	s = newStore(dir)
+	s = logstore.New(dir)
 	if enabled {
-		if err := s.ensure(); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(s.dir, "on"), nil, 0o644); err != nil {
+		if err := s.On(); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -33,18 +34,27 @@ func fire(t *testing.T, dir string, p map[string]any) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	runHook(strings.NewReader(string(b)), dir)
+	hook.Run(strings.NewReader(string(b)), dir)
 }
 
-func TestHookDisabledWritesNothing(t *testing.T) {
+func readEvents(t *testing.T, s logstore.Store) []logstore.Event {
+	t.Helper()
+	events, err := s.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return events
+}
+
+func TestRunDisabledWritesNothing(t *testing.T) {
 	dir, s := newRepo(t, false)
 	fire(t, dir, map[string]any{"hook_event_name": "UserPromptSubmit", "session_id": "s", "prompt": "no, use tabs"})
-	if _, err := os.Stat(s.dir); !os.IsNotExist(err) {
-		t.Errorf("disabled repo created %s", s.dir)
+	if _, err := os.Stat(s.Dir()); !os.IsNotExist(err) {
+		t.Errorf("disabled repo created %s", s.Dir())
 	}
 }
 
-func TestHookLogsFailureAndCorrection(t *testing.T) {
+func TestRunLogsFailureAndCorrection(t *testing.T) {
 	dir, s := newRepo(t, true)
 	fire(t, dir, map[string]any{
 		"hook_event_name": "PostToolUseFailure", "session_id": "s", "agent_id": "a1",
@@ -52,26 +62,22 @@ func TestHookLogsFailureAndCorrection(t *testing.T) {
 		"error": "File does not exist.", "transcript_path": "/t/s.jsonl",
 	})
 	fire(t, dir, map[string]any{"hook_event_name": "UserPromptSubmit", "session_id": "s", "prompt": "no, use tabs"})
-	events, err := s.read()
-	if err != nil {
-		t.Fatal(err)
-	}
+	events := readEvents(t, s)
 	if len(events) != 2 {
 		t.Fatalf("got %d events, want 2: %+v", len(events), events)
 	}
-	fail := events[0]
-	if fail.Class != classPathMissing || fail.AgentID != "a1" || fail.Transcript != "/t/s/subagents/agent-a1.jsonl" {
+	if fail := events[0]; fail.Class != detect.PathMissing || fail.AgentID != "a1" || fail.Transcript != "/t/s/subagents/agent-a1.jsonl" {
 		t.Errorf("failure event = %+v", fail)
 	}
 	if events[1].Kind != "correction" || events[1].Conf < 0.6 {
 		t.Errorf("correction event = %+v", events[1])
 	}
-	if _, err := os.Stat(filepath.Join(s.dir, ".gitignore")); err != nil {
+	if _, err := os.Stat(filepath.Join(s.Dir(), ".gitignore")); err != nil {
 		t.Error("log dir is not self-ignoring")
 	}
 }
 
-func TestHookResolvesWorktreeToMainCheckout(t *testing.T) {
+func TestRunResolvesWorktreeToMainCheckout(t *testing.T) {
 	main, s := newRepo(t, true)
 	wt := t.TempDir()
 	gitdir := filepath.Join(main, ".git", "worktrees", "wt")
@@ -79,13 +85,12 @@ func TestHookResolvesWorktreeToMainCheckout(t *testing.T) {
 		t.Fatal(err)
 	}
 	fire(t, wt, map[string]any{"hook_event_name": "UserPromptSubmit", "session_id": "s", "prompt": "no, use tabs"})
-	events, _ := s.read()
-	if len(events) != 1 {
-		t.Errorf("worktree event landed outside the main checkout log: %d events", len(events))
+	if n := len(readEvents(t, s)); n != 1 {
+		t.Errorf("worktree event landed outside the main checkout log: %d events", n)
 	}
 }
 
-func TestSweepRecoversToolUseErrorsOnce(t *testing.T) {
+func TestStopSweepRecoversToolUseErrorsOnce(t *testing.T) {
 	dir, s := newRepo(t, true)
 	tp := filepath.Join(t.TempDir(), "s.jsonl")
 	lines := []string{
@@ -100,8 +105,8 @@ func TestSweepRecoversToolUseErrorsOnce(t *testing.T) {
 	stop := map[string]any{"hook_event_name": "Stop", "session_id": "s", "transcript_path": tp}
 	fire(t, dir, stop)
 	fire(t, dir, stop)
-	events, _ := s.read()
-	if len(events) != 1 || events[0].Class != classEditMiss || events[0].ToolUseID != "tu1" {
+	events := readEvents(t, s)
+	if len(events) != 1 || events[0].Class != detect.EditMiss || events[0].ToolUseID != "tu1" {
 		t.Errorf("sweep events = %+v, want one edit_miss for tu1", events)
 	}
 }
@@ -122,14 +127,14 @@ func TestSessionEndCountsSubagents(t *testing.T) {
 		t.Fatal(err)
 	}
 	fire(t, dir, map[string]any{"hook_event_name": "SessionEnd", "session_id": "s", "transcript_path": tp})
-	events, _ := s.read()
+	events := readEvents(t, s)
 	last := events[len(events)-1]
 	if last.Kind != "session_end" || last.ToolCalls != 3 || last.Prompts != 1 {
 		t.Errorf("session_end = %+v, want 3 tool calls and 1 prompt", last)
 	}
 }
 
-func TestHookIgnoresGarbageInput(t *testing.T) {
+func TestRunIgnoresGarbageInput(t *testing.T) {
 	dir, _ := newRepo(t, true)
-	runHook(strings.NewReader("not json"), dir)
+	hook.Run(strings.NewReader("not json"), dir)
 }

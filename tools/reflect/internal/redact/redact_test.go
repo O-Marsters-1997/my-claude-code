@@ -1,11 +1,13 @@
-package main
+package redact_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
 )
 
-func TestRedact(t *testing.T) {
+func TestClean(t *testing.T) {
 	tests := map[string]string{
 		"AKIAABCDEFGHIJKLMNOP":                                                "[REDACTED:aws-key]",
 		"ghp_" + strings.Repeat("a", 36):                                      "[REDACTED:github-token]",
@@ -18,15 +20,15 @@ func TestRedact(t *testing.T) {
 		"go test ./... -run TestFoo":                                          "go test ./... -run TestFoo",
 	}
 	for in, want := range tests {
-		if got := redact(in); got != want {
-			t.Errorf("redact(%q) = %q, want %q", in, got, want)
+		if got := redact.Clean(in, 1000); got != want {
+			t.Errorf("Clean(%q) = %q, want %q", in, got, want)
 		}
 	}
 }
 
 func TestCleanRedactsBeforeTruncating(t *testing.T) {
 	in := strings.Repeat("a", 490) + " token=abcdefghijklmnop"
-	if got := clean(in, 500); strings.Contains(got, "abcdefghij") {
-		t.Errorf("clean leaked a secret at the truncation boundary: %q", got[480:])
+	if got := redact.Clean(in, 500); strings.Contains(got, "abcdefghij") {
+		t.Errorf("Clean leaked a secret at the truncation boundary: %q", got[480:])
 	}
 }

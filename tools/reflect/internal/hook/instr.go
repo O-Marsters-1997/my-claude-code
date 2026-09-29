@@ -1,6 +1,8 @@
-package main
+package hook
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +18,11 @@ var instrGlobs = []string{
 	"agents/*.md",
 	"skills/*/SKILL.md",
 	"skills/*/references/*.md",
+}
+
+func hash12(parts ...string) string {
+	sum := sha256.Sum256([]byte(strings.Join(parts, "\x00")))
+	return hex.EncodeToString(sum[:6])
 }
 
 func instrFiles(projectDir string) map[string]string {
@@ -38,12 +45,12 @@ func instrFiles(projectDir string) map[string]string {
 }
 
 func combinedHash(files map[string]string) string {
-	paths := make([]string, 0, len(files))
-	for p := range files {
-		paths = append(paths, p+"\t"+files[p])
+	lines := make([]string, 0, len(files))
+	for path, h := range files {
+		lines = append(lines, path+"\t"+h)
 	}
-	sort.Strings(paths)
-	return hash12(paths...)
+	sort.Strings(lines)
+	return hash12(lines...)
 }
 
 func git(dir string, args ...string) string {

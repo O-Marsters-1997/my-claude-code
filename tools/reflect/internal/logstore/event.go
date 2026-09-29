@@ -1,8 +1,9 @@
-package main
+package logstore
 
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"time"
@@ -38,20 +39,46 @@ type Event struct {
 	Prompts    int               `json:"prompts,omitempty"`
 }
 
-type store struct{ dir string }
+type Store struct{ dir string }
 
-func newStore(projectDir string) store {
-	return store{filepath.Join(mainCheckout(projectDir), ".claude", "reflect")}
+func New(projectDir string) Store {
+	return Store{filepath.Join(mainCheckout(projectDir), ".claude", "reflect")}
 }
 
-func (s store) enabled() bool {
+func At(dir string) Store { return Store{dir} }
+
+func (s Store) Dir() string     { return s.dir }
+func (s Store) LogPath() string { return filepath.Join(s.dir, "events.jsonl") }
+
+func (s Store) Enabled() bool {
 	_, err := os.Stat(filepath.Join(s.dir, "on"))
 	return err == nil
 }
 
-func (s store) logPath() string { return filepath.Join(s.dir, "events.jsonl") }
+func (s Store) On() error {
+	if err := s.ensure(); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(s.dir, "on"), nil, 0o644)
+}
 
-func (s store) ensure() error {
+func (s Store) Off() error {
+	err := os.Remove(filepath.Join(s.dir, "on"))
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
+}
+
+func (s Store) ProposalsDir() (string, error) {
+	dir := filepath.Join(s.dir, "proposals")
+	if err := s.ensure(); err != nil {
+		return "", err
+	}
+	return dir, os.MkdirAll(dir, 0o755)
+}
+
+func (s Store) ensure() error {
 	if err := os.MkdirAll(s.dir, 0o755); err != nil {
 		return err
 	}
@@ -62,7 +89,7 @@ func (s store) ensure() error {
 	return os.WriteFile(ignore, []byte("*\n"), 0o644)
 }
 
-func (s store) append(e Event) error {
+func (s Store) Append(e Event) error {
 	if err := s.ensure(); err != nil {
 		return err
 	}
@@ -74,24 +101,23 @@ func (s store) append(e Event) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(s.logPath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	f, err := os.OpenFile(s.LogPath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 	_, err = f.Write(append(line, '\n'))
-	return err
+	return errors.Join(err, f.Close())
 }
 
-func (s store) read() ([]Event, error) {
-	f, err := os.Open(s.logPath())
+func (s Store) Read() ([]Event, error) {
+	f, err := os.Open(s.LogPath())
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	var events []Event
 	sc := bufio.NewScanner(f)
 	sc.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
