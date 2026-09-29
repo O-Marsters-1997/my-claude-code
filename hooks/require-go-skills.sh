@@ -28,7 +28,12 @@ elif jq -r '.tool_input.content // empty' <<<"$INPUT" | head -n 20 | grep -qE "$
 	exit 0
 fi
 
-TRANSCRIPT=$(jq -r '.agent_transcript_path // .transcript_path // empty' <<<"$INPUT")
+TRANSCRIPT=$(jq -r '.agent_transcript_path // empty' <<<"$INPUT")
+if [ -z "$TRANSCRIPT" ]; then
+	TRANSCRIPT=$(jq -r '.transcript_path // empty' <<<"$INPUT")
+	AGENT_ID=$(jq -r '.agent_id // empty' <<<"$INPUT")
+	[ -n "$AGENT_ID" ] && TRANSCRIPT="${TRANSCRIPT%.jsonl}/subagents/agent-$AGENT_ID.jsonl"
+fi
 [ -r "$TRANSCRIPT" ] || exit 0
 
 loaded() {
