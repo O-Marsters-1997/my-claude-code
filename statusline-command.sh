@@ -7,6 +7,10 @@ model=$(echo "$input" | jq -r '.model.display_name // .model.id // ""')
 
 branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
 
+win_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
+win_tokens=$(echo "$input" | jq -r '.context_window.current_usage | if . then (.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens) else empty end')
+win_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+
 ctx_used=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 ctx_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.reset_at // empty')
 week_used=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
@@ -24,6 +28,17 @@ fi
 # Model
 if [ -n "$model" ]; then
   parts="$parts $(printf '\033[2m%s\033[0m' "$model")"
+fi
+
+# Context window tokens
+if [ -n "$win_tokens" ] && [ -n "$win_size" ]; then
+  win_pct_int=$(printf '%.0f' "${win_pct:-0}")
+  if [ "$win_pct_int" -ge 80 ]; then
+    color='\033[1;31m'
+  else
+    color='\033[1;32m'
+  fi
+  parts="$parts $(printf "${color}[ctx:%sk/%sk (%s%%)]\033[0m" "$((win_tokens / 1000))" "$((win_size / 1000))" "$win_pct_int")"
 fi
 
 # Session context window usage + time remaining
