@@ -1,8 +1,9 @@
 ---
 name: implement
-description: "Implement a piece of work based on a spec or set of tickets."
-disable-model-invocation: true
+description: "Implement a ticket or spec end to end. Invoke ONLY when the user types /implement, or a dispatch prompt explicitly says to run implement for a named issue. Never invoke it on your own initiative, for ad hoc coding requests, or because a task looks like implementation work."
 ---
+
+If you were not explicitly told to run implement, stop and say so instead of continuing.
 
 Implement the work described by the user in the spec or tickets.
 
