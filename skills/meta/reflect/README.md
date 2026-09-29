@@ -33,6 +33,13 @@ This writes the hooks into that repo's `.claude/settings.local.json`, pointing a
 | `/reflect` | Analyse the current session and its subagents |
 | `/reflect metrics` | Per instruction-file hash: confusion per 100 tool calls, correction rate, repeat failures per session; no verdict below 5 sessions |
 
+Two more commands run from the shell as `~/.claude/bin/reflect`, not through the skill:
+
+| Command | Does |
+| --- | --- |
+| `reflect log [--session id] [--kind k] [--last n]` | One readable line per event; `--session` takes an id prefix |
+| `reflect prune [--older-than days]` | Replace sessions older than the cutoff (default `cleanupPeriodDays`) with one `summary` event each; run it when no session is active |
+
 Deleting `.claude/reflect/events.jsonl` or the whole directory is safe; it is recreated on the next event. Hooks only exist while `settings.local.json` has them, so `off` or deleting that file stops logging.
 
 ## Use
@@ -50,12 +57,12 @@ Plain async command hooks in `tools/reflect`. No model calls, no output, always 
 
 | Hook event | Logged |
 | --- | --- |
-| SessionStart | commit, branch, dirty flag, instruction-file hashes |
+| SessionStart | commit, branch, dirty flag, instruction-file hash; a `manifest` event listing added, changed and removed instruction files when the set changed |
 | UserPromptSubmit | prompts that look like corrections, with confidence |
 | PostToolUseFailure | tool, error class, fingerprint, input, error |
-| PostToolUse (Edit, Write) | file path, hashes of old and new content |
+| PostToolUse (Edit, Write) | file path, hashes of old and new content; the first edit to a file is held back until a second one arrives |
 | Stop, SubagentStop | transcript sweep for missed tool errors |
-| SessionEnd | sweep, plus tool-call and prompt counts |
+| SessionEnd | sweep, plus tool-call, prompt and error counts |
 
 Edit misses fire no hook, so Stop, SubagentStop and SessionEnd sweep the transcript for them.
 
@@ -70,3 +77,7 @@ Signals are derived when read:
 | correction | user corrections at confidence >= 0.6; qualifies at 2+ in session or 2+ earlier sessions |
 
 Secrets are redacted before truncation. The log is append-only JSONL at `.claude/reflect/events.jsonl`, kept until deleted. Correction patterns are adapted from [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
+
+## Updating
+
+After pulling changes to `tools/reflect`, run `./setup.sh --reflect` from the repo. Repos with reflect on use the rebuilt command from their next hook event; rerun `/reflect on` only if the hook events themselves changed. Skill text updates only when you rerun the `npx skills add` command above.
