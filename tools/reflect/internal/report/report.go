@@ -24,12 +24,22 @@ func Status(s logstore.Store, enabled bool, library string) (string, error) {
 	if enabled {
 		state = "on"
 	}
-	fmt.Fprintf(&w, "reflect: %s\nlog: %s (%d events, %d sessions)\nlibrary: %s\n",
-		state, s.LogPath(), len(events), len(bySession(events)), library)
+	fmt.Fprintf(&w, "reflect: %s\nlog: %s (%d events, %d sessions, %s)\nlibrary: %s\n",
+		state, s.LogPath(), len(events), len(bySession(events)), humanSize(s.Size()), library)
 	if d := cleanupDays(); d < cleanupWarnDays {
 		fmt.Fprintf(&w, "warn: cleanupPeriodDays=%d, transcripts the log points to are deleted after that\n", d)
 	}
 	return w.String(), nil
+}
+
+func humanSize(n int64) string {
+	switch {
+	case n >= 1<<20:
+		return fmt.Sprintf("%.1f MB", float64(n)/(1<<20))
+	case n >= 1<<10:
+		return fmt.Sprintf("%.1f KB", float64(n)/(1<<10))
+	}
+	return fmt.Sprintf("%d B", n)
 }
 
 func cleanupDays() int {
@@ -60,7 +70,11 @@ func Show(s logstore.Store, sessionID string, all bool) (string, error) {
 	session := bySession(events)[sessionID]
 	prior := priorSessions(events, sessionID)
 	shown := 0
-	fmt.Fprintf(&w, "session %s instr=%s events=%d\n", sessionID, instrHashes(events)[sessionID], len(session))
+	hash := instrHashes(events)[sessionID]
+	fmt.Fprintf(&w, "session %s instr=%s events=%d\n", sessionID, hash, len(session))
+	if m, ok := lastManifest(events, hash); ok {
+		fmt.Fprintf(&w, "instr changes vs %s: %s\n", m.Prev, changeSummary(m))
+	}
 	for _, sig := range derive(session) {
 		sig.prior = prior[sig.fp]
 		if !all && !sig.qualifies() {
@@ -97,6 +111,14 @@ func (t *tally) add(o tally) {
 
 func sessionTally(events []logstore.Event) (t tally, ended bool) {
 	for _, e := range events {
+		if e.Kind == "summary" {
+			ended = ended || e.Ended
+			t.toolCalls += e.ToolCalls
+			t.prompts += e.Prompts
+			t.confusion += e.Confusion
+			t.corrections += e.Corrections
+			t.repeatFail += e.RepeatFail
+		}
 		if e.Kind == "session_end" {
 			ended = true
 			t.toolCalls += e.ToolCalls
@@ -159,6 +181,38 @@ func Metrics(s logstore.Store) (string, error) {
 		}
 		fmt.Fprintf(&w, "%-14s %5d %11d %14.2f %10.2f %13.2f%s\n", cmp.Or(h, "-"), t.sessions, t.toolCalls,
 			100*ratio(t.confusion, t.toolCalls), ratio(t.corrections, t.prompts), ratio(t.repeatFail, t.sessions), note)
+		if m, ok := lastManifest(events, h); ok {
+			fmt.Fprintf(&w, "  changed vs %s: %s\n", m.Prev, changeSummary(m))
+		}
 	}
 	return w.String(), nil
+}
+
+func lastManifest(events []logstore.Event, hash string) (logstore.Event, bool) {
+	var found logstore.Event
+	ok := false
+	for _, e := range events {
+		if e.Kind == "manifest" && e.InstrHash == hash && e.Prev != "" {
+			found, ok = e, true
+		}
+	}
+	return found, ok
+}
+
+func changeSummary(m logstore.Event) string {
+	const shown = 4
+	var names []string
+	for _, p := range sortedKeys(m.Added) {
+		names = append(names, "+"+p)
+	}
+	for _, p := range sortedKeys(m.Changed) {
+		names = append(names, "~"+p)
+	}
+	for _, p := range m.Removed {
+		names = append(names, "-"+p)
+	}
+	if len(names) > shown {
+		names = append(names[:shown], fmt.Sprintf("… %d more", len(names)-shown))
+	}
+	return strings.Join(names, " ")
 }

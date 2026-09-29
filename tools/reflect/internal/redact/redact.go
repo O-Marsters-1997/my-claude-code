@@ -19,12 +19,25 @@ var secrets = []struct {
 	{regexp.MustCompile(`(?i)\b(password|passwd|secret|token|api[_-]?key)(["']?\s*[=:]\s*["']?)[^\s"',;&]{4,}`), "${1}${2}[REDACTED:secret]"},
 }
 
-func Clean(s string, maxLen int) string {
+func scrub(s string) string {
 	for _, p := range secrets {
 		s = p.re.ReplaceAllString(s, p.repl)
 	}
+	return s
+}
+
+func Clean(s string, maxLen int) string {
+	s = scrub(s)
 	if len(s) <= maxLen {
 		return s
 	}
 	return strings.ToValidUTF8(s[:maxLen], "") + "…"
+}
+
+func Tail(s string, maxLen int) string {
+	s = scrub(s)
+	if len(s) <= maxLen {
+		return s
+	}
+	return "…" + strings.ToValidUTF8(s[len(s)-maxLen:], "")
 }
