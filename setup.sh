@@ -16,6 +16,13 @@ link statusline-command.sh
 link RTK.md
 link CLAUDE.md
 
+# reflect: machine-wide command; `reflect on` inside a repo installs that repo's hooks
+if [ "${1:-}" = "--reflect" ]; then
+  mkdir -p "$CLAUDE/bin"
+  (cd "$REPO/tools/reflect" && go build -ldflags "-X main.library=$REPO" -o "$CLAUDE/bin/reflect" ./cmd/reflect)
+  echo "reflect: built $CLAUDE/bin/reflect"
+fi
+
 # settings.json: symlink shared base, or merge with device-specific overrides if present
 if [ -f "$REPO/settings.local.json" ]; then
   jq -s '.[0] * .[1]' "$REPO/settings.json" "$REPO/settings.local.json" > "$CLAUDE/settings.json"
