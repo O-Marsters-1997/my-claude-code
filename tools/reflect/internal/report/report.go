@@ -14,14 +14,14 @@ import (
 
 const cleanupWarnDays = 90
 
-func Status(s logstore.Store, library string) (string, error) {
+func Status(s logstore.Store, enabled bool, library string) (string, error) {
 	events, err := s.Read()
 	if err != nil {
 		return "", err
 	}
 	var w strings.Builder
 	state := "off"
-	if s.Enabled() {
+	if enabled {
 		state = "on"
 	}
 	fmt.Fprintf(&w, "reflect: %s\nlog: %s (%d events, %d sessions)\nlibrary: %s\n",

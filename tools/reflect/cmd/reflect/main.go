@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/install"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/logstore"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/report"
 )
@@ -34,14 +35,16 @@ func main() {
 
 func run(cmd string, args []string) (string, error) {
 	wd, _ := os.Getwd()
-	s := logstore.New(cmp.Or(os.Getenv("CLAUDE_PROJECT_DIR"), wd))
+	projectDir := cmp.Or(os.Getenv("CLAUDE_PROJECT_DIR"), wd)
+	root := logstore.CheckoutRoot(projectDir)
+	s := logstore.New(projectDir)
 	switch cmd {
 	case "on":
-		return "reflect on: logging to " + s.LogPath() + "\n", s.On()
+		return enable(root, s)
 	case "off":
-		return "reflect off (log kept)\n", s.Off()
+		return "reflect off for " + root + " (log kept)\n", install.Disable(root)
 	case "status":
-		return report.Status(s, library)
+		return report.Status(s, install.Enabled(root), library)
 	case "show":
 		if len(args) == 0 {
 			return "", errors.New("usage: reflect show <session_id> [--all]")
@@ -57,4 +60,20 @@ func run(cmd string, args []string) (string, error) {
 		return dir + "\n", err
 	}
 	return "", fmt.Errorf("unknown command %q", cmd)
+}
+
+func enable(root string, s logstore.Store) (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	if err := install.Enable(root, exe); err != nil {
+		return "", err
+	}
+	out := fmt.Sprintf("reflect on for %s\nhooks: %s\nlog: %s\nRestart the session for the hooks to take effect.\n",
+		root, install.SettingsPath(root), s.LogPath())
+	if !install.GitIgnored(root) {
+		out += "warn: .claude/settings.local.json is not git-ignored here; it holds a machine-specific path\n"
+	}
+	return out, nil
 }

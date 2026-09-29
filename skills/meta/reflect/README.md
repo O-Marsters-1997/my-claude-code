@@ -8,7 +8,7 @@ Once per machine, from a checkout of this repo (needs Go):
 ./setup.sh --reflect
 ```
 
-Builds `~/.claude/bin/reflect` and merges `tools/reflect/hooks.json` into `~/.claude/settings.json`. Re-running `./setup.sh` without the flag removes the hooks.
+Builds the machine-wide command `~/.claude/bin/reflect`. Nothing in `~/.claude/settings.json` changes.
 
 Install the skill (project-level: drop `-g`):
 
@@ -16,24 +16,24 @@ Install the skill (project-level: drop `-g`):
 npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
 ```
 
-Once per repo:
+Once per repo, from inside it, then restart the Claude session:
 
 ```
 /reflect on
 ```
 
-Creates `.claude/reflect/` with a self-ignoring `.gitignore` in the main checkout; git worktrees and their subagents resolve to it. Nothing is logged anywhere until this is run.
+This writes the hooks into that repo's `.claude/settings.local.json`, pointing at the machine-wide command. Logs go to `.claude/reflect/` in the main checkout (a self-ignoring dir); git worktrees resolve to it. No other repo is affected.
 
 ## Commands
 
 | Command | Does |
 | --- | --- |
-| `/reflect on` / `off` | Start / stop logging (`off` keeps the log) |
+| `/reflect on` / `off` | Add / remove this repo's hooks in `.claude/settings.local.json` (`off` keeps the log) |
 | `/reflect status` | State, log path, event and session counts, library path; warns if `cleanupPeriodDays` < 90 |
 | `/reflect` | Analyse the current session and its subagents |
 | `/reflect metrics` | Per instruction-file hash: confusion per 100 tool calls, correction rate, repeat failures per session; no verdict below 5 sessions |
 
-Deleting `.claude/reflect/events.jsonl` or the whole directory is safe. It is recreated on the next event, and logging stays off if the `on` file is gone.
+Deleting `.claude/reflect/events.jsonl` or the whole directory is safe; it is recreated on the next event. Hooks only exist while `settings.local.json` has them, so `off` or deleting that file stops logging.
 
 ## Use
 

@@ -50,26 +50,6 @@ func At(dir string) Store { return Store{dir} }
 func (s Store) Dir() string     { return s.dir }
 func (s Store) LogPath() string { return filepath.Join(s.dir, "events.jsonl") }
 
-func (s Store) Enabled() bool {
-	_, err := os.Stat(filepath.Join(s.dir, "on"))
-	return err == nil
-}
-
-func (s Store) On() error {
-	if err := s.ensure(); err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(s.dir, "on"), nil, 0o644)
-}
-
-func (s Store) Off() error {
-	err := os.Remove(filepath.Join(s.dir, "on"))
-	if os.IsNotExist(err) {
-		return nil
-	}
-	return err
-}
-
 func (s Store) ProposalsDir() (string, error) {
 	dir := filepath.Join(s.dir, "proposals")
 	if err := s.ensure(); err != nil {

@@ -42,9 +42,6 @@ func Run(in io.Reader, projectDir string) {
 	}
 	dir := cmp.Or(projectDir, p.Cwd)
 	h := handler{store: logstore.New(dir), p: p, projectDir: dir}
-	if !h.store.Enabled() {
-		return
-	}
 	switch p.HookEventName {
 	case "SessionStart":
 		h.sessionStart()

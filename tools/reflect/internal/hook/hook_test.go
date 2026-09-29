@@ -13,19 +13,13 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/logstore"
 )
 
-func newRepo(t *testing.T, enabled bool) (dir string, s logstore.Store) {
+func newRepo(t *testing.T) (dir string, s logstore.Store) {
 	t.Helper()
 	dir = t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, ".git"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	s = logstore.New(dir)
-	if enabled {
-		if err := s.On(); err != nil {
-			t.Fatal(err)
-		}
-	}
-	return dir, s
+	return dir, logstore.New(dir)
 }
 
 func fire(t *testing.T, dir string, p map[string]any) {
@@ -46,16 +40,8 @@ func readEvents(t *testing.T, s logstore.Store) []logstore.Event {
 	return events
 }
 
-func TestRunDisabledWritesNothing(t *testing.T) {
-	dir, s := newRepo(t, false)
-	fire(t, dir, map[string]any{"hook_event_name": "UserPromptSubmit", "session_id": "s", "prompt": "no, use tabs"})
-	if _, err := os.Stat(s.Dir()); !os.IsNotExist(err) {
-		t.Errorf("disabled repo created %s", s.Dir())
-	}
-}
-
 func TestRunLogsFailureAndCorrection(t *testing.T) {
-	dir, s := newRepo(t, true)
+	dir, s := newRepo(t)
 	fire(t, dir, map[string]any{
 		"hook_event_name": "PostToolUseFailure", "session_id": "s", "agent_id": "a1",
 		"tool_name": "Read", "tool_use_id": "toolu_1", "tool_input": map[string]string{"file_path": "/nope"},
@@ -78,7 +64,7 @@ func TestRunLogsFailureAndCorrection(t *testing.T) {
 }
 
 func TestRunResolvesWorktreeToMainCheckout(t *testing.T) {
-	main, s := newRepo(t, true)
+	main, s := newRepo(t)
 	wt := t.TempDir()
 	gitdir := filepath.Join(main, ".git", "worktrees", "wt")
 	if err := os.WriteFile(filepath.Join(wt, ".git"), []byte("gitdir: "+gitdir+"\n"), 0o644); err != nil {
@@ -91,7 +77,7 @@ func TestRunResolvesWorktreeToMainCheckout(t *testing.T) {
 }
 
 func TestStopSweepRecoversToolUseErrorsOnce(t *testing.T) {
-	dir, s := newRepo(t, true)
+	dir, s := newRepo(t)
 	tp := filepath.Join(t.TempDir(), "s.jsonl")
 	lines := []string{
 		`{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tu1","name":"Edit","input":{"file_path":"/a.go","old_string":"x"}}]}}`,
@@ -112,7 +98,7 @@ func TestStopSweepRecoversToolUseErrorsOnce(t *testing.T) {
 }
 
 func TestSessionEndCountsSubagents(t *testing.T) {
-	dir, s := newRepo(t, true)
+	dir, s := newRepo(t)
 	root := t.TempDir()
 	tp := filepath.Join(root, "s.jsonl")
 	use := `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t","name":"Bash","input":{}}]}}` + "\n"
@@ -135,6 +121,6 @@ func TestSessionEndCountsSubagents(t *testing.T) {
 }
 
 func TestRunIgnoresGarbageInput(t *testing.T) {
-	dir, _ := newRepo(t, true)
+	dir, _ := newRepo(t)
 	hook.Run(strings.NewReader("not json"), dir)
 }

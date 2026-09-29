@@ -6,14 +6,10 @@ import (
 	"strings"
 )
 
-func mainCheckout(dir string) string {
+func CheckoutRoot(dir string) string {
 	for d := dir; ; {
-		gitPath := filepath.Join(d, ".git")
-		if info, err := os.Stat(gitPath); err == nil {
-			if info.IsDir() {
-				return d
-			}
-			return linkedMain(gitPath, dir)
+		if _, err := os.Stat(filepath.Join(d, ".git")); err == nil {
+			return d
 		}
 		parent := filepath.Dir(d)
 		if parent == d {
@@ -21,6 +17,15 @@ func mainCheckout(dir string) string {
 		}
 		d = parent
 	}
+}
+
+func mainCheckout(dir string) string {
+	root := CheckoutRoot(dir)
+	gitPath := filepath.Join(root, ".git")
+	if info, err := os.Stat(gitPath); err != nil || info.IsDir() {
+		return root
+	}
+	return linkedMain(gitPath, root)
 }
 
 func linkedMain(gitFile, fallback string) string {
