@@ -20,7 +20,7 @@ var library string
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: reflect on|off|status|show|log|metrics|prune|proposals|hook")
+		fmt.Fprintln(os.Stderr, "usage: reflect on|off|status|show|log|metrics|corrections|prune|proposals|hook")
 		os.Exit(2)
 	}
 	cmd, args := os.Args[1], os.Args[2:]
@@ -57,6 +57,8 @@ func run(cmd string, args []string) (string, error) {
 		return runLog(s, args)
 	case "metrics":
 		return report.Metrics(s)
+	case "corrections":
+		return report.Corrections(s)
 	case "prune":
 		return runPrune(s, args)
 	case "proposals":

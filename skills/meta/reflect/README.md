@@ -33,11 +33,12 @@ This writes the hooks into that repo's `.claude/settings.local.json`, pointing a
 | `/reflect` | Analyse the current session and its subagents |
 | `/reflect metrics` | Per instruction-file hash: confusion per 100 tool calls, correction rate, repeat failures per session; no verdict below 5 sessions |
 
-Two more commands run from the shell as `~/.claude/bin/reflect`, not through the skill:
+Three more commands run from the shell as `~/.claude/bin/reflect`, not through the skill:
 
 | Command | Does |
 | --- | --- |
 | `reflect log [--session id] [--kind k] [--last n]` | One readable line per event; `--session` takes an id prefix |
+| `reflect corrections` | Logged corrections grouped by matched pattern: count, confidence range and one example, for checking whether the detector's scores are right |
 | `reflect prune [--older-than days]` | Replace sessions older than the cutoff (default `cleanupPeriodDays`) with one `summary` event each; run it when no session is active |
 
 Deleting `.claude/reflect/events.jsonl` or the whole directory is safe; it is recreated on the next event. Hooks only exist while `settings.local.json` has them, so `off` or deleting that file stops logging.

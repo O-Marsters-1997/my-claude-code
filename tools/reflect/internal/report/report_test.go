@@ -76,6 +76,24 @@ func TestShowHallucinationNeedsRecurrence(t *testing.T) {
 	}
 }
 
+func TestShowSingleCorrectionQualifiesOnlyWhenConfident(t *testing.T) {
+	correction := func(conf float64) logstore.Event {
+		return logstore.Event{Kind: "correction", SessionID: "s", Class: "remember:", Conf: conf, Input: "remember: use the helper"}
+	}
+	weak := show(t, newStore(t, correction(0.7)), "s")
+	if !strings.Contains(weak, "no qualifying signals") {
+		t.Errorf("one 0.70 correction qualified:\n%s", weak)
+	}
+	strong := show(t, newStore(t, correction(0.9)), "s")
+	if !strings.Contains(strong, "[correction]") {
+		t.Errorf("one 0.90 correction did not qualify:\n%s", strong)
+	}
+	two := show(t, newStore(t, correction(0.7), correction(0.7)), "s")
+	if !strings.Contains(two, "[correction]") {
+		t.Errorf("two 0.70 corrections did not qualify:\n%s", two)
+	}
+}
+
 func TestShowIgnoresOtherSessions(t *testing.T) {
 	s := newStore(t, fail("other", "path_missing", "x"), fail("other", "path_missing", "x"))
 	if out := show(t, s, "mine"); !strings.Contains(out, "no qualifying signals") {
@@ -121,12 +139,16 @@ func TestShowResolvesTranscriptsFromTheSessionEvent(t *testing.T) {
 		logstore.Event{Kind: "session", SessionID: "s", Transcript: "/t/s.jsonl"},
 		logstore.Event{Kind: "tool_error", SessionID: "s", AgentID: "a1", ToolUseID: "t1", Tool: "Read", Class: "path_missing", FP: "x"},
 		logstore.Event{Kind: "tool_error", SessionID: "s", ToolUseID: "t2", Tool: "Read", Class: "path_missing", FP: "x"},
+		logstore.Event{Kind: "tool_error", SessionID: "s", ToolUseID: "t3", Tool: "Read", Class: "path_missing", FP: "x"},
 	)
 	out := show(t, s, "s")
 	for _, want := range []string{"transcript=/t/s/subagents/agent-a1.jsonl", "transcript=/t/s.jsonl"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("output missing %q:\n%s", want, out)
 		}
+	}
+	if n := strings.Count(out, "/t/s.jsonl"); n != 1 {
+		t.Errorf("main transcript printed %d times, want once in the header:\n%s", n, out)
 	}
 }
 
@@ -448,5 +470,46 @@ func TestPruneRejectsNegativeDays(t *testing.T) {
 	}
 	if rawLog(t, s) != before {
 		t.Error("a rejected prune changed the log")
+	}
+}
+
+func TestCorrectionsGroupsByPatternWithConfidenceAndExample(t *testing.T) {
+	c := func(class string, conf float64, input string) logstore.Event {
+		return logstore.Event{Kind: "correction", SessionID: "s", Class: class, Conf: conf, Input: input}
+	}
+	s := newStore(t,
+		c("no,", 0.70, "no, use tabs"),
+		c("no,", 0.80, "no, use the helper"),
+		c("no,", 0.60, "no, wait"),
+		c("remember:", 0.90, "remember: prefer fakes"),
+		logstore.Event{Kind: "tool_error", SessionID: "s"},
+	)
+	out, err := report.Corrections(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 3 {
+		t.Fatalf("got %d lines, want header plus one per pattern:\n%s", len(lines), out)
+	}
+	for _, want := range []string{"no,", "3", "0.60-0.80", "no, use tabs"} {
+		if !strings.Contains(lines[1], want) {
+			t.Errorf("most frequent pattern line %q missing %q", lines[1], want)
+		}
+	}
+	for _, want := range []string{"remember:", "1", "0.90", "remember: prefer fakes"} {
+		if !strings.Contains(lines[2], want) {
+			t.Errorf("second pattern line %q missing %q", lines[2], want)
+		}
+	}
+}
+
+func TestCorrectionsWithNoneLogged(t *testing.T) {
+	out, err := report.Corrections(newStore(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "no corrections") {
+		t.Errorf("empty log output = %q", out)
 	}
 }

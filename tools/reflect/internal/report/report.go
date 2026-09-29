@@ -71,7 +71,12 @@ func Show(s logstore.Store, sessionID string, all bool) (string, error) {
 	prior := priorSessions(events, sessionID)
 	shown := 0
 	hash := instrHashes(events)[sessionID]
-	fmt.Fprintf(&w, "session %s instr=%s events=%d\n", sessionID, hash, len(session))
+	main := mainTranscript(session)
+	fmt.Fprintf(&w, "session %s instr=%s events=%d", sessionID, hash, len(session))
+	if main != "" {
+		fmt.Fprintf(&w, " transcript=%s", main)
+	}
+	fmt.Fprintln(&w)
 	if m, ok := lastManifest(events, hash); ok {
 		fmt.Fprintf(&w, "instr changes vs %s: %s\n", m.Prev, changeSummary(m))
 	}
@@ -83,8 +88,11 @@ func Show(s logstore.Store, sessionID string, all bool) (string, error) {
 		shown++
 		fmt.Fprintf(&w, "\n[%s] %s x%d fp=%s prior_sessions=%d\n", sig.kind, sig.label, len(sig.events), sig.fp, sig.prior)
 		for _, e := range sig.events[:min(len(sig.events), 3)] {
-			fmt.Fprintf(&w, "  %s agent=%s tool_use_id=%s transcript=%s\n",
-				e.TS.Format("15:04:05"), cmp.Or(e.AgentID, "main"), cmp.Or(e.ToolUseID, "-"), e.Transcript)
+			fmt.Fprintf(&w, "  %s agent=%s tool_use_id=%s", e.TS.Format("15:04:05"), cmp.Or(e.AgentID, "main"), cmp.Or(e.ToolUseID, "-"))
+			if e.Transcript != main {
+				fmt.Fprintf(&w, " transcript=%s", e.Transcript)
+			}
+			fmt.Fprintln(&w)
 			if detail := cmp.Or(e.Error, e.Input); detail != "" {
 				fmt.Fprintf(&w, "    %.200s\n", strings.ReplaceAll(detail, "\n", " "))
 			}
@@ -94,6 +102,15 @@ func Show(s logstore.Store, sessionID string, all bool) (string, error) {
 		fmt.Fprintln(&w, "no qualifying signals")
 	}
 	return w.String(), nil
+}
+
+func mainTranscript(events []logstore.Event) string {
+	for _, e := range events {
+		if e.AgentID == "" && e.Transcript != "" {
+			return e.Transcript
+		}
+	}
+	return ""
 }
 
 type tally struct {

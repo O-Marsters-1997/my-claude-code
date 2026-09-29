@@ -88,7 +88,7 @@ func (h handler) sessionStart() {
 	e.Dirty = git(h.projectDir, "status", "--porcelain") != ""
 	e.InstrHash = hash
 	_ = h.store.Append(e)
-	if added, changed, removed := diffFiles(prev.Files, files); len(added)+len(changed)+len(removed) > 0 {
+	if added, changed, removed := diffFiles(prev.Files, files); prev.Hash != "" && len(added)+len(changed)+len(removed) > 0 {
 		m := h.event("manifest")
 		m.InstrHash = hash
 		m.Prev = prev.Hash
@@ -115,6 +115,9 @@ func (h handler) correction() {
 	e.Class = strings.Join(names, " ")
 	e.Conf = conf
 	e.Input = redact.Clean(h.p.Prompt, 500)
+	if use, ok := transcript.LastToolUse(h.p.TranscriptPath); ok {
+		e.ToolUseID, e.Tool = use.ID, use.Name
+	}
 	_ = h.store.Append(e)
 }
 
