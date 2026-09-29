@@ -20,6 +20,7 @@ func sweep(store logstore.Store, path, sessionID string) {
 		from, _ = strconv.ParseInt(strings.TrimSpace(string(b)), 10, 64)
 	}
 	agentID := transcript.AgentID(path)
+	errs := loadLedger(store, sessionID)
 	uses := map[string]transcript.Block{}
 	consumed, err := transcript.Each(path, from, func(e transcript.Entry) {
 		_, blocks := e.Parts()
@@ -28,7 +29,7 @@ func sweep(store logstore.Store, path, sessionID string) {
 			case b.Type == "tool_use":
 				uses[b.ID] = b
 			case b.Type == "tool_result" && b.IsError:
-				recordToolUseError(store, b, uses[b.ToolUseID], e.Timestamp, logstore.Event{SessionID: sessionID, AgentID: agentID, Transcript: path})
+				recordToolUseError(errs, b, uses[b.ToolUseID], e.Timestamp, logstore.Event{SessionID: sessionID, AgentID: agentID})
 			}
 		}
 	})
@@ -38,7 +39,7 @@ func sweep(store logstore.Store, path, sessionID string) {
 	_ = os.WriteFile(offsetFile, []byte(strconv.FormatInt(consumed, 10)), 0o644)
 }
 
-func recordToolUseError(store logstore.Store, result, use transcript.Block, timestamp string, e logstore.Event) {
+func recordToolUseError(errs *ledger, result, use transcript.Block, timestamp string, e logstore.Event) {
 	text := result.ResultText()
 	if !strings.Contains(text, "<tool_use_error>") {
 		return
@@ -54,7 +55,7 @@ func recordToolUseError(store logstore.Store, result, use transcript.Block, time
 	e.Tool = use.Name
 	e.Class = class
 	e.FP = detect.Fingerprint(use.Name, class, use.Input, text)
-	e.Input = redact.Clean(string(use.Input), 500)
-	e.Error = redact.Clean(text, 1000)
-	_ = store.Append(e)
+	e.Input = redact.Clean(string(use.Input), inputMax)
+	e.Error = redact.Tail(text, errorMax)
+	errs.append(e)
 }

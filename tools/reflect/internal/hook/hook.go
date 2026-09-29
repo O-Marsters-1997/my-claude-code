@@ -4,7 +4,9 @@ import (
 	"cmp"
 	"encoding/json"
 	"io"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/detect"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/logstore"
@@ -61,30 +63,44 @@ func Run(in io.Reader, projectDir string) {
 }
 
 func (h handler) event(kind string) logstore.Event {
-	path := h.p.TranscriptPath
-	if h.p.AgentID != "" {
-		path = transcript.SubagentPath(path, h.p.AgentID)
-	}
 	return logstore.Event{
-		Kind:       kind,
-		SessionID:  h.p.SessionID,
-		AgentID:    h.p.AgentID,
-		AgentType:  h.p.AgentType,
-		Cwd:        h.p.Cwd,
-		Transcript: path,
+		Kind:      kind,
+		SessionID: h.p.SessionID,
+		AgentID:   h.p.AgentID,
+		AgentType: h.p.AgentType,
 	}
 }
 
 func (h handler) sessionStart() {
 	files := instrFiles(h.projectDir)
+	hash := combinedHash(files)
+	branch := git(h.projectDir, "branch", "--show-current")
+	prev := loadInstrState(h.store.Dir())
+	if mark := seenMark(hash, branch); h.p.Source == "compact" && prev.Seen[h.p.SessionID] == mark {
+		return
+	}
 	e := h.event("session")
 	e.Class = h.p.Source
+	e.Cwd = h.p.Cwd
+	e.Transcript = h.p.TranscriptPath
 	e.Commit = git(h.projectDir, "rev-parse", "--short", "HEAD")
-	e.Branch = git(h.projectDir, "branch", "--show-current")
+	e.Branch = branch
 	e.Dirty = git(h.projectDir, "status", "--porcelain") != ""
-	e.Files = files
-	e.InstrHash = combinedHash(files)
+	e.InstrHash = hash
 	_ = h.store.Append(e)
+	if added, changed, removed := diffFiles(prev.Files, files); len(added)+len(changed)+len(removed) > 0 {
+		m := h.event("manifest")
+		m.InstrHash = hash
+		m.Prev = prev.Hash
+		m.Added, m.Changed, m.Removed = added, changed, removed
+		_ = h.store.Append(m)
+	}
+	seen := prev.Seen
+	if seen == nil || len(seen) >= seenSessionsMax {
+		seen = map[string]string{}
+	}
+	seen[h.p.SessionID] = seenMark(hash, branch)
+	saveInstrState(h.store.Dir(), instrState{Hash: hash, Files: files, Seen: seen})
 }
 
 func (h handler) correction() {
@@ -109,9 +125,9 @@ func (h handler) toolFailure() {
 	e.Tool = h.p.ToolName
 	e.Class = class
 	e.FP = detect.Fingerprint(h.p.ToolName, class, h.p.ToolInput, h.p.Error)
-	e.Input = redact.Clean(string(h.p.ToolInput), 500)
-	e.Error = redact.Clean(h.p.Error, 1000)
-	_ = h.store.Append(e)
+	e.Input = redact.Clean(string(h.p.ToolInput), inputMax)
+	e.Error = redact.Tail(h.p.Error, errorMax)
+	loadLedger(h.store, h.p.SessionID).append(e)
 }
 
 func (h handler) edit() {
@@ -128,12 +144,13 @@ func (h handler) edit() {
 		return
 	}
 	e := h.event("edit")
+	e.TS = time.Now().UTC()
 	e.ToolUseID = h.p.ToolUseID
 	e.Tool = h.p.ToolName
 	e.File = in.FilePath
 	e.OldHash = hash12(in.OldString)
 	e.NewHash = hash12(cmp.Or(in.NewString, in.Content))
-	_ = h.store.Append(e)
+	h.logEdit(e)
 }
 
 func (h handler) sessionEnd() {
@@ -149,5 +166,20 @@ func (h handler) sessionEnd() {
 	e := h.event("session_end")
 	e.ToolCalls = calls
 	e.Prompts = prompts
+	e.Errors = len(kindsOf(h.store, h.p.SessionID, "tool_error"))
 	_ = h.store.Append(e)
+	if dir := h.editsDir(); dir != "" {
+		_ = os.RemoveAll(dir)
+	}
+}
+
+func kindsOf(store logstore.Store, sessionID, kind string) []logstore.Event {
+	events, _ := store.Read()
+	var out []logstore.Event
+	for _, e := range events {
+		if e.Kind == kind && e.SessionID == sessionID {
+			out = append(out, e)
+		}
+	}
+	return out
 }

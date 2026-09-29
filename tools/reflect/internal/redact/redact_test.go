@@ -32,3 +32,17 @@ func TestCleanRedactsBeforeTruncating(t *testing.T) {
 		t.Errorf("Clean leaked a secret at the truncation boundary: %q", got[480:])
 	}
 }
+
+func TestTailKeepsEndAndRedactsFirst(t *testing.T) {
+	long := strings.Repeat("a", 50) + " token=hunter2hunter2 " + strings.Repeat("z", 10)
+	got := redact.Tail(long, 20)
+	if !strings.HasSuffix(got, strings.Repeat("z", 10)) || !strings.HasPrefix(got, "…") {
+		t.Errorf("Tail(long, 20) = %q, want ellipsis then the end of the input", got)
+	}
+	if got := redact.Tail("password=hunter2hunter2", 100); strings.Contains(got, "hunter2") {
+		t.Errorf("Tail leaked a secret: %q", got)
+	}
+	if got := redact.Tail("short", 100); got != "short" {
+		t.Errorf("Tail(short, 100) = %q, want short", got)
+	}
+}

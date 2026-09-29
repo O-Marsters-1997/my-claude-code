@@ -3,9 +3,12 @@ package main
 import (
 	"cmp"
 	"errors"
+	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/install"
@@ -17,7 +20,7 @@ var library string
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: reflect on|off|status|show|metrics|proposals|hook")
+		fmt.Fprintln(os.Stderr, "usage: reflect on|off|status|show|log|metrics|prune|proposals|hook")
 		os.Exit(2)
 	}
 	cmd, args := os.Args[1], os.Args[2:]
@@ -50,8 +53,12 @@ func run(cmd string, args []string) (string, error) {
 			return "", errors.New("usage: reflect show <session_id> [--all]")
 		}
 		return report.Show(s, args[0], len(args) > 1 && args[1] == "--all")
+	case "log":
+		return runLog(s, args)
 	case "metrics":
 		return report.Metrics(s)
+	case "prune":
+		return runPrune(s, args)
 	case "proposals":
 		if len(args) > 0 && args[0] == "library" {
 			s = logstore.At(filepath.Join(library, ".claude", "reflect"))
@@ -60,6 +67,29 @@ func run(cmd string, args []string) (string, error) {
 		return dir + "\n", err
 	}
 	return "", fmt.Errorf("unknown command %q", cmd)
+}
+
+func runLog(s logstore.Store, args []string) (string, error) {
+	fs := flag.NewFlagSet("log", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	filter := report.LogFilter{}
+	fs.StringVar(&filter.Session, "session", "", "session id or prefix")
+	fs.StringVar(&filter.Kind, "kind", "", "event kind")
+	fs.IntVar(&filter.Last, "last", 0, "only the last n events")
+	if err := fs.Parse(args); err != nil {
+		return "", fmt.Errorf("usage: reflect log [--session id] [--kind kind] [--last n]: %w", err)
+	}
+	return report.Log(s, filter)
+}
+
+func runPrune(s logstore.Store, args []string) (string, error) {
+	fs := flag.NewFlagSet("prune", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	days := fs.Int("older-than", 0, "days; default cleanupPeriodDays")
+	if err := fs.Parse(args); err != nil {
+		return "", fmt.Errorf("usage: reflect prune [--older-than days]: %w", err)
+	}
+	return report.Prune(s, *days, time.Now())
 }
 
 func enable(root string, s logstore.Store) (string, error) {

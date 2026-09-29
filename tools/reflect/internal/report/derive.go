@@ -127,15 +127,31 @@ func priorSessions(events []logstore.Event, exclude string) map[string]int {
 		if sid == exclude {
 			continue
 		}
-		seen := map[string]bool{}
-		for _, sig := range derive(evs) {
-			if !seen[sig.fp] {
-				seen[sig.fp] = true
-				prior[sig.fp]++
-			}
+		for _, fp := range sessionFPs(evs) {
+			prior[fp]++
 		}
 	}
 	return prior
+}
+
+func sessionFPs(events []logstore.Event) []string {
+	seen := map[string]bool{}
+	var fps []string
+	add := func(fp string) {
+		if !seen[fp] {
+			seen[fp] = true
+			fps = append(fps, fp)
+		}
+	}
+	for _, e := range events {
+		for _, fp := range e.FPs {
+			add(fp)
+		}
+	}
+	for _, sig := range derive(events) {
+		add(sig.fp)
+	}
+	return fps
 }
 
 func instrHashes(events []logstore.Event) map[string]string {
@@ -143,7 +159,7 @@ func instrHashes(events []logstore.Event) map[string]string {
 	slices.SortStableFunc(sorted, func(a, b logstore.Event) int { return a.TS.Compare(b.TS) })
 	hashes := map[string]string{}
 	for _, e := range sorted {
-		if e.Kind == "session" {
+		if e.Kind == "session" || e.Kind == "summary" {
 			hashes[e.SessionID] = e.InstrHash
 		}
 	}
