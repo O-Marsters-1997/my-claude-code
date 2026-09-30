@@ -2,8 +2,8 @@
 name: fleet
 description: >
   Run a batch of tickets through parallel worktrees, wave by wave. Two subcommands:
-  `/fleet dispatch` fans /implement out across ready tickets, one subagent per ticket;
-  `/fleet reconcile` runs after a wave has merged, closes the done tickets, promotes the
+  `/fleet dispatch <label>` fans /implement out across the ready tickets carrying that feature
+  label, one subagent per ticket; `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, and writes the handoff for the next dispatch.
   Use for "fan out these tickets", "implement these issues in parallel", "for each ready
   ticket create a worktree and delegate to a subagent", "reconcile the wave", "what's
@@ -13,10 +13,12 @@ description: >
 
 Orchestration layer above /implement, split by when it runs:
 
-- `dispatch`: start of a wave. Read [dispatch.md](dispatch.md).
-- `reconcile`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
+- `dispatch <label>`: start of a wave. Read [dispatch.md](dispatch.md).
+- `reconcile <label>`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
 
-Read the file for the subcommand in the first argument. With no argument, use `reconcile` if
+Both subcommands require a **feature label** as the argument after the subcommand (for example
+`/fleet dispatch cv-tailoring`). If it is missing, ask for it; never run across all issues.
+Read the file for the subcommand in the first argument. With no subcommand, use `reconcile` if
 the user says the wave has merged, otherwise `dispatch`. If it is still unclear, ask.
 
 ## Shared conventions
@@ -30,5 +32,8 @@ Both halves rely on these, so they are defined once here.
   Moving to `done` also needs `gh issue close <N>`. A ticket with no `status:*` label is backlog.
 - **Blockers.** A ticket's `## Blocked by` section lists `- Blocked by #<N>` lines, or "None".
   This is the only record of dependencies; both subcommands read it.
-- **`state.md`.** Reconcile writes it, dispatch reads it: one section per unblocked ticket with
-  its number, base branch, and the merged PR to use as the worked example.
+- **Feature label.** The label `to-plan` creates and `to-tickets` applies to every ticket of a
+  feature. It scopes every `gh issue list` in both subcommands with `--label "<label>"`.
+- **`state.md`.** Reconcile writes it, dispatch reads it. It opens with the feature label, then
+  has one section per unblocked ticket with its number, base branch, and the merged PR to use as
+  the worked example.
