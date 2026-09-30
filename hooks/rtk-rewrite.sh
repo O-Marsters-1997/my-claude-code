@@ -46,6 +46,7 @@ fi
 
 INPUT=$(cat)
 CMD=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
+CWD=$(jq -r '.cwd // empty' <<<"$INPUT")
 
 if [ -z "$CMD" ]; then
   exit 0
@@ -54,6 +55,12 @@ fi
 # Let git push pass through unchanged — rtk's CI gate blocks branches that have
 # never been pushed (GitHub status "none"), creating a bootstrap deadlock.
 if [[ "$CMD" =~ ^git[[:space:]]+push ]]; then
+  exit 0
+fi
+
+# Claude Code refuses `rtk git ...` from a worktree-isolated agent because it
+# cannot verify which directory rtk runs git in, so leave git plain there.
+if [[ "$CWD" == */.claude/worktrees/* && "$CMD" =~ (^|[[:space:];\&\|])git[[:space:]] ]]; then
   exit 0
 fi
 
