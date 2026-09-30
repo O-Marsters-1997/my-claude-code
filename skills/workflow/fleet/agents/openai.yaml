@@ -1,0 +1,5 @@
+interface:
+  display_name: "Fleet"
+  short_description: "Dispatch waves of tickets in parallel worktrees, then reconcile the board"
+policy:
+  allow_implicit_invocation: true
