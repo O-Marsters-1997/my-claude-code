@@ -4,16 +4,22 @@ Per-ticket cost controls (scoped test commands, one batched code-simplifier pass
 /code-review medium, splitting a large ticket) live in /implement. Don't restate them in
 dispatch prompts; each subagent runs /implement and gets them from there.
 
-## 1. Triage the batch
+## 1. Select and triage the batch
 
-If `<scratchpad>/fleet/state.md` exists, reconcile already chose the tickets, their base and
-their worked example. Take them as given and skip to step 2, keeping only the inline and
-stack-depth checks below.
+The batch is every ready ticket for the feature label:
+
+```bash
+gh issue list --state open --label "<label>" --label "status:ready" --json number,title,body
+```
+
+If `<scratchpad>/fleet/state.md` exists and its label matches, reconcile already chose each
+ticket's base and worked example. Take those as given and skip to step 2, keeping only the
+inline and stack-depth checks below. A `state.md` for a different label is stale; ignore it.
 
 Otherwise, for each ticket, decide: inline, dispatch now, or dispatch later.
 
 - **Inline.** Single-file change, no schema or API change, no new tests beyond one case.
-  Do it in this session. A worktree, a subagent spawn and a skill reload cost more than
+  Do it in this session. A `tp` worktree, a subagent spawn and a skill reload cost more than
   the ticket.
 - **Dependency order.** If tickets form a chain (a staged migration, a series of
   refactors), stack them: ticket N branches off N-1's branch and its PR targets that
@@ -35,13 +41,37 @@ pattern, explore it once:
 When research is needed, spawn the `Explore` agent with `model: "haiku"`. Never let a
 lookup default to general-purpose; it costs as much as the implementation.
 
-## 3. Write the dispatch prompt
+## 3. Create the worktrees
+
+All worktree work goes through `tp` (see the treepad skill), never `git worktree`. `tp new`
+also syncs the local configs a bare worktree lacks.
+
+**Name.** `<type>-<N>/<short-title>`: `<N>` is the issue number, `<short-title>` a kebab-case
+slug of the ticket title, a few words. `<type>` is `bug` for a bug ticket (labelled `bug`, or
+filed by `triage-issue`), otherwise `feat`. For other kinds of ticket use the matching
+conventional prefix (`chore-`, `docs-`, `refactor-`), and fall back to `feat`.
+
+```
+bug-142/stuck-scrape-run
+feat-143/schedule-every
+```
+
+**Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you):
+
+```bash
+WT=$(TREEPAD_CD_FD=3 tp new "<type>-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
+```
+
+`<Base>` is `main`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
+or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
+
+## 4. Write the dispatch prompt
 
 Every prompt has the same shape, so the cached prefix stays identical across the batch.
 Fixed text first, ticket-specific text last.
 
 ```
-Run /implement for issue #<N> in worktree <path>.
+Run /implement for issue #<N> in worktree <path>, branch <type>-<N>/<short-title>.
 
 Brief: <scratchpad>/fleet/brief.md
 Worked example: <commit or PR of the previous wave, if any>
@@ -64,7 +94,7 @@ Example: 142 done https://github.com/o/r/pull/151 /tmp/…/fleet/142.md
 - Move the ticket `ready → in-progress` when you spawn its subagent, and `→ in-review` when
   it returns `done`. Reconcile relies on these labels to find the wave.
 
-## 4. Docker-backed tests
+## 5. Docker-backed tests
 
 Parallel testcontainers fight over ports and networks, and each clash burns a full test
 run on a flaky failure.
@@ -74,7 +104,7 @@ run on a flaky failure.
 - Cap concurrent Docker-backed test runs at 2 across the batch. If the tickets need more,
   split the wave.
 
-## 5. Stacked chains within the wave
+## 6. Stacked chains within the wave
 
 Only for chains dispatched together. Cross-wave sequencing is `reconcile`.
 
@@ -84,12 +114,13 @@ Only for chains dispatched together. Cross-wave sequencing is `reconcile`.
    chaining in the dispatch prompt already gives reviewers the ordered diffs. Install with
    `gh extension install github/gh-stack`.
 2. If review changed a lower PR, restack before dispatching anything above it. Remove the
-   finished worktrees first (git won't rebase a branch checked out in another worktree),
+   finished worktrees first with `tp remove <branch>` (git won't rebase a branch checked out
+   in another worktree),
    then from the main checkout: `gh stack init <b1> <b2> …` to adopt the branches, and
    `gh stack sync`. On a conflict, sync restores every branch; resolve it with
    `gh stack rebase` yourself, not in a subagent.
 
-## 6. After the batch
+## 7. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio

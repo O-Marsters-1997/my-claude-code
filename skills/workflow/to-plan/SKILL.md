@@ -102,6 +102,7 @@ Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named a
 # Plan: <Feature Name>
 
 > Source: <./docs/prd-<feature>.md, PRD issue URL, ./docs/approach.md, or brief identifier>
+> Label: <feature-slug>
 
 ## Technical design decisions
 
@@ -147,5 +148,20 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 
 <!-- Repeat for each phase -->
 </plan-template>
+
+### 7. Create the feature label
+
+Every plan carries a GitHub label that identifies its tickets. `to-tickets` files them under it
+and `/fleet` selects by it. The label is the plan's filename without `.md`
+(`./plans/cv-tailoring.md` → `cv-tailoring`), and it is the `Label:` line in the plan header.
+
+Create it if it doesn't exist, describing it the way the repo's existing feature labels do:
+
+```bash
+gh label list --search "<slug>" | grep -q "^<slug>\b" || \
+  gh label create "<slug>" -d "<Feature Name> (plans/<slug>.md)" -c "<any unused hex>"
+```
+
+Mention the label in the closing message so the user knows what `/to-tickets` will file under.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.

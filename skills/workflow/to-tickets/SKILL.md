@@ -56,6 +56,11 @@ Load the chosen source in full:
 - **PRD** — read `./docs/prd-<feature>.md`, fetch the Notion page, or fetch the issue with `gh issue view <number>` (with comments). Record whichever you used: the file path, the page URL, the issue number, or several.
 - **Conversation** — use the in-context discussion, or ask the user to paste it.
 
+Settle the **feature label** every ticket gets. Read the plan header's `Label:` line. If the source
+has none (a PRD, a conversation, an older plan), ask the user for one before drafting. Never file
+unlabelled tickets. Existing feature labels are bare slugs (`gh label list`); offer the closest as
+a suggestion.
+
 Extract from whichever source: **technical design decisions** (data models, schema, API contracts, module boundaries, routes), **user stories**, and **acceptance criteria**. Note the source type — it selects the ticket-body source header in step 5.
 
 Note the source's **provenance** too — a Linear project, a Notion page, a local file, a GitHub issue. It is what step 4 proposes a tracker from, and it costs nothing to record now.
@@ -221,11 +226,15 @@ Do NOT modify the source plan file or the parent PRD.
 Slices with no blockers are grabbable now; anything blocked by another slice is not, and lands
 behind it.
 
-**GitHub** — state rides on a `status:*` label, applied after creation:
+**GitHub** — state rides on a `status:*` label, and the feature label from step 1 goes on every
+ticket. Apply both after creation:
 
 ```bash
-gh issue edit <number> --add-label "status:ready"     # blocked slices: status:backlog
+gh issue edit <number> --add-label "status:ready" --add-label "<feature-label>"   # blocked slices: status:backlog
 ```
+
+If the feature label doesn't exist yet, create it first with
+`gh label create "<feature-label>" -d "<Feature Name> (plans/<slug>.md)"`.
 
 If those labels don't exist in the repo, create the two you need and move on — `status:ready`
 (`-c "#0e8a16"`), `status:backlog` (`-c "#cccccc"`). `ticket-tracker` owns the full vocabulary;
@@ -236,7 +245,8 @@ doesn't set state, so fold it into the same follow-up `save_issue` update that r
 `Todo` for grabbable slices, `Backlog` for blocked ones. One update per ticket, not two. Confirm the
 team's real state names with `list_issue_statuses` rather than assuming — teams rename them.
 
-Report the created ticket identifiers with their states, and the blocking relations you set.
+Report the created ticket identifiers with their states, and the blocking relations you set. On
+GitHub, end with the command that runs them: `/fleet dispatch <feature-label>`.
 
 From this point `ticket-tracker` owns the tickets — it reads and moves them between states. This
 skill does not track what it files.
