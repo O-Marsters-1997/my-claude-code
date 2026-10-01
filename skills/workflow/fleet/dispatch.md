@@ -79,18 +79,21 @@ Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
 Base: <parent ticket's branch, or main>
 
-Done means: committed on the branch, draft PR open with `gh pr create --draft --base <Base>`,
-result written.
+Done means: code-simplifier run once and /code-review medium run, findings applied, committed
+on the branch, draft PR open with `gh pr create --draft --base <Base>`, result written.
+Skipping either review pass is not allowed; return `blocked` instead.
 Write your full report to <scratchpad>/fleet/<N>.md.
 Return exactly one line and nothing else:
-<N> done|blocked <PR URL or blocker reason> <scratchpad>/fleet/<N>.md
-Example: 142 done https://github.com/o/r/pull/151 /tmp/…/fleet/142.md
+<N> done|blocked <PR URL or blocker reason> reviewed=yes|no <scratchpad>/fleet/<N>.md
+Example: 142 done https://github.com/o/r/pull/151 reviewed=yes /tmp/…/fleet/142.md
 ```
 
 - Name exact files when the mapping is written down anywhere. "Explore the area" is for
   the case where it isn't.
 - The one-line return is the contract. Read a ticket's report file only when its status
   is `blocked` or its PR needs a look.
+- Treat `done` with `reviewed=no` as not done: don't move the ticket to `in-review`; send the
+  subagent back to run the missing passes.
 - Move the ticket `ready → in-progress` when you spawn its subagent, and `→ in-review` when
   it returns `done`. Reconcile relies on these labels to find the wave.
 
