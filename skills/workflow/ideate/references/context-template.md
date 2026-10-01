@@ -1,99 +1,64 @@
-# Ideation Context Template
+# `./ideas/CONTEXT.md` template
 
-Use this skeleton when bootstrapping `./ideas/CONTEXT.md` for a new repo. The file is
-**human-editable between runs** — the `ideate` skill reads it at the start of each session
-and updates it at the end. Edit it directly to correct stale entries, add context the skill
-missed, or remove ideas that were abandoned rather than shipped.
+The ideation memory for the repo. Each `ideate` run reads it first and writes it back last.
+Humans can edit it between runs. Other skills match its headings by name, so never rename or
+drop one:
 
-Sections are stable by heading — the skill matches them by name. Don't rename them.
+- `to-roadmap` reads `## Accepted ideas`
+- `capture-idea` writes `## Accepted ideas`
 
----
+Idea lines always use the form `- [YYYY-MM-DD] Title — summary`.
+
+When an older file lacks a section below, add it in place and leave the others untouched. Its
+older sections (`## Positioning`, `## Competitive landscape`, `## First-principles insights`) can
+stay. Fold their content into the new sections when it's still current.
 
 ```markdown
 ---
 last_updated: YYYY-MM-DD
 ---
 
-# [Project name] — Ideation Context
-
-*This file is the canonical ideation memory for this repo. It is read at the start of every
-`ideate` run and updated at the end. Edit it freely between runs.*
-
----
+# <Project> — Ideation Context
 
 ## Positioning
 
-**What is this?**
-[One sentence: type of product and what it does]
+<What it is, who it's for, the bet it makes. Three lines.>
 
-**Who is it for?**
-[Target user — primary persona]
+## Capability inventory
 
-**Implicit thesis**
-[The bet this product makes — what it optimises for that alternatives don't]
+_Pinned at `<hash>` on YYYY-MM-DD. The next run re-checks rows whose files changed since then._
 
----
+| # | Capability | Status | Evidence | Job step |
+|---|---|---|---|---|
 
-## Problems it solves
+## Market matrix
 
-- [Core pain point 1]
-- [Core pain point 2]
-- [Core pain point 3]
+_Entries are dated. Re-verify entries older than 3 months; append, don't overwrite._
 
----
+### YYYY-MM-DD
+<matrix table, including this product's column and the evidence-quality row>
 
-## Competitive landscape
+## Insights
 
-*Updated [YYYY-MM-DD]. Refresh if more than 6 months old.*
-
-**[Competitor 1]**
-Strong at: [what it does well]
-Weak at: [where it falls short — this is the gap map]
-
-**[Competitor 2]**
-Strong at: [...]
-Weak at: [...]
-
-**[Adjacent tool]** *(related niche, not direct)*
-Strong at: [...]
-What it reveals: [adjacent user need this exposes]
-
----
-
-## First-principles insights
-
-*Eureka moments: where first-principles reasoning contradicts conventional wisdom in this
-space. These are often the highest-value opportunities. Add new ones as they emerge.*
-
-- [YYYY-MM-DD] **[One-line insight]** — [short explanation: what the market assumes and why
-  this codebase is positioned to challenge it]
-
----
+- [YYYY-MM-DD] **Insight | Hypothesis | Watch:** <claim in gate form> — sources: <URLs> —
+  check: <the cheapest test, for a Hypothesis>
 
 ## Implemented ideas
 
-*Running log of ideas that shipped. Seeded on bootstrap from recent merged PRs; extended
-by each ideation run.*
-
-- [YYYY-MM-DD] [Feature / idea title] — [one-sentence description of what was built]
-
----
+- [YYYY-MM-DD] Title — summary
 
 ## Accepted ideas
 
-*Ideas you've decided to build, not yet shipped. `to-roadmap` boards this section when there
-is no approach doc, so accepting is what puts an idea on the board. Promoted from Proposed by
-an `ideate` run, or hand-added here in the same format for anything ideation missed.*
-
-- [YYYY-MM-DD] [Idea title] — [one-sentence summary]
-
----
+- [YYYY-MM-DD] Title — summary
 
 ## Proposed ideas (pending)
 
-*Ideas recommended by past ideation runs that you haven't decided on yet. The `ideate` skill
-will not re-propose these — it may iterate on them. Move to Accepted when you decide to build
-one, to Implemented when it ships.*
+- [YYYY-MM-DD] Title — summary
 
-- [YYYY-MM-DD] [Idea title] — [one-sentence summary]
+## Rejected ideas (with reason)
+
+- [YYYY-MM-DD] Title — reason (who rejected: user | critic; evidence)
 ```
+
+A later run can downgrade an insight when its sources go stale or are contradicted. Edit its tier
+in place and add the date. Don't delete the line.

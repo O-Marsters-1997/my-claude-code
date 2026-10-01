@@ -1,96 +1,91 @@
 {
   "skill_name": "ideate",
-  "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout. Default target is this skills repo (my-claude-code) so ideation has concrete code to ground against. To benchmark against a different codebase, set the subagent's working directory accordingly.",
+  "notes": "Target: a fresh clone of ~/Documents/coding/job-hunting/job-scraper (cwd = clone root). ideas/ is gitignored, so a clone starts with no CONTEXT.md; eval 4 copies the real ./ideas/ (CONTEXT.md in the pre-rewrite format plus the 2026-09-30 report) into the clone first. The runner cannot reach a real user: every question the skill would put to the user is logged to outputs/process-log.md (tool, question, options) and answered neutrally ('looks right, carry on' / 'no strong view'), and the final pick is answered 'none for now' so to-prd is not invoked. The runner also logs every subagent spawned and every WebSearch/WebFetch. Outputs: the clone's ./ideas/ directory copied to outputs/ideas/, plus outputs/process-log.md.",
   "evals": [
     {
       "id": 1,
       "name": "what-next-casual",
-      "prompt": "been grinding on this for months and kinda running out of ideas, what would you build next if this were yours?",
-      "expected_output": "A markdown report at ./ideas/reports/<date>-ideate.md containing: codebase characterisation, interview summary, market landscape, premises confirmed with user, desired outcome, 5-8 tiered ideas grouped under opportunities, and a recommended next step with concrete build steps.",
+      "prompt": "been grinding on this for months and honestly running out of steam on what to do next. what would you build next if this were yours?",
+      "expected_output": "A report at ./ideas/reports/<date>-ideate.md built on a commit-pinned capability inventory with file:line evidence, a five-bucket market matrix from a background subagent, a 6-10 idea shortlist (majority deepen/extend, 2+ net-new), a cut table, a parked appendix, a tiered or empty insights section, and a final pick with no default. ./ideas/CONTEXT.md is created with the new sections.",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
-        {"text": "Report contains a Codebase Characterisation section with answers to 'What is this?', 'Who is it for?', and an implicit thesis"},
-        {"text": "Report contains a Premises section with at least 2 numbered premise statements"},
-        {"text": "Report contains a Market Landscape section naming at least 2 distinct competitors or adjacent tools"},
-        {"text": "Report contains a Desired Outcome section"},
-        {"text": "Report contains at least 5 distinct idea entries under Opportunities, each with a title and tier label"},
-        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
-        {"text": "Every idea has a non-empty 'Why this codebase is uniquely positioned' (or equivalent) field that references specific observed code, modules, or architecture — not generic aspiration"},
-        {"text": "Report ends with a Recommended Next Step section containing at least 2 concrete build steps (not validation tasks like 'interview users')"},
-        {"text": "The agent invoked AskUserQuestion at least once during the run (for interview and/or premise confirmation)"},
-        {"text": "The agent invoked WebSearch at least once during the run (for market scan)"},
-        {"text": "After the report, the agent runs a select step (Phase 8): it asks the user to choose a single build target from the opportunities, records the choice, and points to / hands off to to-prd with that idea as the starting brief"}
+        {"text": "A report exists at ./ideas/reports/YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "The report's inventory section is pinned to a commit hash and lists capabilities with COMPLETE/PARTIAL/ORPHAN/GAP status and file:line citations"},
+        {"text": "The inventory contains at least one absence claim (missing / no consumer / GAP) that shows the search that proved it"},
+        {"text": "At least 50% of shortlisted ideas are deepen/extend (finish existing) and every shortlisted idea cites inventory rows"},
+        {"text": "At least 2 shortlisted ideas are net-new"},
+        {"text": "The market matrix's columns (not just the alternatives list) cover at least 4 of the 5 buckets (direct, adjacent, open-source/self-hosted, status quo/DIY, non-consumption), includes this product as a column, and no listicle/roundup is cited as the source of a fact"},
+        {"text": "Every item labelled Insight has 2+ independent external sources (at least one user voice); otherwise it is labelled Hypothesis/Watch, or the report states none this run"},
+        {"text": "A fresh-context critic subagent ran on the shortlist (process log shows it), and its verdicts or pre-mortems appear in the report"},
+        {"text": "The report has a cut table with a reason per cut and a Parked appendix"},
+        {"text": "At most 3 AskUserQuestion calls happened before the report was written"},
+        {"text": "The final pick is presented with no pre-selected or recommended default, and 'none' is allowed"},
+        {"text": "./ideas/CONTEXT.md exists with ## Implemented ideas, ## Accepted ideas, ## Proposed ideas (pending), ## Rejected ideas (with reason), ## Capability inventory and ## Market matrix headings"}
       ]
     },
     {
       "id": 2,
       "name": "competitive-gap-hunt",
-      "prompt": "i want to understand where this sits in the market and where it could actually differentiate vs what's already out there — feels like a lot of tools in this space and i don't want to build something that already exists",
-      "expected_output": "A markdown report emphasising competitive analysis: market landscape with 2-3 direct competitors and explicit gap identification, Eureka moments where first-principles thinking contradicts conventional wisdom, and ideas whose 'uniquely positioned' field is grounded in competitive gaps.",
+      "prompt": "where does this actually sit vs the other job search tools out there? i don't want to build stuff that already exists. find me the gaps where it could actually differentiate",
+      "expected_output": "Same contract as eval 1, with the market matrix doing more work: 6-10 alternatives across the buckets, deep-dives citing vendor docs plus user voice, steal/park/reject verdicts mapped to inventory rows, and any differentiation claim held to the insight gate (or an explicit none-this-run).",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
-        {"text": "Report contains a Market Landscape section naming at least 3 distinct tools (direct competitors and/or adjacent tools)"},
-        {"text": "Each competitor entry in the Market Landscape includes an explicit weakness or gap — not just a feature summary"},
-        {"text": "Report contains at least 5 distinct idea entries"},
-        {"text": "At least 2 ideas' 'uniquely positioned' justifications explicitly reference a gap or weakness identified in the market scan"},
-        {"text": "Report contains a Premises section with at least 2 numbered premise statements"},
-        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
-        {"text": "Report ends with concrete build steps, not business validation tasks"},
-        {"text": "The agent invoked WebSearch at least twice (non-trivial market scan)"}
+        {"text": "A report exists at ./ideas/reports/YYYY-MM-DD-ideate.md (or -N suffix)"},
+        {"text": "The market matrix's columns (not just the alternatives list) cover at least 4 of the 5 buckets (direct, adjacent, open-source/self-hosted, status quo/DIY, non-consumption), includes this product as a column, and no listicle/roundup is cited as the source of a fact"},
+        {"text": "The market scan names at least 6 alternatives and deep-dives at least 3 using the vendor's own pricing/docs/changelog plus at least one user-voice source (reviews, Reddit/HN, GitHub issues)"},
+        {"text": "Market claims are labelled Fact / Attributed / Inference / Assumption with URLs, and the report includes a search log or gaps list"},
+        {"text": "Every item labelled Insight has 2+ independent external sources (at least one user voice); otherwise it is labelled Hypothesis/Watch, or the report states none this run"},
+        {"text": "Absence claims ('no competitor does X') are worded as 'not found in N sources' rather than asserted as fact"},
+        {"text": "The report's inventory section is pinned to a commit hash and lists capabilities with status and file:line citations, including at least one proven absence"},
+        {"text": "At least 50% of shortlisted ideas are deepen/extend and every shortlisted idea cites inventory rows"},
+        {"text": "At least 2 shortlisted ideas are net-new"},
+        {"text": "A fresh-context critic subagent ran on the shortlist (process log shows it)"},
+        {"text": "The report has a cut table with a reason per cut and a Parked appendix"},
+        {"text": "At most 3 AskUserQuestion calls happened before the report was written"},
+        {"text": "The final pick is presented with no pre-selected or recommended default"}
       ]
     },
     {
       "id": 3,
-      "name": "personal-to-product",
-      "prompt": "this started as a personal project but i'm wondering if there's a version of it other people would actually want to use. where would i take it to make that real?",
-      "expected_output": "A report with strong premise challenge around audience expansion, distribution considered as part of at least one idea's feasibility, and the Desired Outcome framed around broader adoption.",
+      "name": "focus-arg-alerts",
+      "prompt": "/ideate alerts",
+      "expected_output": "The focus re-weights but does not narrow: the inventory still covers the whole product, at least 2 shortlisted ideas are outside the alerts focus and labelled so, and the focus is not re-asked.",
       "files": [],
       "assertions": [
-        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
-        {"text": "Report contains a Premises section where at least one premise concerns target audience, adoption, or distribution"},
-        {"text": "At least one idea's 'Architectural leverage' or 'Risks' field explicitly discusses distribution (how users would get the thing — package manager, releases, install flow, etc.)"},
-        {"text": "Desired Outcome section is framed around broader use or adoption, not purely internal improvement"},
-        {"text": "Report contains at least 5 distinct idea entries"},
-        {"text": "Ideas span at least 2 of the 3 tiers (adjacent / expansion / moonshot)"},
-        {"text": "Every idea has a non-empty 'uniquely positioned' field grounded in observed code, not generic aspiration"},
-        {"text": "Report ends with concrete build steps for the recommended next idea"},
-        {"text": "The agent invoked AskUserQuestion at least twice (interview + premise confirmation)"}
+        {"text": "A report exists at ./ideas/reports/YYYY-MM-DD-ideate.md (or -N suffix) and records the focus 'alerts'"},
+        {"text": "The inventory covers capabilities beyond alerting (whole product), pinned to a commit, with file:line citations and at least one proven absence"},
+        {"text": "At least 2 shortlisted ideas sit outside the alerts focus and are labelled as outside focus"},
+        {"text": "The agent did not ask the user to choose or confirm a focus area (the invocation focus counts as answered)"},
+        {"text": "At least 50% of shortlisted ideas are deepen/extend and every shortlisted idea cites inventory rows"},
+        {"text": "At least 2 shortlisted ideas are net-new"},
+        {"text": "The market matrix's columns (not just the alternatives list) cover at least 4 of the 5 buckets and no listicle/roundup is cited as the source of a fact"},
+        {"text": "A fresh-context critic subagent ran on the shortlist (process log shows it)"},
+        {"text": "The report has a cut table with a reason per cut and a Parked appendix"},
+        {"text": "At most 3 AskUserQuestion calls happened before the report was written"},
+        {"text": "The final pick is presented with no pre-selected or recommended default"}
       ]
     },
     {
       "id": 4,
-      "name": "context-file-respected",
+      "name": "rerun-with-context",
       "prompt": "what should i build next?",
-      "expected_output": "When ./ideas/CONTEXT.md exists, the skill reads it in Phase 0, surfaces the loaded context to the user for confirmation, skips redundant characterisation and competitive re-derivation, dedupes ideas against the implemented/proposed lists, and updates the file at the end.",
+      "expected_output": "With the real ./ideas/CONTEXT.md loaded (old format: Accepted 'Pre-staged Application', seven Proposed ideas, a competitive landscape), the skill reads it without asking for confirmation, does not re-propose Accepted/Implemented ideas, only re-proposes Proposed ones labelled as iterations, writes a new report, and writes CONTEXT.md back with all original headings intact plus the new sections.",
       "files": [
-        {
-          "path": "./ideas/CONTEXT.md",
-          "content": "---\nlast_updated: 2025-11-01\n---\n\n# TestRepo — Ideation Context\n\n## Positioning\n\n**What is this?** A CLI tool for generating structured project docs from code.\n\n**Who is it for?** Solo developers and small teams.\n\n**Implicit thesis** Developers write better docs when the tool meets them in the terminal.\n\n## Problems it solves\n\n- Doc drift between code and docs\n- Onboarding friction\n\n## Competitive landscape\n\n**Docusaurus**\nStrong at: polished static sites\nWeak at: keeping docs in sync with code automatically\n\n## First-principles insights\n\n- 2025-10-15 **Docs-as-tests** — the market assumes docs are a writing problem; this codebase treats it as a diffing problem\n\n## Implemented ideas\n\n- 2025-09-01 Auto-codemap generation — generates architecture codemaps from code analysis\n\n## Proposed ideas (pending)\n\n- 2025-11-01 Diff-based doc freshness score — surface stale sections as a CLI warning\n"
-        }
+        {"path": "./ideas/CONTEXT.md", "source": "~/Documents/coding/job-hunting/job-scraper/ideas/CONTEXT.md"},
+        {"path": "./ideas/reports/2026-09-30-ideate.md", "source": "~/Documents/coding/job-hunting/job-scraper/ideas/reports/2026-09-30-ideate.md"}
       ],
       "assertions": [
-        {"text": "The agent reads ./ideas/CONTEXT.md in Phase 0 (before Phase 1 characterisation)"},
-        {"text": "The agent surfaces the loaded context to the user in Phase 0 — e.g. mentions last_updated date and current positioning"},
-        {"text": "The agent does NOT re-propose 'Auto-codemap generation' (already in Implemented ideas) or 'Diff-based doc freshness score' (already in Proposed ideas)"},
-        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
-        {"text": "The agent updates ./ideas/CONTEXT.md at the end of the run (Phase 7) — bumps last_updated and appends the new recommended idea to Proposed ideas (pending)"},
-        {"text": "The agent asks the user if any previously proposed ideas shipped (Phase 7 question) before updating the context file"}
-      ]
-    },
-    {
-      "id": 5,
-      "name": "context-file-bootstrap-offer",
-      "prompt": "any ideas for this project?",
-      "expected_output": "When ./ideas/CONTEXT.md does not exist, the skill runs normal ideation and at the end offers to bootstrap the context file from Phase 1 characterisation, Phase 3 competitive findings, and a best-guess implemented-ideas list from merged PRs/git history.",
-      "files": [],
-      "assertions": [
-        {"text": "A report file is created in ./ideas/reports/ with filename matching YYYY-MM-DD-ideate.md (or -N suffix)"},
-        {"text": "After writing the report, the agent asks the user whether they want to save a canonical ideation context (./ideas/CONTEXT.md)"},
-        {"text": "If the user agrees to bootstrap, the agent runs git log --merges or gh pr list to infer previously shipped ideas"},
-        {"text": "If the user agrees to bootstrap, the resulting ./ideas/CONTEXT.md contains Positioning, Competitive landscape, and Proposed ideas (pending) sections populated from this run"},
-        {"text": "The agent does NOT create ./ideas/CONTEXT.md without asking the user first"}
+        {"text": "The agent read ./ideas/CONTEXT.md before building the inventory and did not ask the user to confirm it"},
+        {"text": "A new report exists in ./ideas/reports/ dated today (or -N suffix) and the 2026-09-30 report is untouched"},
+        {"text": "No shortlisted idea re-proposes the Accepted 'Pre-staged Application' or an Implemented idea, under its own or a new title"},
+        {"text": "Any shortlisted idea that overlaps a Proposed (pending) idea is labelled as an iteration on it"},
+        {"text": "./ideas/CONTEXT.md still has ## Implemented ideas, ## Accepted ideas and ## Proposed ideas (pending) with the original lines intact in '- [YYYY-MM-DD] Title — summary' form, and now also has ## Rejected ideas (with reason), ## Capability inventory and ## Market matrix"},
+        {"text": "The market scan starts from the stored competitive landscape (refreshing or extending it) rather than ignoring it"},
+        {"text": "At least 50% of shortlisted ideas are deepen/extend and every shortlisted idea cites inventory rows"},
+        {"text": "At least 2 shortlisted ideas are net-new"},
+        {"text": "A fresh-context critic subagent ran on the shortlist (process log shows it)"},
+        {"text": "At most 3 AskUserQuestion calls happened before the report was written"},
+        {"text": "The final pick is presented with no pre-selected or recommended default"}
       ]
     }
   ]
