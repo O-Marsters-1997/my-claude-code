@@ -1,40 +1,32 @@
-# Idea Template
+# Idea template
 
-Use this structure for each idea in the report. Omit fields that genuinely don't apply — this is
-a guide, not a form to fill mechanically.
+One block per shortlisted idea. Leave out a field only when it truly doesn't apply. Keep each
+idea under about 20 lines. A long write-up doesn't make an idea stronger.
 
----
+```markdown
+### n. <Title: specific and bounded, never "X 2.0"> · <deepen | extend | net-new> · <Strong | Worth exploring | Speculative>
 
-## [Idea Title] · *[Tier: adjacent / expansion / moonshot]*
+**Appetite:** small batch (≈1–2 weeks) | medium | large batch (≈6 weeks).
+**Won't do:** <explicit exclusions that keep it inside the appetite>
+**Inventory rows:** C3, C7 (PARTIAL → COMPLETE) · **Kano:** must-be | performance | delighter · [outside focus]
 
-**Opportunity addressed**
-Which opportunity from the report this idea maps to. One idea can only map to one primary
-opportunity — if it seems to address several, the opportunities probably need sharpening.
+**Problem.** Who hits this, in which situation, and what it costs them today. Write it as
+current state → after: "Today C3 stores X but nothing shows it. After: …"
 
-**Problem**
-Who feels this pain, and what specifically makes it a problem worth solving. Be concrete about the
-situation — "developers who need to X find that Y" not "users want better X".
+**Evidence.**
+- `direct:` `path/file.go:120`: <what the line shows>
+- `external:` <URL>: <what it supports> (Fact / Attributed / Inference)
+- `reasoned:` <one-sentence argument, only if nothing stronger exists>
 
-**Why now**
-What's changed (or is changing) that makes this a good time to solve this problem. If nothing has
-changed, that's a signal this isn't the right moment.
+**Riskiest assumption.** Fails if <___>. (value | usability | feasibility | viability)
+**Pre-mortem (critic):** <one line>
 
-**Existing solutions and their gaps**
-What does the market already offer? Where do existing tools fall short for the target user? This
-is where the market scan pays off — one specific gap per tool, not a feature matrix.
+**First slice → to-prd brief.** <The smallest end-to-end slice that proves it, phrased so it can be
+pasted into `/to-prd` as the starting brief.>
+```
 
-**Why this codebase is uniquely positioned** *(mandatory — if weak, drop the idea)*
-Point to specific observed architectural properties, modules, abstractions, data, or user trust
-that give this product an edge other teams couldn't easily replicate. Avoid aspirational claims.
-"We already have X which means Y" — concrete and verifiable.
+Badges:
 
-**Architectural leverage**
-What existing parts of the codebase this idea builds on. What new pieces it would require. Be
-honest about the new-pieces side — acknowledging real costs increases the idea's credibility.
-
-**Risks and unknowns**
-The 1–2 things most likely to make this fail or take much longer than expected.
-
-**Tracer-bullet first slice**
-The smallest end-to-end slice that would prove the idea works and deliver real value. Phrased
-so it could be dropped directly into `to-prd` as a starting brief.
+- **Strong**: direct evidence and a verified external or user signal, and the critic found it holds.
+- **Worth exploring**: direct evidence, but the value is unproven or the critic weakened it.
+- **Speculative**: mostly `reasoned:`. Keep at most two on a shortlist.
