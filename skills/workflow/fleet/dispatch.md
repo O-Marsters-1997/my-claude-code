@@ -24,9 +24,20 @@ Otherwise, for each ticket, decide: inline, dispatch now, or dispatch later.
 - **Dependency order.** If tickets form a chain (a staged migration, a series of
   refactors), stack them: ticket N branches off N-1's branch and its PR targets that
   branch, so N starts once N-1 is committed, not merged. Its prompt points at N-1's
-  diff as the worked example. Independent tickets branch off `main` and share a wave.
+  diff as the worked example. Independent tickets branch off `feat/<label>` and share a wave.
 - **Stack depth.** Cap a stack at 3. A rejected approach low in the stack wastes
   everything above it, so if the chain is longer, leave the rest for the next wave.
+
+## 1b. Ensure the feature branch
+
+Every PR in this wave targets `feat/<label>`. Create it from `main` if it doesn't exist yet:
+
+```bash
+git ls-remote --exit-code --heads origin "feat/<label>" >/dev/null \
+  || { git branch "feat/<label>" origin/main && git push -u origin "feat/<label>"; }
+```
+
+Use `rtk proxy "git push -u origin feat/<label>"` where rtk is in play.
 
 ## 2. One shared exploration pass
 
@@ -62,7 +73,7 @@ feat-143/schedule-every
 WT=$(TREEPAD_CD_FD=3 tp new "<type>-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
 ```
 
-`<Base>` is `main`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
+`<Base>` is `feat/<label>`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
 
 ## 4. Write the dispatch prompt
@@ -77,10 +88,10 @@ Brief: <scratchpad>/fleet/brief.md
 Worked example: <commit or PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
-Base: <parent ticket's branch, or main>
+Base: <parent ticket's branch, or feat/<label>>
 
 Done means: code-simplifier run once and /code-review medium run, findings applied, committed
-on the branch, draft PR open with `gh pr create --draft --base <Base>`, result written.
+on the branch, draft PR open with `gh pr create --draft --base <Base>` (never `main`), result written.
 Skipping either review pass is not allowed; return `blocked` instead.
 Write your full report to <scratchpad>/fleet/<N>.md.
 Return exactly one line and nothing else:

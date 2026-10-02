@@ -34,6 +34,9 @@ Both halves rely on these, so they are defined once here.
   This is the only record of dependencies; both subcommands read it.
 - **Feature label.** The label `to-plan` creates and `to-tickets` applies to every ticket of a
   feature. It scopes every `gh issue list` in both subcommands with `--label "<label>"`.
+- **Feature branch.** `feat/<label>`, the label as the feature name. Every ticket PR targets it,
+  never `main`, so several features can run in parallel without touching each other. When the
+  feature's tickets are all done, one PR merges `feat/<label>` into `main`.
 - **`state.md`.** Reconcile writes it, dispatch reads it. It opens with the feature label, then
   has one section per unblocked ticket with its number, base branch, and the merged PR to use as
   the worked example.
