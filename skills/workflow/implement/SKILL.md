@@ -37,4 +37,4 @@ Once done, use /code-review medium to review the work.
 
 Commit your work to the current branch.
 
-If you open a PR, always open it as a draft (`gh pr create --draft --base <Base>`, where Base is the base branch your prompt names; for a feature, that is `feat/<feature name>`, never `main`) and write the title and body with /gh-desc.
+If you open a PR, always open it as a draft (`gh pr create --draft`) and write the title and body with /gh-desc. Add `--base <Base>` only when a fleet dispatch prompt names a `Base:`; ad hoc runs use the repo's default base.
