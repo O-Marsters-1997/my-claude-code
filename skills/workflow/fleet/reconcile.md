@@ -45,9 +45,13 @@ Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a secti
 promoted in step 2 and any other `ready` ticket with that label, each with:
 
 - the issue number and title,
-- `Base: main` (its blockers are merged, so nothing stacks across waves),
+- `Base: feat/<label>` (its blockers are merged into it, so nothing stacks across waves),
 - the merged PR of its most relevant blocker, as the worked example.
 
 Then report to the user in this order: tickets closed, tickets promoted, tickets needing a
-decision (closed-unmerged, no PR), worktrees removed. End by telling them to `/clear` and run
+decision (closed-unmerged, no PR), worktrees removed. If no open or backlog tickets with the label remain and every one is done, tell the user the
+feature is complete and offer to open the final PR `feat/<label>` → `main`
+(`gh pr create --base main --head feat/<label>`); don't open it unasked.
+
+End by telling them to `/clear` and run
 `/fleet dispatch <label>`, with the label filled in; you cannot clear your own session.
