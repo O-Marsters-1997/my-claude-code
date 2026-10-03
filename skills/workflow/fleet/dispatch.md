@@ -62,9 +62,11 @@ also syncs the local configs a bare worktree lacks.
 
 **Name.** The ticket branch, `issue-<N>/<short-title>` (see Shared conventions in SKILL.md).
 
-**Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you):
+**Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you). Fetch first
+so the base is never stale and the subagent has no reason to reset its branch:
 
 ```bash
+git fetch origin
 WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
 ```
 
@@ -88,6 +90,9 @@ Base: <parent ticket's branch, or feat/<label>>
 Done means: code-simplifier run once and /code-review medium run, findings applied, committed
 on the branch, draft PR open with `gh pr create --draft --base <Base>` (never `main`), result written.
 Skipping either review pass is not allowed; return `blocked` instead.
+Read with Read and Grep on absolute paths. Don't chain `cd … && cat; grep; …` across a sibling
+worktree: the auto-mode classifier has denied such chains as destructive. If a command is denied,
+return `blocked` with the denied command verbatim.
 Write your full report to <scratchpad>/fleet/<N>.md.
 Return exactly one line and nothing else:
 <N> done|blocked <PR URL or blocker reason> reviewed=yes|no <scratchpad>/fleet/<N>.md
