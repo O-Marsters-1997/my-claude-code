@@ -27,6 +27,9 @@ Otherwise, for each ticket, decide: inline, dispatch now, or dispatch later.
   diff as the worked example. Independent tickets branch off `feat/<label>` and share a wave.
 - **Stack depth.** Cap a stack at 3. A rejected approach low in the stack wastes
   everything above it, so if the chain is longer, leave the rest for the next wave.
+- **Shared files.** Two independent tickets that name the same file will likely conflict at
+  merge time. Stack one on the other, or leave one for the next wave, rather than dispatching
+  both off `feat/<label>`.
 
 ## 1b. Ensure the feature branch
 
@@ -57,20 +60,12 @@ lookup default to general-purpose; it costs as much as the implementation.
 All worktree work goes through `tp` (see the treepad skill), never `git worktree`. `tp new`
 also syncs the local configs a bare worktree lacks.
 
-**Name.** `<type>-<N>/<short-title>`: `<N>` is the issue number, `<short-title>` a kebab-case
-slug of the ticket title, a few words. `<type>` is `bug` for a bug ticket (labelled `bug`, or
-filed by `triage-issue`), otherwise `feat`. For other kinds of ticket use the matching
-conventional prefix (`chore-`, `docs-`, `refactor-`), and fall back to `feat`.
-
-```
-bug-142/stuck-scrape-run
-feat-143/schedule-every
-```
+**Name.** The ticket branch, `issue-<N>/<short-title>` (see Shared conventions in SKILL.md).
 
 **Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you):
 
 ```bash
-WT=$(TREEPAD_CD_FD=3 tp new "<type>-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
+WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
 ```
 
 `<Base>` is `feat/<label>`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
@@ -82,7 +77,7 @@ Every prompt has the same shape, so the cached prefix stays identical across the
 Fixed text first, ticket-specific text last.
 
 ```
-Run /implement for issue #<N> in worktree <path>, branch <type>-<N>/<short-title>.
+Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>.
 
 Brief: <scratchpad>/fleet/brief.md
 Worked example: <commit or PR of the previous wave, if any>
@@ -134,12 +129,44 @@ Only for chains dispatched together. Cross-wave sequencing is `reconcile`.
    `gh stack sync`. On a conflict, sync restores every branch; resolve it with
    `gh stack rebase` yourself, not in a subagent.
 
-## 7. After the batch
+## 7. Merge order
+
+Once every subagent has returned, work out an order in which the wave's PRs merge into
+`feat/<label>` one after another without a conflict. Simulate it with `git merge-tree`, which
+needs no worktree and touches no branch:
+
+```bash
+git fetch origin
+TIP=$(git rev-parse "origin/feat/<label>")
+# for each candidate PR branch B, in turn:
+TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
+  && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
+```
+
+`git merge-tree` exits non-zero on a conflict and prints the conflicting paths.
+
+1. Stacks go bottom to top, and each stack is one unit: simulate only its top branch, which
+   contains the ones below it.
+2. Greedily pick the next unit that merges cleanly onto the current `TIP`, preferring the
+   lowest issue number on a tie, until none is left.
+3. A unit that conflicts whatever comes before it can't be ordered away. Rebase its branch
+   onto the conflicting unit's branch and retarget its PR (`gh pr edit <PR> --base <branch>`),
+   turning the pair into a stack, then resolve the conflict yourself, not in a subagent.
+   If that would breach the stack-depth cap, put the unit last and flag it: once the others
+   merge, it needs `git rebase origin/feat/<label>` before it can go in.
+
+## 8. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio
 across the batch means the prompts' shared prefix drifted (reordered fields,
 per-ticket text too early). Fix the template before the next batch.
 
-Report to the user: one status line per ticket, and the blocked ones with their reason.
-Once the PRs are reviewed and merged, tell the user to run `/fleet reconcile`.
+Report to the user:
+
+- the merge order from step 7 as a numbered list, one PR per line (`1. #151 issue-142/stuck-scrape-run`),
+  with any flagged unit marked and why;
+- the blocked tickets with their reason.
+
+Tell them to merge in that order, and once the wave has merged, to run
+`/fleet reconcile <label>` with the label filled in.
