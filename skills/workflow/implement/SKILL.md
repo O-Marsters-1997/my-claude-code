@@ -35,6 +35,11 @@ change, right before /code-review.
 
 Once done, use /code-review medium to review the work.
 
+When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
+`issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
+issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch normally creates it; if the
+current branch is anything else, create it off `Base` with `git switch -c` before editing.
+
 Commit your work to the current branch.
 
 If you open a PR, always open it as a draft (`gh pr create --draft`) and write the title and body with /gh-desc. Add `--base <Base>` only when a fleet dispatch prompt names a `Base:`; ad hoc runs use the repo's default base.
