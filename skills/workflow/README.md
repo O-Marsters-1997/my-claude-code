@@ -146,6 +146,7 @@ appear in the map above:
 | `../product/grilling` | `chat-to-approach`, `to-prd` | the canonical grilling loop — never re-inline it |
 | `../product/source-synthesis` | nobody — run it yourself | the optional `## Background Research` section of `approach.md`; `chat-to-approach` only preserves it |
 | `../product/triage-issue` | `ticket-tracker` | bug-driven tickets — a second door straight to the board, bypassing the spine |
+| `file-issue` | nobody — run it yourself | one ad-hoc ticket, no feature label, picked up by `/implement` — a third door to the board |
 
 ## Not in scope
 

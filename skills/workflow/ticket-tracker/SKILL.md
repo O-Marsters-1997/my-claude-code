@@ -6,7 +6,7 @@ description: >
   up", "move issue N to in-review", "mark N done", "update the ticket status". Live triage board
   over GitHub issues via the gh CLI, moving each between backlog -> ready -> in-progress ->
   in-review -> done using status labels. This is the ticket-level board; ./ideas/roadmap.html is the
-  feature-level one. To file new tickets, use /to-tickets.
+  feature-level one. To file new tickets, use /to-tickets, or file-issue for a single ad-hoc one.
 ---
 
 # Ticket Tracker
