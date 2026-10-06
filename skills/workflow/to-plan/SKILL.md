@@ -3,7 +3,7 @@ name: to-plan
 description: >
   Turns a PRD — or, when no PRD exists, an approach doc or raw conversation — into a multi-phase
   implementation plan for one feature, using tracer-bullet vertical slices, saved as a Markdown
-  file in ./plans/. Covers exactly one feature per run: a roadmap card or a single approach-doc
+  file in ./docs/plans/. Covers exactly one feature per run: a roadmap card or a single approach-doc
   feature, which later breaks into several tickets. If the source holds more than one feature,
   ask which one before drafting. To go straight to tickets without a plan, use /to-tickets.
 disable-model-invocation: true
@@ -30,7 +30,7 @@ the user backwards to create an artifact first.
 
 This skill produces the **technical design document** — it owns the build. The PRD carries the concepts and whatever technical context shapes the scope; this plan specifies how it gets built: data models, schema shapes, API contracts, module boundaries, integration points, and the order the work lands in. The plan must be concrete enough that to-tickets can derive independently-grabbable tickets from it without re-deriving the design. Where the PRD already settles a concept or a contract, carry it through rather than re-deciding it.
 
-Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./plans/`.
+Break a PRD into a phased implementation plan using vertical slices (tracer bullets). Output is a Markdown file in `./docs/plans/`.
 
 ## Process
 
@@ -96,7 +96,7 @@ Iterate until the user approves the breakdown.
 
 ### 6. Write the plan file
 
-Create `./plans/` if it doesn't exist. Write the plan as a Markdown file named after the feature (e.g. `./plans/user-onboarding.md`). Use the template below.
+Create `./docs/plans/` if it doesn't exist. Write the plan as a Markdown file named after the feature (e.g. `./docs/plans/user-onboarding.md`). Use the template below.
 
 <plan-template>
 # Plan: <Feature Name>
@@ -153,13 +153,13 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 
 Every plan carries a GitHub label that identifies its tickets. `to-tickets` files them under it
 and `/fleet` selects by it. The label is the plan's filename without `.md`
-(`./plans/cv-tailoring.md` → `cv-tailoring`), and it is the `Label:` line in the plan header.
+(`./docs/plans/cv-tailoring.md` → `cv-tailoring`), and it is the `Label:` line in the plan header.
 
 Create it if it doesn't exist, describing it the way the repo's existing feature labels do:
 
 ```bash
 gh label list --search "<slug>" | grep -q "^<slug>\b" || \
-  gh label create "<slug>" -d "<Feature Name> (plans/<slug>.md)" -c "<any unused hex>"
+  gh label create "<slug>" -d "<Feature Name> (docs/plans/<slug>.md)" -c "<any unused hex>"
 ```
 
 Mention the label in the closing message so the user knows what `/to-tickets` will file under.

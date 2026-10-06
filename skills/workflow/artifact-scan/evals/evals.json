@@ -9,7 +9,7 @@
       "expected_output": "A short scan report showing no artifacts are present, with a recommendation of to-prd because the user arrived with a feature they want to build. The absence of an ideate report or approach doc must not divert them into ideation.",
       "files": [],
       "assertions": [
-        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./ideas/roadmap.html), PRD (./docs/prd-*.md or a gh issue titled [PRD]), plan file (./plans/*.md), and tickets (non-PRD gh issues)"},
+        {"text": "The scan checks for all six artifacts: ideate report (./ideas/reports/*-ideate.md), approach doc (./docs/approach.md), roadmap (./ideas/roadmap.html), PRD (./docs/prd-*.md or a gh issue titled [PRD]), plan file (./docs/plans/*.md), and tickets (non-PRD gh issues)"},
         {"text": "The report states that none of the artifacts were found"},
         {"text": "The report recommends exactly one skill, and it is to-prd — the user said they want to add a feature, so they are not asking to ideate"},
         {"text": "The report does NOT tell the user to run ideate, chat-to-approach, or to-roadmap first in order to fill in missing upstream artifacts"},
@@ -95,13 +95,13 @@
           "content": "# PRD: Feature Y\n\n## Problem Statement\n"
         },
         {
-          "path": "./plans/feature-x.md",
+          "path": "./docs/plans/feature-x.md",
           "content": "# Feature X plan\n\n## Phase 1 — tracer bullet\n"
         }
       ],
       "assertions": [
         {"text": "The report cites both local PRDs (./docs/prd-feature-x.md and ./docs/prd-feature-y.md) rather than reporting the PRD artifact as a single satisfied tick"},
-        {"text": "The report cites ./plans/feature-x.md as the only plan, and makes clear that Feature Y has a PRD but no plan yet"},
+        {"text": "The report cites ./docs/plans/feature-x.md as the only plan, and makes clear that Feature Y has a PRD but no plan yet"},
         {"text": "The scan attempts a gh issue list lookup to determine whether tickets already exist"},
         {"text": "The report recommends exactly one skill: to-tickets for Feature X, since it is the feature furthest along"}
       ]

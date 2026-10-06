@@ -6,28 +6,28 @@
       "id": 1,
       "name": "plan-file-source-default",
       "prompt": "break this plan into grabbable GitHub issues",
-      "expected_output": "The agent uses the ./plans/*.md file as the source, drafts tracer-bullet vertical slices, quizzes the user (HITL/AFK, blockers, granularity), and creates issues in dependency order whose bodies open with a '## Source plan' header referencing the plan path.",
+      "expected_output": "The agent uses the ./docs/plans/*.md file as the source, drafts tracer-bullet vertical slices, quizzes the user (HITL/AFK, blockers, granularity), and creates issues in dependency order whose bodies open with a '## Source plan' header referencing the plan path.",
       "files": [
         {
-          "path": "./plans/auth-mvp.md",
+          "path": "./docs/plans/auth-mvp.md",
           "content": "# Auth MVP — Implementation Plan\n\nSource PRD: #12\n\n## Phase 1 — Session foundation\n\nData model: `users(id, email, password_hash)`, `sessions(id, user_id, expires_at)`.\nModule boundary: `auth` package owns hashing and session issuance behind a `SessionStore` interface.\n\nUser story 1: As a user I can sign up with email + password.\nUser story 2: As a user I can log in and receive a session cookie.\nAcceptance: signup persists a hashed password; login returns a valid session cookie.\n\n## Phase 2 — Protected routes\n\nUser story 3: As a user I stay logged in across requests.\nAcceptance: a request with a valid session cookie reaches a protected route; an expired one is rejected.\n"
         }
       ],
       "assertions": [
-        {"text": "The agent identifies ./plans/auth-mvp.md as the source (plan file is the default source) without asking for a PRD number or conversation"},
+        {"text": "The agent identifies ./docs/plans/auth-mvp.md as the source (plan file is the default source) without asking for a PRD number or conversation"},
         {"text": "The agent proposes tracer-bullet vertical slices, each a complete end-to-end path rather than a single-layer horizontal slice"},
         {"text": "The agent presents the breakdown as a numbered list marking each slice HITL or AFK with blocked-by relationships, and quizzes the user on granularity and dependencies before creating anything"},
-        {"text": "Each created (or drafted) issue body opens with a '## Source plan' header referencing `./plans/auth-mvp.md`"},
+        {"text": "Each created (or drafted) issue body opens with a '## Source plan' header referencing `./docs/plans/auth-mvp.md`"},
         {"text": "No issue body uses '## Parent PRD' or '## Source conversation' as its source-reference header"},
         {"text": "Issues are created in dependency order so blocked-by fields reference real earlier issue numbers"},
-        {"text": "The source plan file ./plans/auth-mvp.md is not modified"}
+        {"text": "The source plan file ./docs/plans/auth-mvp.md is not modified"}
       ]
     },
     {
       "id": 2,
       "name": "prd-issue-source",
       "prompt": "cut implementation tickets from PRD issue #12",
-      "expected_output": "With no ./plans/*.md present, the agent fetches PRD issue #12 with gh, drafts tracer-bullet slices, quizzes the user, and creates issues whose bodies open with a '## Parent PRD' header referencing #12.",
+      "expected_output": "With no ./docs/plans/*.md present, the agent fetches PRD issue #12 with gh, drafts tracer-bullet slices, quizzes the user, and creates issues whose bodies open with a '## Parent PRD' header referencing #12.",
       "files": [],
       "assertions": [
         {"text": "The agent uses the PRD GitHub issue #12 as the source (fetches it with gh issue view rather than looking only for a plan file)"},
@@ -45,7 +45,7 @@
       "expected_output": "With no plan file and no PRD issue, the agent treats the in-context conversation as the source, drafts tracer-bullet slices, quizzes the user, and creates issues whose bodies open with a '## Source conversation' header.",
       "files": [],
       "assertions": [
-        {"text": "The agent treats the in-context conversation as the source (does not demand a ./plans/*.md file or a PRD issue number)"},
+        {"text": "The agent treats the in-context conversation as the source (does not demand a ./docs/plans/*.md file or a PRD issue number)"},
         {"text": "The agent proposes tracer-bullet vertical slices grounded in the conversation (e.g. an /export endpoint slice, then a column-selection slice) and quizzes the user before creating issues"},
         {"text": "Each created (or drafted) issue body opens with a '## Source conversation' header"},
         {"text": "No issue body uses '## Source plan' or '## Parent PRD' as its source-reference header"},
@@ -59,7 +59,7 @@
       "expected_output": "The agent re-derives slices instead of mapping the five phases 1:1, reports day-one width / longest chain / acceptance-criteria counts before creating anything, and produces a graph wider than one. The email and Slack channels are siblings on the dispatch core rather than chained to each other, and no ticket is titled after a phase number.",
       "files": [
         {
-          "path": "./plans/notifications.md",
+          "path": "./docs/plans/notifications.md",
           "content": "# Notifications — Implementation Plan\n\nSource PRD: #40\n\n## Technical design decisions\n\nData model: `notifications(id, user_id, kind, payload, sent_at)`, `notification_prefs(user_id, channel, enabled)`.\nModule boundary: the `notify` package owns a `Channel` interface; each transport implements it.\nRoutes: `POST /notify` enqueues, `GET /settings/notifications` renders preferences.\n\n## Phase 1 — Notification record and dispatch core\n\nUser story 1: As a service I can record a notification and dispatch it.\nAcceptance: POST /notify persists a row and calls the registered Channel.\n\n## Phase 2 — Email channel\n\nUser story 2: As a user I receive notifications by email.\nAcceptance: the email Channel sends via SMTP and stamps sent_at.\n\n## Phase 3 — Slack channel\n\nUser story 3: As a user I receive notifications in Slack.\nAcceptance: the Slack Channel posts via webhook and stamps sent_at.\n\n## Phase 4 — Preference table and settings page\n\nUser story 4: As a user I can turn each channel on or off.\nAcceptance: notification_prefs rows persist; GET /settings/notifications reflects them.\n\n## Phase 5 — Docs\n\nAcceptance: the README documents the Channel interface.\n"
         }
       ],
@@ -82,7 +82,7 @@
       "expected_output": "The agent cuts a producer-repo ticket and a consumer-repo ticket, treats the consumer's dependency on the producer as a gating edge (not same-repo blocked_by), and writes seams = [\"order-status-enum\"] into only the consumer's [[task]] block in command-centre.toml — the producer's block carries no seams field.",
       "files": [
         {
-          "path": "./plans/order-status-sync.md",
+          "path": "./docs/plans/order-status-sync.md",
           "content": "# Order status sync — Implementation Plan\n\nSource PRD: #58\n\n## Technical design decisions\n\nA seam named `order-status-enum` is already recorded (via /to-seams): `services` is the producer and will land the new `OrderStatus` enum at `packages/core-graphql/src/schema.ts`; `support-app` is the consumer building its UI against the agreed shape now, before `services` merges.\n\n## Phase 1 — services lands the OrderStatus enum\n\nUser story 1: As the GraphQL schema, I expose the new OrderStatus enum values.\nAcceptance: the schema change lands in `services` and is queryable.\n\n## Phase 2 — support-app renders the new statuses\n\nUser story 2: As a support agent I see the new order statuses in the UI, built against the agreed enum shape ahead of the services merge.\nAcceptance: the UI renders every OrderStatus value from the seam's agreed shape.\n"
         },
         {
