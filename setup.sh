@@ -33,4 +33,19 @@ else
   echo "settings.json: symlinked (no local override)"
 fi
 
+RTK_HOOK='~/.claude/hooks/rtk-hook.sh'
+  if command -v rtk >/dev/null; then
+    patched=$(jq --arg h "$RTK_HOOK" '
+      .hooks.PreToolUse |= ((. // [])
+        | map(.hooks |= map(select(.command != "rtk hook claude")))
+        | map(select(.hooks | length > 0))
+        | if any(.[].hooks[]; .command == $h) then .
+          else . + [{matcher: "Bash", hooks: [{type: "command", command: $h}]}] end)
+    ' "$CLAUDE/settings.json")
+    if [ "$patched" != "$(jq . "$CLAUDE/settings.json")" ]; then
+      printf '%s\n' "$patched" > "$CLAUDE/settings.json"
+      echo "rtk: hook set to $RTK_HOOK"
+    fi
+  fi
+
 echo "Done. Install plugins manually if on a new machine (skill-creator, gopls-lsp)."
