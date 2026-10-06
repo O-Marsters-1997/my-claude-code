@@ -47,6 +47,9 @@ Use `rtk proxy "git push -u origin feat/<label>"` where rtk is in play.
 Before the first wave, if two or more tickets touch the same ground or follow the same
 pattern, explore it once:
 
+- Run `codegraph_explore` once over the symbols and files named in the batch's tickets (the
+  "Where to look" lists) when the repo has a `.codegraph/` index, and fold the result into the
+  brief. Subagents start from it instead of re-reading the same source.
 - Read the completed worked example, the governing ADR or design doc, and CONTEXT.md.
 - Write a short brief (files, pattern, gotchas, test command) to
   `<scratchpad>/fleet/brief.md`.
