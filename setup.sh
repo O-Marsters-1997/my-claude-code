@@ -31,7 +31,7 @@ USER_SETTINGS="$CLAUDE/settings.user.json"
 
 if [ ! -f "$USER_SETTINGS" ]; then
   if [ -f "$SETTINGS" ]; then
-    jq 'del(.permissions, .hooks, .statusLine, .enabledPlugins)' "$SETTINGS" > "$USER_SETTINGS"
+    jq 'del(.permissions, .hooks, .statusLine, .enabledPlugins, .autoMode)' "$SETTINGS" > "$USER_SETTINGS"
   else
     echo '{}' > "$USER_SETTINGS"
   fi
