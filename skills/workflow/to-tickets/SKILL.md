@@ -33,7 +33,7 @@ say so if the source is thin on technical design.
 
 Break a source into independently-grabbable tickets using vertical slices (tracer bullets). The source is one of three, in priority order:
 
-1. **A plan file** (DEFAULT) — a local `./plans/*.md` file produced by to-plan.
+1. **A plan file** (DEFAULT) — a local `./docs/plans/*.md` file produced by to-plan.
 2. **A PRD** — a local `./docs/prd-<feature>.md` file, a Notion project doc, or a `[PRD]`-titled GitHub issue. Prefer the file when several exist; they hold the same content.
 3. **A raw conversation** — a pasted or in-context discussion the user wants turned into tickets.
 
@@ -43,16 +43,16 @@ A plan is a technical design document: its architectural decisions (data models,
 
 ### 1. Locate the source
 
-If the user named a source, use it. Otherwise detect what exists: run `artifact-scan` as a preflight if it's installed, else `ls ./plans/*.md ./docs/prd-*.md 2>/dev/null`. Apply the priority order above: prefer a plan file, then a PRD, then a conversation already in context.
+If the user named a source, use it. Otherwise detect what exists: run `artifact-scan` as a preflight if it's installed, else `ls ./docs/plans/*.md ./docs/prd-*.md 2>/dev/null`. Apply the priority order above: prefer a plan file, then a PRD, then a conversation already in context.
 
 Two cases where the priority order is the wrong answer:
 
-- **A conversation in hand beats a stale artifact.** If the user is pasting a conversation *now* ("turn this into tickets"), that is the source — even if `./plans/*.md` exists. The priority order ranks source *quality*, not source *recency*; a plan file from another feature is not a better source than the thing the user just handed you.
+- **A conversation in hand beats a stale artifact.** If the user is pasting a conversation *now* ("turn this into tickets"), that is the source — even if `./docs/plans/*.md` exists. The priority order ranks source *quality*, not source *recency*; a plan file from another feature is not a better source than the thing the user just handed you.
 - **More than one plan or PRD present.** These are per-feature artifacts, so several will accumulate. Confirm which feature you're cutting tickets for rather than defaulting to the newest.
 
 Load the chosen source in full:
 
-- **Plan file** — read the `./plans/*.md` file. Record its path and the **Source PRD** link from the plan header (if present).
+- **Plan file** — read the `./docs/plans/*.md` file. Record its path and the **Source PRD** link from the plan header (if present).
 - **PRD** — read `./docs/prd-<feature>.md`, fetch the Notion page, or fetch the issue with `gh issue view <number>` (with comments). Record whichever you used: the file path, the page URL, the issue number, or several.
 - **Conversation** — use the in-context discussion, or ask the user to paste it.
 
@@ -135,7 +135,7 @@ Settle the tracker here, in this approval — not from config, and not from a gu
 write time. Propose an answer rather than asking cold, taking the first signal that applies:
 
 1. **Where the repo sits.** Anything under `~/Documents/plain/` is Plain work — propose **Linear**.
-   This outranks provenance because it still holds when the plan came from a local `./plans/*.md`
+   This outranks provenance because it still holds when the plan came from a local `./docs/plans/*.md`
    file, which provenance on its own would misread as GitHub.
 2. **The source's provenance** (step 1). A Linear project or a Notion page → **Linear**. Anything
    else → **GitHub**, which is also the fallback for personal repos.
@@ -189,7 +189,7 @@ dependency changes.
 
 <ticket-template>
 <Source-reference header — pick ONE to match the source type from step 1:>
-<  Plan file:    "## Source plan" + `./plans/<file>.md` + Source PRD link from the plan header, if present>
+<  Plan file:    "## Source plan" + `./docs/plans/<file>.md` + Source PRD link from the plan header, if present>
 <  PRD:          "## Parent PRD" + ./docs/prd-<feature>.md, the Notion URL, and/or #<prd-issue-number>>
 <  Conversation: "## Source conversation" + one-line note on what the conversation was>
 
@@ -234,7 +234,7 @@ gh issue edit <number> --add-label "status:ready" --add-label "<feature-label>" 
 ```
 
 If the feature label doesn't exist yet, create it first with
-`gh label create "<feature-label>" -d "<Feature Name> (plans/<slug>.md)"`.
+`gh label create "<feature-label>" -d "<Feature Name> (docs/plans/<slug>.md)"`.
 
 If those labels don't exist in the repo, create the two you need and move on — `status:ready`
 (`-c "#0e8a16"`), `status:backlog` (`-c "#cccccc"`). `ticket-tracker` owns the full vocabulary;

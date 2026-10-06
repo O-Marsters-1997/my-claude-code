@@ -42,7 +42,7 @@ An earlier artifact being absent is not a problem to solve — it is usually a d
 | approach doc     | portfolio | `test -f ./docs/approach.md`                           | `chat-to-approach`     |
 | roadmap board    | portfolio | `test -f ./ideas/roadmap.html`                               | `to-roadmap`           |
 | PRD              | feature   | `ls ./docs/prd-*.md` and `gh issue list` for `[PRD]`   | `to-prd`               |
-| plan file        | feature   | `ls ./plans/*.md`                                      | `to-plan`              |
+| plan file        | feature   | `ls ./docs/plans/*.md`                                      | `to-plan`              |
 | tickets          | feature   | `gh issue list` — any issue NOT titled `[PRD]`         | `to-tickets`           |
 
 Feature-level artifacts are **countable, not binary**. Three plan files means three features are
@@ -53,7 +53,7 @@ mid-spine; it does not mean "the plan stage is done". Report counts and names, n
 1. **Scan local files** in one pass:
    ```bash
    ls ./ideas/reports/*-ideate.md ./docs/approach.md ./ideas/roadmap.html \
-      ./docs/prd-*.md ./plans/*.md 2>/dev/null
+      ./docs/prd-*.md ./docs/plans/*.md 2>/dev/null
    ```
 2. **Scan GitHub issues** once, then split by title:
    ```bash
@@ -97,7 +97,7 @@ Product artifacts
 
   Feature (per feature)
     [x] PRDs           — 2: ./docs/prd-search.md, #41 [PRD] Saved views
-    [x] plans          — 1: ./plans/search.md
+    [x] plans          — 1: ./docs/plans/search.md
     [?] tickets        — unknown (gh unavailable)
 
 Next: `to-plan` — "Saved views" has a PRD but no plan yet.

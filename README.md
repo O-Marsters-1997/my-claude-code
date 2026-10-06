@@ -41,7 +41,7 @@ done
 | `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
 | `to-roadmap` | portfolio | `./docs/approach.md` | `./ideas/roadmap.html` (cards are features) |
 | `to-prd` | feature | one feature | `./docs/prd-<feature>.md` + a `[PRD]` issue |
-| `to-plan` | feature | a PRD | `./plans/<feature>.md` |
+| `to-plan` | feature | a PRD | `./docs/plans/<feature>.md` |
 | `to-tickets` | feature | a plan | GitHub issues |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 

@@ -62,7 +62,7 @@ flowchart TD
     prd["to-prd"]
     prddoc[/"docs/prd-FEATURE.md<br/>+ Notion project doc"/]
     plan["/to-plan"]
-    planfile[/"plans/FEATURE.md<br/>technical design"/]
+    planfile[/"docs/plans/FEATURE.md<br/>technical design"/]
     tick["/to-tickets"]
     issues[/"Linear or GitHub issues"/]
     track["ticket-tracker"]
@@ -120,7 +120,7 @@ create a missing artifact — if they have what the stage needs, run the stage.
 | `capture-idea` | portfolio | one ad-hoc idea | a line in `## Accepted ideas` in `./ideas/CONTEXT.md` |
 | `to-roadmap` | portfolio | `./docs/approach.md`, `## Accepted ideas`, or user list | `./ideas/roadmap.html` |
 | `to-prd` | feature | anything above, or an interview | `./docs/prd-<feature>.md` + Notion 📜 Project Docs (or GitHub issue if requested) |
-| `to-plan` | feature | a PRD | `./plans/<feature>.md` |
+| `to-plan` | feature | a PRD | `./docs/plans/<feature>.md` |
 | `to-tickets` | feature | a plan | Linear or GitHub issues + optional treepad Batch Manifest |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
