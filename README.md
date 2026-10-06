@@ -123,6 +123,7 @@ These skills help you write, refactor, and fix code.
 
 ## Tooling & Setup
 
+- **settings** (`setup.sh`) — `~/.claude/settings.json` is generated, not edited. `setup.sh` merges the tracked `settings.shared.json` (permissions, hooks, statusLine, plugins) with the untracked `~/.claude/settings.user.json` (`model`, `effortLevel`, `env`, `autoMode`), so every launcher, including `claude -p` from scripts, gets both. Change either source and re-run `./setup.sh`. Edits Claude Code writes straight into `settings.json` (`/model`, `/permissions`) are dropped on the next run; `setup.sh` prints them and keeps the old file as `settings.json.bak`, so move any keepers into a source file. The merge is `jq '.[0] * .[1]'`, so a key in both files takes the user file's value and arrays are replaced, not combined.
 - **clean-comments** — Set up a `/clean-comments` command and a PreToolUse hook that blocks git commits when staged code files contain self-documenting comments.
 
   ```
@@ -135,8 +136,8 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
   ```
 
-- **require-go-skills** (hook, wired by `settings.json` and `setup.sh`) — A global PreToolUse hook that blocks the first edit to a Go file until `go-idiomatic` has been loaded in the session, and also `testing-policy` for a `_test.go` in a project that ships that skill. It skips generated files, `vendor/` and paths with no `go.mod`, and fails open if it can't read the transcript. Skip it with `CC_GO_SKILLS_OFF=1`. Tests: `hooks/require-go-skills.test.sh`.
-- **require-codegraph** (hook, wired by `settings.json`) — A global PreToolUse hook on Grep, Glob and Bash. In a repo with a `.codegraph/` index it blocks code searches (Grep, Glob, `grep`/`rg`/`find` in Bash) until that agent has queried CodeGraph once, through the MCP tool or `codegraph explore`; after that searching is free. Searches of docs, templates, CSS and config pass, piped greps pass, Read is never gated, and each subagent needs its own query. Fails open if it cannot read the transcript. Skip it with `CC_CODEGRAPH_GATE_OFF=1`. Tests: `hooks/require-codegraph.test.sh`.
+- **require-go-skills** (hook, wired by `settings.shared.json`) — A global PreToolUse hook that blocks the first edit to a Go file until `go-idiomatic` has been loaded in the session, and also `testing-policy` for a `_test.go` in a project that ships that skill. It skips generated files, `vendor/` and paths with no `go.mod`, and fails open if it can't read the transcript. Skip it with `CC_GO_SKILLS_OFF=1`. Tests: `hooks/require-go-skills.test.sh`.
+- **require-codegraph** (hook, wired by `settings.shared.json`) — A global PreToolUse hook on Grep, Glob and Bash. In a repo with a `.codegraph/` index it blocks code searches (Grep, Glob, `grep`/`rg`/`find` in Bash) until that agent has queried CodeGraph once, through the MCP tool or `codegraph explore`; after that searching is free. Searches of docs, templates, CSS and config pass, piped greps pass, Read is never gated, and each subagent needs its own query. Fails open if it cannot read the transcript. Skip it with `CC_CODEGRAPH_GATE_OFF=1`. Tests: `hooks/require-codegraph.test.sh`.
 - **Explore** (agent) — Overrides the built-in Explore subagent, which skips `CLAUDE.md`, so it queries CodeGraph first in indexed repos. It leaves `tools` unset so it inherits MCP tools.
 
 ## Writing & Knowledge

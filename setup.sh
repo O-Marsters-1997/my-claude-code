@@ -24,28 +24,26 @@ if [ "${1:-}" = "--reflect" ]; then
   echo "reflect: built $CLAUDE/bin/reflect"
 fi
 
-# settings.json: symlink shared base, or merge with device-specific overrides if present
-if [ -f "$REPO/settings.local.json" ]; then
-  jq -s '.[0] * .[1]' "$REPO/settings.json" "$REPO/settings.local.json" > "$CLAUDE/settings.json"
-  echo "settings.json: merged base + local override"
-else
-  link settings.json
-  echo "settings.json: symlinked (no local override)"
+SETTINGS="$CLAUDE/settings.json"
+USER_SETTINGS="$CLAUDE/settings.user.json"
+
+if [ ! -f "$USER_SETTINGS" ]; then
+  if [ -f "$SETTINGS" ]; then
+    jq 'del(.permissions, .hooks, .statusLine, .enabledPlugins)' "$SETTINGS" > "$USER_SETTINGS"
+  else
+    echo '{}' > "$USER_SETTINGS"
+  fi
+  echo "settings.user.json: seeded"
 fi
 
-RTK_HOOK='~/.claude/hooks/rtk-hook.sh'
-  if command -v rtk >/dev/null; then
-    patched=$(jq --arg h "$RTK_HOOK" '
-      .hooks.PreToolUse |= ((. // [])
-        | map(.hooks |= map(select(.command != "rtk hook claude")))
-        | map(select(.hooks | length > 0))
-        | if any(.[].hooks[]; .command == $h) then .
-          else . + [{matcher: "Bash", hooks: [{type: "command", command: $h}]}] end)
-    ' "$CLAUDE/settings.json")
-    if [ "$patched" != "$(jq . "$CLAUDE/settings.json")" ]; then
-      printf '%s\n' "$patched" > "$CLAUDE/settings.json"
-      echo "rtk: hook set to $RTK_HOOK"
-    fi
-  fi
+merged=$(jq -s '.[0] * .[1]' "$REPO/settings.shared.json" "$USER_SETTINGS")
+if [ -f "$SETTINGS" ] && ! diff -q <(jq -S . "$SETTINGS") <(jq -S . <<<"$merged") >/dev/null; then
+  cp -L "$SETTINGS" "$SETTINGS.bak"
+  echo "settings.json: dropping edits not in settings.shared.json or settings.user.json (old copy: $SETTINGS.bak)"
+  diff <(jq -S . "$SETTINGS.bak") <(jq -S . <<<"$merged") || true
+fi
+rm -f "$SETTINGS"
+printf '%s\n' "$merged" > "$SETTINGS"
+echo "settings.json: generated from settings.shared.json + settings.user.json"
 
 echo "Done. Install plugins manually if on a new machine (skill-creator, gopls-lsp)."
