@@ -17,6 +17,8 @@ link statusline-command.sh
 link RTK.md
 link CLAUDE.md
 
+ln -sfn "$REPO/githooks/post-merge" "$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir)/hooks/post-merge"
+
 # reflect: machine-wide command; `reflect on` inside a repo installs that repo's hooks
 if [ "${1:-}" = "--reflect" ]; then
   mkdir -p "$CLAUDE/bin"
