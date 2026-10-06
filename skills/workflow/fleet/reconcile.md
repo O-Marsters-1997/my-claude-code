@@ -45,7 +45,7 @@ Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a secti
 promoted in step 2 and any other `ready` ticket with that label, each with:
 
 - the issue number and title,
-- `Base: feat/<label>` (its blockers are merged into it, so nothing stacks across waves),
+- `Base: feat/<label>` (its blockers are merged into it),
 - the merged PR of its most relevant blocker, as the worked example.
 
 ## 5. Raise the feature PR
