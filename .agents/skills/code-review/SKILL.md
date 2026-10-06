@@ -4,10 +4,8 @@ description: >
   Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to
   "review since X". Reviews changes since a fixed point (commit, branch, tag, or merge-base)
   along two parallel axes — Standards (does this follow the repo's documented coding standards?)
-  and Spec (does this match what the originating issue asked for?) — reported side by side. On
-  Greptile-enabled repos, adds a third axis that pulls the PR bot's findings forward and
-  diagnoses each as fix-or-decline before the PR is raised. For whole-system design assessment
-  rather than a diff, use architecture-review.
+  and Spec (does this match what the originating issue asked for?) — reported side by side. For
+  whole-system design assessment rather than a diff, use architecture-review.
 ---
 
 Review of the diff between `HEAD` and a fixed point the user supplies, along two axes:
@@ -16,8 +14,6 @@ Review of the diff between `HEAD` and a fixed point the user supplies, along two
 - **Spec** — does the code faithfully implement the originating issue / spec?
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
-
-On repos where Greptile is enabled, a third **Greptile** axis runs after those two — see step 5.
 
 ## Process
 
@@ -78,31 +74,9 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
-### 5. Greptile axis (gated)
+### 5. Aggregate
 
-Greptile reviews these repos on the PR, so its findings normally land after the push. `greptile review` runs the same review locally against the branch's base, which pulls them forward. This axis runs that review and diagnoses each finding.
-
-**Gate.** Run this axis only when every check passes. On any failure, skip it, state the reason in one line, and carry on — a skipped Greptile axis must never block Standards or Spec:
-
-1. `git rev-parse --show-toplevel` resolves to a path under `~/Documents/plain/`.
-2. `git remote get-url origin` contains `support-app` or `services`. Match on the remote, not the directory name, so worktrees (`support-app-gro2-219-…`) are covered.
-3. `command -v greptile` succeeds.
-4. `greptile whoami` succeeds. If it reports not signed in, the skip line is: "Greptile axis skipped — not signed in, run `greptile login`."
-
-A CLI error from the review itself (repo not enabled, index missing) is also a skip-with-reason. Never run `greptile init` — that writes to the repo, and enabling Greptile is the user's call.
-
-**Sequencing.** Spawn this sub-agent only once the Standards and Spec sub-agents have both returned. It needs their findings to dedupe against, and its verdicts lean on what they already established.
-
-**Greptile sub-agent prompt** — include:
-
-- The fixed point, the diff command, and the commit list.
-- The command to run: `greptile review --agent`, adding `-b <fixed-point>` when the fixed point is a branch. For a SHA or tag, omit `-b` and let Greptile use the repo's default base. `--agent` is Greptile's own plain-output-for-agents mode, so no JSON parsing is needed.
-- The Standards and Spec findings in full, for dedupe.
-- The brief: "Run the review, then per finding report: (a) the finding quoted, with file and line; (b) a verdict — **fix** or **decline**; (c) the reasoning, grounded in the code you read rather than in Greptile's wording; (d) for a fix, the specific change to make; for a decline, why it's a false positive or an accepted trade-off. Read the code before judging any finding — do not take Greptile at face value. Where a finding is already covered by the Standards or Spec findings above, mark it a duplicate and don't restate it. Do not edit any files. Under 500 words."
-
-### 6. Aggregate
-
-Present the reports under `## Standards`, `## Spec`, and — when it ran — `## Greptile` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why two axes_).
+Present the reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why two axes_).
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
 
@@ -114,7 +88,3 @@ A change can pass one axis and fail the other:
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
 
 Reporting them separately stops one axis from masking the other.
-
-## Why the Greptile axis
-
-It is the PR bot's review pulled forward, so its findings get triaged on a local branch instead of as review comments after the push. It runs last because a finding the Standards or Spec axis already raised needs no second verdict, and because a diagnosis is better with those two reports in hand.

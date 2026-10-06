@@ -136,6 +136,8 @@ These skills help you write, refactor, and fix code.
   ```
 
 - **require-go-skills** (hook, wired by `settings.json` and `setup.sh`) — A global PreToolUse hook that blocks the first edit to a Go file until `go-idiomatic` has been loaded in the session, and also `testing-policy` for a `_test.go` in a project that ships that skill. It skips generated files, `vendor/` and paths with no `go.mod`, and fails open if it can't read the transcript. Skip it with `CC_GO_SKILLS_OFF=1`. Tests: `hooks/require-go-skills.test.sh`.
+- **require-codegraph** (hook, wired by `settings.json`) — A global PreToolUse hook on Grep, Glob and Bash. In a repo with a `.codegraph/` index it blocks code searches (Grep, Glob, `grep`/`rg`/`find` in Bash) until that agent has queried CodeGraph once, through the MCP tool or `codegraph explore`; after that searching is free. Searches of docs, templates, CSS and config pass, piped greps pass, Read is never gated, and each subagent needs its own query. Fails open if it cannot read the transcript. Skip it with `CC_CODEGRAPH_GATE_OFF=1`. Tests: `hooks/require-codegraph.test.sh`.
+- **Explore** (agent) — Overrides the built-in Explore subagent, which skips `CLAUDE.md`, so it queries CodeGraph first in indexed repos. It leaves `tools` unset so it inherits MCP tools.
 
 ## Writing & Knowledge
 
