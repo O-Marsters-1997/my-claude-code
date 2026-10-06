@@ -47,6 +47,9 @@ Use `rtk proxy "git push -u origin feat/<label>"` where rtk is in play.
 Before the first wave, if two or more tickets touch the same ground or follow the same
 pattern, explore it once:
 
+- Run `codegraph_explore` once over the symbols and files named in the batch's tickets (the
+  "Where to look" lists) when the repo has a `.codegraph/` index, and fold the result into the
+  brief. Subagents start from it instead of re-reading the same source.
 - Read the completed worked example, the governing ADR or design doc, and CONTEXT.md.
 - Write a short brief (files, pattern, gotchas, test command) to
   `<scratchpad>/fleet/brief.md`.
@@ -70,7 +73,12 @@ git fetch origin
 WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
 ```
 
-`<Base>` is `feat/<label>`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
+`<Base>` is `feat/<label>`, or the parent ticket's branch for a stack.
+
+The worktree's `.codegraph/` is copied in by `tp new` (when `.treepad.toml` lists it) from this
+checkout, with no sync back. It is current only because the fetch above makes this checkout
+match the base. A stacked child's copy predates its parent's diff, so point it at the parent's
+diff for new symbols. Flag any ticket that needs the index synced back. Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
 
 ## 4. Write the dispatch prompt
@@ -81,7 +89,7 @@ Fixed text first, ticket-specific text last.
 ```
 Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>.
 
-Brief: <scratchpad>/fleet/brief.md
+Brief: <scratchpad>/fleet/brief.md (start from it; /implement sets the codegraph-first exploration rule)
 Worked example: <commit or PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
