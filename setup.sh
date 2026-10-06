@@ -39,7 +39,7 @@ fi
 merged=$(jq -s '.[0] * .[1]' "$REPO/settings.shared.json" "$USER_SETTINGS")
 if [ -f "$SETTINGS" ] && ! diff -q <(jq -S . "$SETTINGS") <(jq -S . <<<"$merged") >/dev/null; then
   cp -L "$SETTINGS" "$SETTINGS.bak"
-  echo "settings.json: dropping edits not in settings.shared.json or settings.user.json (old copy: $SETTINGS.bak)"
+  echo "settings.json: changes below (< old, > new); old copy at $SETTINGS.bak. Move any < lines you want to keep into settings.shared.json or settings.user.json"
   diff <(jq -S . "$SETTINGS.bak") <(jq -S . <<<"$merged") || true
 fi
 rm -f "$SETTINGS"
