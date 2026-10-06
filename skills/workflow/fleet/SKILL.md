@@ -3,7 +3,7 @@ name: fleet
 description: >
   Run a batch of tickets through parallel worktrees, wave by wave. Two subcommands:
   `/fleet dispatch <label>` fans /implement out across the ready tickets carrying that feature
-  label, one subagent per ticket, and returns the PRs in a conflict-free merge order;
+  label, one subagent per ticket, and rebases conflicting PRs so they merge cleanly in a fixed order;
   `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, writes the handoff for the next dispatch, and opens
   the feature's PR into main once no tickets are left.

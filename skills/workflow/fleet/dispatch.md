@@ -14,22 +14,16 @@ gh issue list --state open --label "<label>" --label "status:ready" --json numbe
 
 If `<scratchpad>/fleet/state.md` exists and its label matches, reconcile already chose each
 ticket's base and worked example. Take those as given and skip to step 2, keeping only the
-inline and stack-depth checks below. A `state.md` for a different label is stale; ignore it.
+inline check below. A `state.md` for a different label is stale; ignore it.
 
-Otherwise, for each ticket, decide: inline, dispatch now, or dispatch later.
+Otherwise, for each ticket, decide: inline or dispatch.
 
 - **Inline.** Single-file change, no schema or API change, no new tests beyond one case.
   Do it in this session. A `tp` worktree, a subagent spawn and a skill reload cost more than
   the ticket.
-- **Dependency order.** If tickets form a chain (a staged migration, a series of
-  refactors), stack them: ticket N branches off N-1's branch and its PR targets that
-  branch, so N starts once N-1 is committed, not merged. Its prompt points at N-1's
-  diff as the worked example. Independent tickets branch off `feat/<label>` and share a wave.
-- **Stack depth.** Cap a stack at 3. A rejected approach low in the stack wastes
-  everything above it, so if the chain is longer, leave the rest for the next wave.
-- **Shared files.** Two independent tickets that name the same file will likely conflict at
-  merge time. Stack one on the other, or leave one for the next wave, rather than dispatching
-  both off `feat/<label>`.
+- **Everything else.** Dispatch every ready ticket in parallel off `feat/<label>`. Real
+  dependencies live in `## Blocked by`, so a ready ticket is never waiting on another. Tickets
+  that touch the same files are expected to conflict; step 6 resolves that after the work is done.
 
 ## 1b. Ensure the feature branch
 
@@ -70,10 +64,10 @@ so the base is never stale and the subagent has no reason to reset its branch:
 
 ```bash
 git fetch origin
-WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "<Base>" 3>&1 1>&2)
+WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "origin/feat/<label>" 3>&1 1>&2)
 ```
 
-`<Base>` is `feat/<label>`, or the parent ticket's branch for a stack. Use `tp exec <branch> -- <cmd>`
+Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
 
 ## 4. Write the dispatch prompt
@@ -85,13 +79,13 @@ Fixed text first, ticket-specific text last.
 Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>.
 
 Brief: <scratchpad>/fleet/brief.md
-Worked example: <commit or PR of the previous wave, if any>
+Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
-Base: <parent ticket's branch, or feat/<label>>
+Base: feat/<label>
 
 Done means: code-simplifier run once and /code-review medium run, findings applied, committed
-on the branch, draft PR open with `gh pr create --draft --base <Base>` (never `main`), result written.
+on the branch, draft PR open with `gh pr create --draft --base feat/<label>` (never `main`), result written.
 Skipping either review pass is not allowed; return `blocked` instead.
 Read with Read and Grep on absolute paths. Don't chain `cd … && cat; grep; …` across a sibling
 worktree: the auto-mode classifier has denied such chains as destructive. If a command is denied,
@@ -121,49 +115,42 @@ run on a flaky failure.
 - Cap concurrent Docker-backed test runs at 2 across the batch. If the tickets need more,
   split the wave.
 
-## 6. Stacked chains within the wave
+## 6. Integrate
 
-Only for chains dispatched together. Cross-wave sequencing is `reconcile`.
+Once every subagent has returned, make the wave merge into `feat/<label>` with no conflict in a
+fixed order. The tickets were built in parallel, so conflicts are expected and are fixed here,
+before review, so the next wave starts from merged work.
 
-1. Link each chain's PRs into a GitHub stack, bottom to top: `gh stack link <b1> <b2> …`.
-   It works from branch names alone, with no local stack state, so it doesn't care
-   which worktree built each branch. If `gh stack` is missing, skip this; the `--base`
-   chaining in the dispatch prompt already gives reviewers the ordered diffs. Install with
-   `gh extension install github/gh-stack`.
-2. If review changed a lower PR, restack before dispatching anything above it. Remove the
-   finished worktrees first with `tp remove <branch>` (git won't rebase a branch checked out
-   in another worktree),
-   then from the main checkout: `gh stack init <b1> <b2> …` to adopt the branches, and
-   `gh stack sync`. On a conflict, sync restores every branch; resolve it with
-   `gh stack rebase` yourself, not in a subagent.
-
-## 7. Merge order
-
-Once every subagent has returned, work out an order in which the wave's PRs merge into
-`feat/<label>` one after another without a conflict. Simulate it with `git merge-tree`, which
-needs no worktree and touches no branch:
+Simulate with `git merge-tree`, which needs no worktree and touches no branch:
 
 ```bash
 git fetch origin
 TIP=$(git rev-parse "origin/feat/<label>")
-# for each candidate PR branch B, in turn:
+# for each PR branch B, in order:
 TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
   && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
 ```
 
-`git merge-tree` exits non-zero on a conflict and prints the conflicting paths.
+It exits non-zero on a conflict and prints the conflicting paths.
 
-1. Stacks go bottom to top, and each stack is one unit: simulate only its top branch, which
-   contains the ones below it.
-2. Greedily pick the next unit that merges cleanly onto the current `TIP`, preferring the
-   lowest issue number on a tie, until none is left.
-3. A unit that conflicts whatever comes before it can't be ordered away. Rebase its branch
-   onto the conflicting unit's branch and retarget its PR (`gh pr edit <PR> --base <branch>`),
-   turning the pair into a stack, then resolve the conflict yourself, not in a subagent.
-   If that would breach the stack-depth cap, put the unit last and flag it: once the others
-   merge, it needs `git rebase origin/feat/<label>` before it can go in.
+1. **Order.** Greedily pick the next PR that merges cleanly onto the current `TIP`, lowest issue
+   number on a tie. A PR that conflicts whatever comes before it goes last.
+2. **Fix.** For each PR `B` that conflicts, find the earlier PR `A` whose files it collides
+   with. In B's worktree, rebase B onto A's branch (`tp exec <B> -- git rebase origin/<A>`) and
+   give any conflict to a resolver subagent, one per PR. It gets both diffs and both tickets' intent,
+   resolves, runs the scoped tests, and continues the rebase. Then
+   `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so B's review diff shows only
+   its own ticket. When A merges, GitHub retargets B to `feat/<label>`, and B merges cleanly
+   because it already carries A's change.
+3. **Verify.** Re-run the simulation over the final order. Every step must be clean. If a PR
+   still conflicts, repeat step 2 once. If it still conflicts, stop and name that PR and its
+   conflicting paths for the user to resolve by prompt; leave the rest as they are.
 
-## 8. After the batch
+Comment on each rebased PR with the files the resolver touched, so review checks them first.
+If review changes a PR that others are stacked on, restack them with
+`git rebase --onto origin/feat/<label> <old-parent> <child>` before merging.
+
+## 7. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio
@@ -172,9 +159,9 @@ per-ticket text too early). Fix the template before the next batch.
 
 Report to the user:
 
-- the merge order from step 7 as a numbered list, one PR per line (`1. #151 issue-142/stuck-scrape-run`),
-  with any flagged unit marked and why;
-- the blocked tickets with their reason.
+- the merge order as a numbered list, one PR per line (`1. #151 issue-142/stuck-scrape-run`),
+  marking each PR the resolver rebased and why;
+- the blocked tickets with their reason, and any PR left for a manual conflict prompt.
 
 Tell them to merge in that order, and once the wave has merged, to run
 `/fleet reconcile <label>` with the label filled in.
