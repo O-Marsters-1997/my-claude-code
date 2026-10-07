@@ -45,7 +45,9 @@ runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass
 Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
 change, right before /code-review.
 
-Once done, use /code-review medium to review the work, or low for a small fix.
+Once done, use /code-review medium to review the work, or low for a small fix. Pass it the
+worktree path and the diff against `Base:` (`git -C <worktree> diff origin/<base>...HEAD`). If
+that diff is empty, stop and report; never fall back to `HEAD~1`.
 
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
