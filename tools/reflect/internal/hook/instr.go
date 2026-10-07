@@ -3,61 +3,12 @@ package hook
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 )
-
-const seenSessionsMax = 64
-
-type instrState struct {
-	Hash  string            `json:"hash"`
-	Files map[string]string `json:"files"`
-	Seen  map[string]string `json:"seen"`
-}
-
-func seenMark(hash, branch string) string { return hash + "@" + branch }
-
-func statePath(dir string) string { return filepath.Join(dir, "instr.json") }
-
-func loadInstrState(dir string) instrState {
-	var st instrState
-	if b, err := os.ReadFile(statePath(dir)); err == nil {
-		_ = json.Unmarshal(b, &st)
-	}
-	return st
-}
-
-func saveInstrState(dir string, st instrState) {
-	b, err := json.Marshal(st)
-	if err != nil {
-		return
-	}
-	_ = os.WriteFile(statePath(dir), b, 0o644)
-}
-
-func diffFiles(prev, cur map[string]string) (added, changed map[string]string, removed []string) {
-	added, changed = map[string]string{}, map[string]string{}
-	for path, h := range cur {
-		old, ok := prev[path]
-		switch {
-		case !ok:
-			added[path] = h
-		case old != h:
-			changed[path] = h
-		}
-	}
-	for path := range prev {
-		if _, ok := cur[path]; !ok {
-			removed = append(removed, path)
-		}
-	}
-	sort.Strings(removed)
-	return added, changed, removed
-}
 
 var instrGlobs = []string{
 	"AGENTS.md",

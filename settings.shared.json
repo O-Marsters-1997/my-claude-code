@@ -62,6 +62,17 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/bin/reflect hook 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -93,5 +104,6 @@
       "Bash(psql:* -c DROP*)",
       "Bash(psql:* -c TRUNCATE*)"
     ]
-  }
+  },
+  "cleanupPeriodDays": 90
 }

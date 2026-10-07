@@ -1,41 +1,54 @@
 ---
 name: reflect
 description: >
-  Review this session's logged agent confusion (hallucinated paths and symbols,
-  repeated failures, edit churn, user corrections) and propose amendments to
-  AGENTS.md, skills, agents, rules or hooks. Also switches per-repo logging on
-  and off. Use only when invoked as /reflect, /reflect on, /reflect off,
-  /reflect status or /reflect metrics.
+  Review a session's transcripts (the main agent and every subagent it spawned) for confusion
+  and waste, such as hallucinated paths and symbols, repeated failures, edit churn, user
+  corrections, expensive or redundant tool calls and long hunts for a file, then file GitHub
+  issues for the fixes the user approves. Also reports instruction-file metrics. Use only when
+  invoked as /reflect, /reflect <session id>, /reflect metrics or /reflect status.
 disable-model-invocation: true
-argument-hint: "[on|off|status|metrics]"
-allowed-tools: Bash(~/.claude/bin/reflect *), Read, Grep, Glob, Write
+argument-hint: "[<session id>|metrics|status]"
+allowed-tools: Bash(~/.claude/bin/reflect *), Bash(gh issue *), Bash(gh label *), Bash(git -C *), Read, Grep, Glob, Write, Agent
 ---
 
 # Reflect
 
-Logging is capture-only and runs in hooks (`tools/reflect`). This skill reads the log for
-the current session and writes proposals. It never edits instruction files.
+`~/.claude/bin/reflect` reads Claude Code's own transcripts, so nothing has to be switched on
+first. This skill never edits instruction files: approved fixes become GitHub issues.
 
 Arguments: `$ARGUMENTS`
 
-## Switch and metrics
+## Metrics and status
 
-If the first argument is `on`, `off`, `status` or `metrics`, run
-`~/.claude/bin/reflect <argument>`, print its output verbatim and stop. Logging is off
-in a repo until `/reflect on` writes its hooks into `.claude/settings.local.json`; that needs
-`./setup.sh --reflect` once per machine.
+- `metrics`: run `~/.claude/bin/reflect metrics --exclude ${CLAUDE_SESSION_ID}`.
+- `status`: run `~/.claude/bin/reflect status`.
 
-## Analyse this session
+Print the output verbatim and stop.
 
-1. Run `~/.claude/bin/reflect show ${CLAUDE_SESSION_ID}`. It covers this session and every
-   subagent it spawned, and nothing else. If it prints `no qualifying signals`, say so and
-   stop. If the log is missing, tell the user to run `/reflect on` and stop.
-2. For each finding, read the transcript around its `tool_use_id`. Grep the id in the
-   transcript named on the header line (an event line names its own `transcript=` only for
-   a subagent) and read about 20 lines either side. Transcripts older than
-   `cleanupPeriodDays` are gone; work from the logged input and error and say so.
-3. Infer why the agent struggled. Ask what an instruction, skill or hook would have had to
-   say to prevent it. A finding with no such answer is dropped, not padded.
-4. Route each amendment per [references/routing.md](references/routing.md).
-5. Write proposals per [references/proposal-format.md](references/proposal-format.md).
-6. Reply with the proposal file paths and one line per item. Do not apply anything.
+## Review a session
+
+1. **Scan.** Run `~/.claude/bin/reflect scan <sid>`, where `<sid>` is the argument if one was
+   given, else `${CLAUDE_SESSION_ID}`. On a non-zero exit, relay the message and stop; live agents
+   mean the user waits and reruns. The scan already leaves out this `/reflect` turn and earlier ones.
+2. **Fan out.** In one message, spawn one `Agent` per index row whose verdict is `review`, with
+   `subagent_type: general-purpose` and `model: sonnet`. The prompt is
+   [references/reviewer.md](references/reviewer.md) with `{{SID}}`, `{{AGENT}}` and `{{DIGEST}}`
+   filled in. Do not read the digests yourself first.
+3. **Synthesise** the reviewers' findings:
+   - Merge findings that share a cause and a target file into one item, keeping every `fp`.
+   - Drop a finding no instruction, skill, agent definition, hook or check could have prevented.
+   - Route each item per [references/routing.md](references/routing.md). A deterministic fix
+     (hook, lint rule, CI job) beats a sentence of prose.
+   - Repo-level checks run only when an item points at them: a mistake a linter would catch means
+     checking for a pre-commit hook or CI job running lint, typecheck and tests; an ignored
+     instruction means checking whether `AGENTS.md`/`CLAUDE.md` is oversized or the line is a no-op.
+   - Sort into **Accepted** (worth an issue now), **Backlog** (real but one-off or cheap; listed,
+     not filed) and **Rejected** (with the reason).
+4. **Report.** Write `<YYYY-MM-DD>-<first 8 of sid>.md` in the directory printed by
+   `~/.claude/bin/reflect reports`: the scan index, then the three lists with evidence, then the
+   `overflow` agents as not reviewed.
+5. **Triage in chat.** Number the Accepted items, one line each with target file and owning repo.
+   One line per Backlog and Rejected item, and a count of `skip` and `overflow` agents. Ask which
+   Accepted items to file, then wait.
+6. **File** the approved items per [references/issue-format.md](references/issue-format.md). Reply
+   with one line per item: the issue URL, and whether it is new or a comment on an existing one.
