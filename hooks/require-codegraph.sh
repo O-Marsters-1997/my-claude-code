@@ -5,6 +5,23 @@ command -v jq >/dev/null || exit 0
 INPUT=$(cat)
 TOOL=$(jq -r '.tool_name // empty' <<<"$INPUT")
 CWD=$(jq -r '.cwd // empty' <<<"$INPUT")
+
+reads_ref() {
+	local words tok have_pattern=0
+	read -ra words <<<"$(sed -E 's/^.*git[[:space:]]+grep//; s/[;&|].*//' <<<"$1")"
+	for tok in "${words[@]}"; do
+		tok=${tok//[\'\"]/}
+		[ "$tok" = -- ] && return 1
+		[ "$tok" = -e ] && have_pattern=1
+		[[ $tok == -* ]] && continue
+		if [ "$have_pattern" = 0 ]; then
+			have_pattern=1
+			continue
+		fi
+		git -C "${CWD:-.}" rev-parse --verify -q "$tok^{commit}" >/dev/null 2>&1 && return 0
+	done
+	return 1
+}
 NON_CODE='\.(md|mdx|txt|tmpl|html|css|json|jsonl|toml|ya?ml|sql|lock|log|env|sh)\b|(^|[/ "'\''])(docs|ideas|\.claude|\.codegraph|node_modules|testdata)(/|\b)'
 
 case "$TOOL" in
@@ -13,6 +30,7 @@ Glob) TARGET=$(jq -r '[.tool_input.path, .tool_input.pattern] | map(select(. != 
 Bash)
 	TARGET=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 	grep -qE '(^|&&|;|\|\||\$\()[[:space:]]*(rtk[[:space:]]+)?(rg|grep|egrep|ag|find|git[[:space:]]+grep)([[:space:]]|$)' <<<"$TARGET" || exit 0
+	grep -qE 'git[[:space:]]+grep' <<<"$TARGET" && reads_ref "$TARGET" && exit 0
 	;;
 *) exit 0 ;;
 esac
@@ -23,6 +41,7 @@ DIR=$(jq -r '.tool_input.path // empty' <<<"$INPUT")
 [ -d "$DIR" ] && [ "$DIR" != . ] || DIR=$CWD
 ROOT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -f "$ROOT/.codegraph/codegraph.db" ] || exit 0
+[ "$(git -C "$ROOT" rev-parse --absolute-git-dir)" = "$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)" ] || exit 0
 
 TRANSCRIPT=$(jq -r '.agent_transcript_path // empty' <<<"$INPUT")
 if [ -z "$TRANSCRIPT" ]; then
