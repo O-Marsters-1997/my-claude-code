@@ -30,17 +30,27 @@ Print the output verbatim and stop.
 1. **Scan.** Run `~/.claude/bin/reflect scan <sid>`, where `<sid>` is the argument if one was
    given, else `${CLAUDE_SESSION_ID}`. On a non-zero exit, relay the message and stop; live agents
    mean the user waits and reruns. The scan already leaves out this `/reflect` turn and earlier ones.
-2. **Fan out.** In one message, spawn one `Agent` per index row whose verdict is `review`, with
-   `subagent_type: reflect-reviewer`. The prompt is three lines: `Session: <sid>`,
-   `Agent: <agent>` and `Digest: <digest path>`. Do not read the digests yourself first.
+2. **Fan out.** In one message, spawn with `subagent_type: reflect-reviewer`:
+   - one `Agent` per `cluster` line of the index, with the prompt `Session: <sid>`, `Cluster:
+     <mechanism>` and one `<agent> L<n>` instance per line after it;
+   - one `Agent` per index row whose verdict is `review`, with three lines: `Session: <sid>`,
+     `Agent: <agent>` and `Digest: <digest path>`. Clustered events are already excluded from the
+     verdicts, so agents left with no flags are `skip`.
+
+   Do not read the digests yourself first.
 3. **Synthesise** the reviewers' findings:
+   - Drop any finding whose claim or rejected alternative carries no `evidence`.
    - Merge findings that share a cause and a target file into one item, keeping every `fp`.
+     Per-agent findings that share a cause across two or more agents become a new cluster item.
    - Drop a finding no instruction, skill, agent definition, hook or check could have prevented.
    - Route each item per [references/routing.md](references/routing.md). A deterministic fix
      (hook, lint rule, CI job) beats a sentence of prose.
    - Repo-level checks run only when an item points at them: a mistake a linter would catch means
      checking for a pre-commit hook or CI job running lint, typecheck and tests; an ignored
      instruction means checking whether `AGENTS.md`/`CLAUDE.md` is oversized or the line is a no-op.
+   - **Verify** every cluster fix: apply it to a copy of the mechanism's source in the scratchpad,
+     then run `~/.claude/bin/reflect replay` on each instance against it. A fix that still blocks
+     an instance goes back to its reviewer once for rework, else the item is Rejected.
    - Sort into **Accepted** (worth an issue now), **Backlog** (real but one-off or cheap; listed,
      not filed) and **Rejected** (with the reason).
 4. **Report.** Write `<YYYY-MM-DD>-<first 8 of sid>.md` in the directory printed by

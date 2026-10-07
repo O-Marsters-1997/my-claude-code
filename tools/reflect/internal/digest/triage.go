@@ -16,11 +16,15 @@ const (
 func (d Digest) actionable() int {
 	n := 0
 	for _, s := range d.Signals {
-		if s.Tag != Big && s.Tag != Reread {
+		if s.Tag != Big && s.Tag != Reread && s.Cluster == "" {
 			n++
 		}
 	}
 	return n
+}
+
+func (d Digest) clustered() bool {
+	return slices.ContainsFunc(d.Signals, func(s Signal) bool { return s.Cluster != "" })
 }
 
 func Triage(ds []Digest, limit int) map[string]string {
@@ -29,7 +33,7 @@ func Triage(ds []Digest, limit int) map[string]string {
 	out := map[string]string{}
 	for _, d := range ds {
 		out[d.Agent.ID] = Skip
-		if d.Agent.ID == session.MainID || d.actionable() > 0 || d.TokensIn > heavy {
+		if d.Agent.ID == session.MainID || d.actionable() > 0 || d.TokensIn > heavy && !d.clustered() {
 			wanted = append(wanted, d)
 		}
 	}

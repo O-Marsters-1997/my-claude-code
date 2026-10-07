@@ -15,13 +15,14 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/legacy"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/record"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/replay"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/scan"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/session"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/status"
 )
 
-const usage = "usage: reflect scan|slice|metrics|status|reports|uninstall-legacy|hook"
+const usage = "usage: reflect scan|slice|replay|metrics|status|reports|uninstall-legacy|hook"
 
 var library string
 
@@ -64,6 +65,8 @@ func run(e env, cmd string, args []string) (string, error) {
 		return runScan(e, args)
 	case "slice":
 		return runSlice(e, args)
+	case "replay":
+		return runReplay(e, args)
 	case "metrics":
 		return runMetrics(e, args)
 	case "status":
@@ -110,6 +113,28 @@ func runSlice(e env, args []string) (string, error) {
 		return "", err
 	}
 	return scan.Slice(s, fs.Arg(1), line, *context)
+}
+
+func runReplay(e env, args []string) (string, error) {
+	fs := flag.NewFlagSet("replay", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	cwd := fs.String("cwd", "", "directory to run the hook from, default the recorded one")
+	command := fs.String("command", "", "Bash command to feed the hook instead of the recorded one")
+	const replayUsage = "usage: reflect replay <session_id> <agent|main> <line> [--cwd dir] [--command cmd]"
+	if err := fs.Parse(reorder(args)); err != nil || fs.NArg() != 3 {
+		return "", errors.New(replayUsage)
+	}
+	line, err := strconv.Atoi(fs.Arg(2))
+	if err != nil {
+		return "", errors.New(replayUsage)
+	}
+	s, err := session.Load(e.projects(), fs.Arg(0))
+	var live *session.LiveError
+	if err != nil && !errors.As(err, &live) {
+		return "", err
+	}
+	home, _ := os.UserHomeDir()
+	return replay.Run(s, fs.Arg(1), line, replay.Options{Home: home, Cwd: *cwd, Command: *command})
 }
 
 func runMetrics(e env, args []string) (string, error) {
