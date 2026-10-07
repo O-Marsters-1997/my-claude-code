@@ -79,13 +79,14 @@
       "**Repository visibility**: repos under github.com/O-Marsters-1997 are public. Only each repo's own work belongs in it",
       "**Primary use of Claude Code**: software development across personal repos under ~/Documents/coding, often with parallel agents working one worktree per ticket",
       "**Org-specific CLIs**: rtk, tp (treepad), codegraph, gh, safehouse, cmux. Personal tooling, routine to run",
-      "command-center specifics: squash-merge only; .github/**, go.mod, go.sum and .golangci.yml are deny-listed for agent pushes"
+      "command-center specifics: squash-merge only"
     ],
     "allow": [
       "$defaults",
       "In any repo, while running /fleet dispatch: pushing an issue-<N>/<slug> branch and opening a draft PR from it with gh pr create --draft --base feat/<label> is authorized. Never push to main or feat/* directly.",
       "In any repo, while running /fleet dispatch: force-pushing with --force-with-lease to an issue-<N>/<slug> branch, and retargeting that branch's PR with gh pr edit --base, is authorized. This covers restacking a ticket branch onto a sibling ticket branch. Never push to main or feat/* directly.",
-      "In ~/Documents/coding/ai-development/my-claude-code, editing settings.shared.json on a new branch and opening a PR for it is authorized when the user asks. Never edit ~/.claude/settings.json or ~/.claude/settings.user.json, and never merge the PR."
+      "In ~/Documents/coding/ai-development/my-claude-code, editing settings.shared.json on a new branch and opening a PR for it is authorized when the user asks. Never edit ~/.claude/settings.json or ~/.claude/settings.user.json, and never merge the PR.",
+      "In any repo, editing CI workflow files under .github/workflows/ on a ticket or feature branch, and pushing that branch, is authorized: fixing a failing check, correcting stale paths or steps, and updating workflows to match code changes. Never push to main directly, and never exfiltrate secrets or weaken branch protection."
     ],
     "soft_deny": [
       "$defaults",
