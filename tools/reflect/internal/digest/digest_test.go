@@ -177,3 +177,26 @@ func TestTriage(t *testing.T) {
 		t.Errorf("Triage() (-want +got):\n%s", diff)
 	}
 }
+
+func TestRenderMarksTheFailedCallOfAParallelPair(t *testing.T) {
+	s := &script{t: t}
+	s.add(map[string]any{"type": "assistant", "message": map[string]any{"id": "m1", "content": []any{
+		map[string]any{"type": "tool_use", "id": "ta", "name": "Read", "input": map[string]any{"file_path": "/r/a.go"}},
+		map[string]any{"type": "tool_use", "id": "tb", "name": "Read", "input": map[string]any{"file_path": "/r/b.go"}},
+	}}})
+	s.add(map[string]any{"type": "user", "message": map[string]any{"content": []any{
+		map[string]any{"type": "tool_result", "tool_use_id": "ta", "content": "File does not exist.", "is_error": true},
+		map[string]any{"type": "tool_result", "tool_use_id": "tb", "content": "package b"},
+	}}})
+
+	out := digest.Build(s.agent("a1")).Render()
+
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, "/r/b.go") && strings.Contains(line, "FAIL") {
+			t.Errorf("Render() marks b.go as failed:\n%s", out)
+		}
+		if strings.Contains(line, "/r/a.go") && !strings.Contains(line, "FAIL") {
+			t.Errorf("Render() does not mark a.go as failed:\n%s", out)
+		}
+	}
+}

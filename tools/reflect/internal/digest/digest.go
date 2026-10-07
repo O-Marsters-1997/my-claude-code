@@ -98,7 +98,7 @@ type builder struct {
 	edits     map[string][]edit
 	reads     map[string]bool
 	seenMsgs  map[string]bool
-	stepAt    map[int]int
+	stepAt    map[string]int
 }
 
 type useSite struct {
@@ -114,7 +114,7 @@ func Build(a *session.Agent) Digest {
 		edits:     map[string][]edit{},
 		reads:     map[string]bool{},
 		seenMsgs:  map[string]bool{},
-		stepAt:    map[int]int{},
+		stepAt:    map[string]int{},
 	}
 	for _, l := range a.Lines {
 		b.line(l)
@@ -157,7 +157,7 @@ func (b *builder) assistant(l transcript.Line) {
 		}
 		b.d.Calls++
 		b.uses[blk.ID] = useSite{l.N, blk}
-		b.stepAt[l.N] = len(b.d.steps)
+		b.stepAt[blk.ID] = len(b.d.steps)
 		b.d.steps = append(b.d.steps, step{line: l.N, kind: "call", tool: blk.Name, target: target(blk)})
 	}
 }
@@ -183,7 +183,7 @@ func (b *builder) result(blk transcript.Block) {
 		return
 	}
 	text := blk.ResultText()
-	st := &b.d.steps[b.stepAt[use.line]]
+	st := &b.d.steps[b.stepAt[blk.ToolUseID]]
 	st.size = len(text)
 	var in input
 	_ = json.Unmarshal(use.block.Input, &in)
