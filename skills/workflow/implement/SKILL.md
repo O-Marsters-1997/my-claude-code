@@ -19,6 +19,9 @@ only files you are about to edit or that it didn't surface. If a fleet brief is 
 it. For research broader than one query, use a cheap exploration subagent (e.g. Explore) and take
 its distilled summary rather than grepping and reading extensively yourself in this session.
 
+In a repo with a `.codegraph/` index, make `codegraph_explore` over the files and symbols the
+ticket names your first lookup, before any grep or search.
+
 Load the standards skill for each language this change touches before editing a file in
 it, and follow it as written. Existing code that breaks the standard is not licence to
 match it.
