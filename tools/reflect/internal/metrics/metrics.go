@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -44,7 +45,8 @@ func Report(o Options) string {
 			continue
 		}
 		s, err := session.Load(o.Projects, r.SessionID)
-		if err != nil {
+		var live *session.LiveError
+		if err != nil && !errors.As(err, &live) {
 			continue
 		}
 		if byHash[r.InstrHash] == nil {

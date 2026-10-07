@@ -76,6 +76,9 @@ func TestBuildTagsSignals(t *testing.T) {
 	s.call("Edit", map[string]any{"file_path": "/r/b.go", "old_string": "m", "new_string": "n"}, "ok", false)
 	s.call("Edit", map[string]any{"file_path": "/r/b.go", "old_string": "n", "new_string": "o"}, "ok", false)
 	s.call("Bash", map[string]any{"command": "cat big.log"}, strings.Repeat("x", 25000), false)
+	for range 2 {
+		s.call("Read", map[string]any{"file_path": "/r/missing.go"}, "File does not exist.", true)
+	}
 
 	got := tagsAt(digest.Build(s.agent("a1")))
 
@@ -89,6 +92,8 @@ func TestBuildTagsSignals(t *testing.T) {
 		19: {digest.Revert},
 		23: {digest.Churn},
 		25: {digest.Big},
+		27: {digest.Halluc},
+		29: {digest.Halluc, digest.Repeat},
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("Build() tags by line (-want +got):\n%s", diff)

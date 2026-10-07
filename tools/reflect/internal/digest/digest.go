@@ -213,11 +213,11 @@ func (b *builder) failure(use useSite, text string) {
 	text = strings.NewReplacer("<tool_use_error>", "", "</tool_use_error>", "").Replace(text)
 	class := detect.Classify(use.block.Name, text)
 	key := detect.Fingerprint(use.block.Name, class, use.block.Input, text)
+	tag := Fail
 	if detect.IsHallucination(class) || class == detect.ReadFirst {
-		b.tag(Halluc, use.line, key, class)
-		return
+		tag = Halluc
 	}
-	b.tag(Fail, use.line, key, class)
+	b.tag(tag, use.line, key, class)
 	if b.failsByFP[key]++; b.failsByFP[key] >= repeatMin {
 		b.tag(Repeat, use.line, key, class)
 	}
