@@ -16,11 +16,15 @@ If `<scratchpad>/fleet/state.md` exists and its label matches, reconcile already
 ticket's base and worked example. Take those as given and skip to step 2, keeping only the
 inline check below. A `state.md` for a different label is stale; ignore it.
 
-Otherwise, for each ticket, decide: inline or dispatch.
+Otherwise, for each ticket, decide: inline, bundle or dispatch. A ticket is **tiny** when it
+carries `size:xs`, or is a single-file change with no schema or API change and no new tests
+beyond one case.
 
-- **Inline.** Single-file change, no schema or API change, no new tests beyond one case.
-  Do it in this session. A `tp` worktree, a subagent spawn and a skill reload cost more than
-  the ticket.
+- **Inline.** The batch's only tiny ticket. Do it in this session. A `tp` worktree, a subagent
+  spawn and a skill reload cost more than the ticket.
+- **Bundle.** Two or more tiny tickets go to one subagent in one worktree, worked in sequence
+  with one commit each, on the bundle branch (see Shared conventions in SKILL.md). One spawn
+  and one review instead of one per ticket.
 - **Everything else.** Dispatch every ready ticket in parallel off `feat/<label>`. Real
   dependencies live in `## Blocked by`, so a ready ticket is never waiting on another. Tickets
   that touch the same files are expected to conflict; step 6 resolves that after the work is done.
@@ -57,7 +61,8 @@ lookup default to general-purpose; it costs as much as the implementation.
 All worktree work goes through `tp` (see the treepad skill), never `git worktree`. `tp new`
 also syncs the local configs a bare worktree lacks.
 
-**Name.** The ticket branch, `issue-<N>/<short-title>` (see Shared conventions in SKILL.md).
+**Name.** The ticket branch, `issue-<N>/<short-title>`, or the bundle branch for a bundle (see
+Shared conventions in SKILL.md).
 
 **Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you). Fetch first
 so the base is never stale and the subagent has no reason to reset its branch:
@@ -83,10 +88,11 @@ Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
 Base: feat/<label>
+Size: <xs|s|unsized, from the ticket's size:* label>
 
-Done means: code-simplifier run once and /code-review medium run, findings applied, committed
+Done means: the review passes /implement requires for this size run, findings applied, committed
 on the branch, draft PR open with `gh pr create --draft --base feat/<label>` (never `main`), result written.
-Skipping either review pass is not allowed; return `blocked` instead.
+Skipping a required review pass is not allowed; return `blocked` instead.
 Read with Read and Grep on absolute paths. Don't chain `cd … && cat; grep; …` across a sibling
 worktree: the auto-mode classifier has denied such chains as destructive. If a command is denied,
 return `blocked` with the denied command verbatim.
@@ -96,6 +102,10 @@ Return exactly one line and nothing else:
 Example: 142 done https://github.com/o/r/pull/151 reviewed=yes /tmp/…/fleet/142.md
 ```
 
+- For a bundle, the first line names every issue in order (`Run /implement for issues #142,
+  #145, #150 in worktree …`), `<N>` elsewhere is the lowest issue number, and `Size: xs`. The
+  return line lists every number comma-separated (`142,145,150 done <PR URL> …`), and the
+  ticket labels move together.
 - Name exact files when the mapping is written down anywhere. "Explore the area" is for
   the case where it isn't.
 - The one-line return is the contract. Read a ticket's report file only when its status

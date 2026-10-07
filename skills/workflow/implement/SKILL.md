@@ -28,6 +28,15 @@ skill's own comment guidance.
 
 Use /tdd where possible, at pre-agreed seams.
 
+A ticket carrying `size:xs`, or a dispatch prompt saying `Size: xs`, is a small fix: keep the
+diff to what the ticket asks, with no adjacent refactors. Skip /tdd unless the fix changes
+observable behaviour, and then add one regression test. Skip code-simplifier. Review with
+/code-review low instead of medium.
+
+Given several issues at once (a fleet bundle), work them in the order given, one commit per
+issue whose message ends `Closes #<N>`, and repeat each `Closes #<N>` line in the PR body. Run
+the review passes once, over the whole bundle.
+
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 For the regular checks, run the narrowest command that proves the point (a single test file
 or package, e.g. `go test ./path -run TestName`) rather than the project's full test/lint
@@ -36,7 +45,7 @@ runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass
 Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
 change, right before /code-review.
 
-Once done, use /code-review medium to review the work.
+Once done, use /code-review medium to review the work, or low for a small fix.
 
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the

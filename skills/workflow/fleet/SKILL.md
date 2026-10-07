@@ -6,7 +6,8 @@ description: >
   label, one subagent per ticket, and rebases conflicting PRs so they merge cleanly in a fixed order;
   `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, writes the handoff for the next dispatch, and opens
-  the feature's PR into main once no tickets are left.
+  the feature's PR into main once no tickets are left. A /sweep's `sweep-YYYY-MM-DD` label
+  works as a feature label.
   Use for "fan out these tickets", "implement these issues in parallel", "for each ready
   ticket create a worktree and delegate to a subagent", "reconcile the wave", "what's
   unblocked now", "close out the merged tickets", "set up the next wave". For a single
@@ -42,6 +43,9 @@ Both halves rely on these, so they are defined once here.
 - **Ticket branch.** `issue-<N>/<short-title>`: `<N>` is the issue number, `<short-title>` a
   kebab-case slug of the issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch
   creates it, /implement works on it, reconcile removes it.
+- **Bundle branch.** `issue-<N>/tiny-bundle`, `<N>` the lowest issue number in the bundle. One
+  PR whose body has a `Closes #<N>` line per bundled ticket, which is how reconcile matches it
+  to each of them.
 - **`state.md`.** Reconcile writes it, dispatch reads it. It opens with the feature label, then
   has one section per unblocked ticket with its number, base branch, and the merged PR to use as
   the worked example.
