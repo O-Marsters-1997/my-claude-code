@@ -34,9 +34,8 @@ func Triage(ds []Digest, limit int) map[string]string {
 		}
 	}
 	slices.SortStableFunc(wanted, func(a, b Digest) int {
-		isMain := func(d Digest) bool { return d.Agent.ID == session.MainID }
-		if isMain(a) != isMain(b) {
-			if isMain(a) {
+		if aMain, bMain := a.Agent.ID == session.MainID, b.Agent.ID == session.MainID; aMain != bMain {
+			if aMain {
 				return -1
 			}
 			return 1
@@ -44,8 +43,9 @@ func Triage(ds []Digest, limit int) map[string]string {
 		return cmp.Or(cmp.Compare(b.actionable(), a.actionable()), cmp.Compare(b.TokensIn, a.TokensIn))
 	})
 	for i, d := range wanted {
-		out[d.Agent.ID] = Review
-		if i >= limit {
+		if i < limit {
+			out[d.Agent.ID] = Review
+		} else {
 			out[d.Agent.ID] = Overflow
 		}
 	}

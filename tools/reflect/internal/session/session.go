@@ -111,6 +111,7 @@ func Load(projectsDir, sid string) (Session, error) {
 		results:  map[string][]site{},
 		launched: map[string]string{},
 		statuses: map[string]string{},
+		keptMain: map[int]bool{},
 	}
 	lines, err := transcript.Read(mainPath)
 	if err != nil {
@@ -119,7 +120,6 @@ func Load(projectsDir, sid string) (Session, error) {
 	main := &Agent{ID: MainID, Type: MainID, Path: mainPath, Lines: lines}
 	l.agents[MainID] = main
 	kept := cutReflectTurns(lines)
-	l.keptMain = map[int]bool{}
 	for _, line := range kept {
 		l.keptMain[line.N] = true
 	}
