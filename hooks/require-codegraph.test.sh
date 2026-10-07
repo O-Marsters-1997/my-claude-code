@@ -8,6 +8,10 @@ fails=0
 mkdir -p "$TMP/indexed/.codegraph" "$TMP/plain" "$TMP/t/none/subagents" "$TMP/t/mcp/subagents"
 touch "$TMP/indexed/.codegraph/codegraph.db"
 for d in indexed plain; do git -C "$TMP/$d" init -q; done
+git -C "$TMP/indexed" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
+git -C "$TMP/indexed" worktree add -q "$TMP/linked" -b wt || exit 1
+mkdir -p "$TMP/linked/.codegraph"
+touch "$TMP/linked/.codegraph/codegraph.db"
 
 result() { printf '{"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"%s","is_error":%s}]}}\n' "$1" "$2"; }
 mcp_call() { printf '{"message":{"role":"assistant","content":[{"type":"tool_use","id":"m1","name":"mcp__codegraph__codegraph_explore","input":{"query":"x"}}]}}\n'; result m1 false; }
@@ -59,6 +63,14 @@ T_LATE="$TMP/t/late.jsonl"
 : >"$T_LATE"
 (sleep 0.3 && mcp_call >>"$T_LATE") &
 check "query flushed after the hook starts unlocks" 0 "$(payload Grep '{"pattern":"Spawn"}' "$I" "$T_LATE")"
+check "git grep of a ref passes" 0 "$(payload Bash '{"command":"git grep -n Spawn HEAD -- internal"}' "$I" "$T_NONE")"
+check "git grep of the worktree is blocked" 2 "$(payload Bash '{"command":"git grep -n Spawn -- internal"}' "$I" "$T_NONE")"
+check "git grep quoted ref passes" 0 "$(payload Bash '{"command":"git grep -n Spawn \"HEAD\" -- internal"}' "$I" "$T_NONE")"
+check "git grep pattern named like a ref is blocked" 2 "$(payload Bash '{"command":"git grep -n HEAD internal"}' "$I" "$T_NONE")"
+check "git show ref passes" 0 "$(payload Bash '{"command":"git show HEAD:internal/x.go"}' "$I" "$T_NONE")"
+check "git grep ref after a pipe does not pass" 2 "$(payload Bash '{"command":"git grep -n Spawn -- internal | head HEAD"}' "$I" "$T_NONE")"
+check "git grep pathspec named like a ref is blocked" 2 "$(payload Bash '{"command":"git grep -n Spawn -- HEAD"}' "$I" "$T_NONE")"
+check "linked worktree copied index passes" 0 "$(payload Grep '{"pattern":"x"}' "$TMP/linked" "$T_NONE")"
 check "piped grep passes" 0 "$(payload Bash '{"command":"go test ./... | grep FAIL"}' "$I" "$T_NONE")"
 check "other bash passes" 0 "$(payload Bash '{"command":"go build ./..."}' "$I" "$T_NONE")"
 check "markdown grep passes" 0 "$(payload Grep '{"pattern":"Repo","glob":"*.md"}' "$I" "$T_NONE")"

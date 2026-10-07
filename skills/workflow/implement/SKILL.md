@@ -19,6 +19,9 @@ only files you are about to edit or that it didn't surface. If a fleet brief is 
 it. For research broader than one query, use a cheap exploration subagent (e.g. Explore) and take
 its distilled summary rather than grepping and reading extensively yourself in this session.
 
+In a repo with a `.codegraph/` index, make `codegraph_explore` over the files and symbols the
+ticket names your first lookup, before any grep or search.
+
 Load the standards skill for each language this change touches before editing a file in
 it, and follow it as written. Existing code that breaks the standard is not licence to
 match it.
@@ -45,7 +48,9 @@ runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass
 Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
 change, right before /code-review.
 
-Once done, use /code-review medium to review the work, or low for a small fix.
+Once done, use /code-review medium to review the work, or low for a small fix. Pass it the
+worktree path and the diff against `Base:` (`git -C <worktree> diff origin/<base>...HEAD`). If
+that diff is empty, stop and report; never fall back to `HEAD~1`.
 
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
