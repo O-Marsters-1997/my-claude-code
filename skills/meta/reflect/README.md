@@ -8,9 +8,10 @@ Once per machine, from a checkout of this repo (needs Go):
 ./setup.sh --reflect
 ```
 
-This builds `~/.claude/bin/reflect`. The SessionStart hook that records which instruction files each
-session started with, and `cleanupPeriodDays: 90`, come from `settings.shared.json`, which `setup.sh`
-merges into `~/.claude/settings.json`.
+This builds `~/.claude/bin/reflect` and links the `reflect-reviewer` agent into `~/.claude/agents/`.
+The SessionStart hook that records which instruction files each session started with, and
+`cleanupPeriodDays: 90`, come from `settings.shared.json`, which `setup.sh` merges into
+`~/.claude/settings.json`.
 
 Install the skill (project-level: drop `-g`):
 
@@ -57,8 +58,9 @@ The binary also runs directly:
    | `reread` / `big` | a Read of an unchanged file already read; a result over 20k chars |
    | `correction` | a user prompt that reads as a correction, confidence ≥ 0.6 |
 
-4. Main, plus every agent with an actionable tag or in the top quarter by tokens, gets a Sonnet
-   reviewer, up to the cap. Reviewers return structured findings.
+4. Main, plus every agent with an actionable tag or in the top quarter by tokens, gets a
+   `reflect-reviewer` agent (Sonnet, read-only, Bash held to `reflect slice` by
+   `hooks/allow-reflect-slice.sh`), up to the cap. Reviewers return structured findings.
 5. The skill merges and routes them, writes `.claude/reflect/reports/<date>-<sid8>.md`, shows
    Accepted / Backlog / Rejected, and files issues labelled `reflect` only for what you approve. A
    finding whose fingerprint already sits on an open issue becomes a comment there.

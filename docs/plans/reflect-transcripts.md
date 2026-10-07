@@ -137,12 +137,12 @@ Add `internal/session` and `internal/digest`, plus the `scan` and `slice` comman
 Rewrite `skills/meta/reflect/SKILL.md`:
 
 1. Run `reflect scan ${CLAUDE_SESSION_ID}`, or the given sid. On a non-zero exit, relay the error and stop.
-2. In one message, spawn a `general-purpose` reviewer with `model: sonnet` for each `review` row. Each gets `references/reviewer.md` with its digest path substituted.
+2. In one message, spawn a `reflect-reviewer` agent (`agents/reflect-reviewer.md`, Sonnet) for each `review` row, passing the session id, agent and digest path.
 3. Synthesise the findings: merge them by cause and fingerprint, rank by cost and recurrence, route them using `references/routing.md`, and run the repo-level checks (guardrail, oversized AGENTS.md, no-op instructions) only for findings that point at them. Present Accepted / Rejected / Backlog.
 4. Write `.claude/reflect/reports/<date>-<sid8>.md` (the directory ignores itself in git) with all three lists and the agent index.
 5. On approval, file or comment on issues as described under Issues.
 
-Replace `references/proposal-format.md` with `references/issue-format.md`. Add `references/reviewer.md`, with a category list where each category has a "use when" trigger.
+Replace `references/proposal-format.md` with `references/issue-format.md`. The reviewer's category list, each with a "use when" trigger, lives in `agents/reflect-reviewer.md`.
 
 ### Acceptance criteria
 

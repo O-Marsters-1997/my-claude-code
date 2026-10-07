@@ -31,9 +31,8 @@ Print the output verbatim and stop.
    given, else `${CLAUDE_SESSION_ID}`. On a non-zero exit, relay the message and stop; live agents
    mean the user waits and reruns. The scan already leaves out this `/reflect` turn and earlier ones.
 2. **Fan out.** In one message, spawn one `Agent` per index row whose verdict is `review`, with
-   `subagent_type: general-purpose` and `model: sonnet`. The prompt is
-   [references/reviewer.md](references/reviewer.md) with `{{SID}}`, `{{AGENT}}` and `{{DIGEST}}`
-   filled in. Do not read the digests yourself first.
+   `subagent_type: reflect-reviewer`. The prompt is three lines: `Session: <sid>`,
+   `Agent: <agent>` and `Digest: <digest path>`. Do not read the digests yourself first.
 3. **Synthesise** the reviewers' findings:
    - Merge findings that share a cause and a target file into one item, keeping every `fp`.
    - Drop a finding no instruction, skill, agent definition, hook or check could have prevented.
