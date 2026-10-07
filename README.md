@@ -136,6 +136,12 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
   ```
 
+- **subagent-creator** — Design the leanest Claude Code subagent that does the job. It grills you on whether the subagent earns its place and what its scope is, writes it from a template, and checks it against a short conformance list: an explicit tools allowlist, a `maxTurns` budget, worktree isolation for writers, an output contract and a `SCOPE_REQUEST` escape hatch. `expand <name>` widens an agent one step at a time, only when you ask and with evidence from a blocked run. `audit` runs the same check over existing agents.
+
+  ```
+  npx skills add O-Marsters-1997/my-claude-code --skill subagent-creator -g -y
+  ```
+
 - **require-go-skills** (hook, wired by `settings.shared.json`) — A global PreToolUse hook that blocks the first edit to a Go file until `go-idiomatic` has been loaded in the session, and also `testing-policy` for a `_test.go` in a project that ships that skill. It skips generated files, `vendor/` and paths with no `go.mod`, and fails open if it can't read the transcript. Skip it with `CC_GO_SKILLS_OFF=1`. Tests: `hooks/require-go-skills.test.sh`.
 - **require-codegraph** (hook, wired by `settings.shared.json`) — A global PreToolUse hook on Grep, Glob and Bash. In a repo with a `.codegraph/` index it blocks code searches (Grep, Glob, `grep`/`rg`/`find` in Bash) until that agent has queried CodeGraph once, through the MCP tool or `codegraph explore`; after that searching is free. Searches of docs, templates, CSS and config pass, piped greps pass, Read is never gated, and each subagent needs its own query. Fails open if it cannot read the transcript. Skip it with `CC_CODEGRAPH_GATE_OFF=1`. Tests: `hooks/require-codegraph.test.sh`.
 - **Explore** (agent) — Overrides the built-in Explore subagent, which skips `CLAUDE.md`, so it queries CodeGraph first in indexed repos. It leaves `tools` unset so it inherits MCP tools.
