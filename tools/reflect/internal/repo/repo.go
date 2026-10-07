@@ -1,4 +1,4 @@
-package logstore
+package repo
 
 import (
 	"os"
@@ -19,7 +19,7 @@ func CheckoutRoot(dir string) string {
 	}
 }
 
-func mainCheckout(dir string) string {
+func MainCheckout(dir string) string {
 	root := CheckoutRoot(dir)
 	gitPath := filepath.Join(root, ".git")
 	if info, err := os.Stat(gitPath); err != nil || info.IsDir() {

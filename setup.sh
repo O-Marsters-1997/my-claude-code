@@ -19,11 +19,12 @@ link CLAUDE.md
 
 ln -sfn "$REPO/githooks/post-merge" "$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir)/hooks/post-merge"
 
-# reflect: machine-wide command; `reflect on` inside a repo installs that repo's hooks
 if [ "${1:-}" = "--reflect" ]; then
   mkdir -p "$CLAUDE/bin"
   (cd "$REPO/tools/reflect" && go build -ldflags "-X main.library=$REPO" -o "$CLAUDE/bin/reflect" ./cmd/reflect)
   echo "reflect: built $CLAUDE/bin/reflect"
+  mkdir -p "$CLAUDE/agents"
+  link agents/reflect-reviewer.md
 fi
 
 SETTINGS="$CLAUDE/settings.json"

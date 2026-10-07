@@ -8,7 +8,10 @@ Once per machine, from a checkout of this repo (needs Go):
 ./setup.sh --reflect
 ```
 
-Builds the machine-wide command `~/.claude/bin/reflect`. Nothing in `~/.claude/settings.json` changes.
+This builds `~/.claude/bin/reflect` and links the `reflect-reviewer` agent into `~/.claude/agents/`.
+The SessionStart hook that records which instruction files each session started with, and
+`cleanupPeriodDays: 90`, come from `settings.shared.json`, which `setup.sh` merges into
+`~/.claude/settings.json`.
 
 Install the skill (project-level: drop `-g`):
 
@@ -16,69 +19,56 @@ Install the skill (project-level: drop `-g`):
 npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y
 ```
 
-Once per repo, from inside it, then restart the Claude session:
-
-```
-/reflect on
-```
-
-This writes the hooks into that repo's `.claude/settings.local.json`, pointing at the machine-wide command. Logs go to `.claude/reflect/` in the main checkout (a self-ignoring dir); git worktrees resolve to it. No other repo is affected.
+Nothing is set up per repo. If a repo still has hooks from the old `/reflect on`, run
+`~/.claude/bin/reflect uninstall-legacy` inside it once.
 
 ## Commands
 
 | Command | Does |
 | --- | --- |
-| `/reflect on` / `off` | Add / remove this repo's hooks in `.claude/settings.local.json` (`off` keeps the log) |
-| `/reflect status` | State, log path, event and session counts, library path; warns if `cleanupPeriodDays` < 90 |
-| `/reflect` | Analyse the current session and its subagents |
+| `/reflect` | Review the current session: the main agent and every subagent, nested agent, forked skill and worktree agent it ran |
+| `/reflect <session id>` | Review a past session, as long as its transcripts are still kept |
 | `/reflect metrics` | Per instruction-file hash: confusion per 100 tool calls, correction rate, repeat failures per session; no verdict below 5 sessions |
+| `/reflect status` | Whether the SessionStart hook is installed, session record count, transcript retention, library path |
 
-Three more commands run from the shell as `~/.claude/bin/reflect`, not through the skill:
+The binary also runs directly:
 
 | Command | Does |
 | --- | --- |
-| `reflect log [--session id] [--kind k] [--last n]` | One readable line per event; `--session` takes an id prefix |
-| `reflect corrections` | Logged corrections grouped by matched pattern: count, confidence range and one example, for checking whether the detector's scores are right |
-| `reflect prune [--older-than days]` | Replace sessions older than the cutoff (default `cleanupPeriodDays`) with one `summary` event each; run it when no session is active |
-
-Deleting `.claude/reflect/events.jsonl` or the whole directory is safe; it is recreated on the next event. Hooks only exist while `settings.local.json` has them, so `off` or deleting that file stops logging.
-
-## Use
-
-Run `/reflect` at the end of a session. It writes at most 5 lean diff proposals to:
-
-- `.claude/reflect/proposals/` for local files
-- the skills library's `.claude/reflect/proposals/` for library files (skills, agents, rules, hooks)
-
-It never edits instruction files. Apply a diff with `git apply` in the owning repo.
+| `reflect scan <sid> [--cap 8]` | Link the session's agents, write one digest per agent to `$TMPDIR/reflect/<sid>/`, print the index with each agent's triage verdict |
+| `reflect slice <sid> <agent\|main> <line> [-C 20]` | Print redacted transcript lines around a line |
+| `reflect reports` | Print (and create) the report directory |
+| `reflect uninstall-legacy` | Strip old per-repo hooks from `.claude/settings.local.json` and delete the old event log |
 
 ## How it works
 
-Plain async command hooks in `tools/reflect`. No model calls, no output, always exit 0, so zero tokens.
+1. `scan` finds `~/.claude/projects/*/<sid>.jsonl` and every agent under `<sid>/subagents/`. Each
+   agent links to the tool call that spawned it by exact id: the `.meta.json` `toolUseId` first, then
+   the parent's `toolUseResult.agentId`, then the directory alone (reported as a warning).
+   Worktree agents' transcripts are found under their worktree's project folder.
+2. It refuses while any agent is still running, and drops every `/reflect` turn along with the agents
+   those turns spawned.
+3. Each digest is a timeline with deterministic tags, token totals and compaction markers:
 
-| Hook event | Logged |
-| --- | --- |
-| SessionStart | commit, branch, dirty flag, instruction-file hash; a `manifest` event listing added, changed and removed instruction files when the set changed |
-| UserPromptSubmit | prompts that look like corrections, with confidence |
-| PostToolUseFailure | tool, error class, fingerprint, input, error |
-| PostToolUse (Edit, Write) | file path, hashes of old and new content; the first edit to a file is held back until a second one arrives |
-| Stop, SubagentStop | transcript sweep for missed tool errors |
-| SessionEnd | sweep, plus tool-call, prompt and error counts |
+   | Tag | Fires on |
+   | --- | --- |
+   | `halluc` | missing path, command or symbol, edit target not found, edit before read |
+   | `fail` / `repeat` | a failed call; the third or later failure with the same fingerprint |
+   | `churn` / `revert` | the fourth or later edit to a file; an edit undoing an earlier one |
+   | `reread` / `big` | a Read of an unchanged file already read; a result over 20k chars |
+   | `correction` | a user prompt that reads as a correction, confidence ≥ 0.6 |
 
-Edit misses fire no hook, so Stop, SubagentStop and SessionEnd sweep the transcript for them.
+4. Main, plus every agent with an actionable tag or in the top quarter by tokens, gets a
+   `reflect-reviewer` agent (Sonnet, read-only, Bash held to `reflect slice` by
+   `hooks/allow-reflect-slice.sh`), up to the cap. Reviewers return structured findings.
+5. The skill merges and routes them, writes `.claude/reflect/reports/<date>-<sid8>.md`, shows
+   Accepted / Backlog / Rejected, and files issues labelled `reflect` only for what you approve. A
+   finding whose fingerprint already sits on an open issue becomes a comment there.
 
-Signals are derived when read:
-
-| Signal | Fires when |
-| --- | --- |
-| hallucination | missing path, command or symbol, edit target not found, edit before read; qualifies if it recurs in-session or matches 2+ earlier sessions |
-| repeat_fail | same command fails 3+ times |
-| churn | same file edited 4+ times |
-| revert | an edit is undone by a later one |
-| correction | user corrections at confidence >= 0.6; qualifies at 2+ in session or 2+ earlier sessions |
-
-Secrets are redacted before truncation. The log is append-only JSONL at `.claude/reflect/events.jsonl`, kept until deleted. Correction patterns are adapted from [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
+Secrets are redacted in digests and slices. Correction patterns are adapted from
+[claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
 
 ## Updating
 
-After pulling changes to `tools/reflect`, run `./setup.sh --reflect` from the repo. Repos with reflect on use the rebuilt command from their next hook event; rerun `/reflect on` only if the hook events themselves changed. Skill text updates only when you rerun the `npx skills add` command above.
+After pulling changes to `tools/reflect`, rerun `./setup.sh --reflect`. Skill text updates only when
+you rerun the `npx skills add` command above.

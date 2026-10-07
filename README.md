@@ -130,7 +130,7 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill clean-comments
   ```
 
-- **reflect** — Log signs of agent confusion (hallucinated paths and symbols, repeated failures, edit churn, your corrections) from plain hooks with no model calls, then run `/reflect` to turn the current session's log into lean amendment proposals for `AGENTS.md`, skills and hooks. Off until `/reflect on` in a repo. Machine setup: `./setup.sh --reflect` (needs Go) builds `~/.claude/bin/reflect`. Then `/reflect on` inside a repo writes that repo's hooks into its `.claude/settings.local.json`; nothing global changes. Correction detection is adapted from [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
+- **reflect** — Run `/reflect` to review the current session from Claude Code's own transcripts: one Sonnet reviewer per agent that struggled (main, subagents, nested, forked and worktree agents, linked by exact ids) looks for hallucinations, repeated failures, churn, corrections and wasted calls, and the fixes you approve become GitHub issues. Nothing to switch on per repo. Machine setup: `./setup.sh --reflect` (needs Go) builds `~/.claude/bin/reflect`; a global SessionStart hook records instruction-file hashes for `/reflect metrics`. Correction detection is adapted from [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).
 
   ```
   npx skills add O-Marsters-1997/my-claude-code --skill reflect -g -y

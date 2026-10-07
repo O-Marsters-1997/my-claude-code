@@ -6,20 +6,36 @@ import (
 	"errors"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
-
-	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/detect"
 )
 
 type Entry struct {
-	Type      string `json:"type"`
-	Timestamp string `json:"timestamp"`
-	IsMeta    bool   `json:"isMeta"`
-	Message   struct {
+	Type             string          `json:"type"`
+	Subtype          string          `json:"subtype"`
+	Timestamp        string          `json:"timestamp"`
+	IsMeta           bool            `json:"isMeta"`
+	IsCompactSummary bool            `json:"isCompactSummary"`
+	ToolUseResult    json.RawMessage `json:"toolUseResult"`
+	CompactMetadata  struct {
+		PreTokens  int `json:"preTokens"`
+		PostTokens int `json:"postTokens"`
+	} `json:"compactMetadata"`
+	Message struct {
+		ID      string          `json:"id"`
+		Model   string          `json:"model"`
 		Content json.RawMessage `json:"content"`
+		Usage   Usage           `json:"usage"`
 	} `json:"message"`
 }
+
+type Usage struct {
+	InputTokens              int `json:"input_tokens"`
+	OutputTokens             int `json:"output_tokens"`
+	CacheReadInputTokens     int `json:"cache_read_input_tokens"`
+	CacheCreationInputTokens int `json:"cache_creation_input_tokens"`
+}
+
+func (u Usage) In() int { return u.InputTokens + u.CacheReadInputTokens + u.CacheCreationInputTokens }
 
 type Block struct {
 	Type      string          `json:"type"`
@@ -30,6 +46,12 @@ type Block struct {
 	IsError   bool            `json:"is_error"`
 	Content   json.RawMessage `json:"content"`
 	Text      string          `json:"text"`
+}
+
+type Line struct {
+	N   int
+	Raw []byte
+	Entry
 }
 
 func (e Entry) Parts() (text string, blocks []Block) {
@@ -48,6 +70,20 @@ func (e Entry) Parts() (text string, blocks []Block) {
 	return strings.Join(texts, "\n"), blocks
 }
 
+func (e Entry) IsPrompt() bool {
+	if e.Type != "user" || e.IsMeta || e.IsCompactSummary {
+		return false
+	}
+	text, blocks := e.Parts()
+	for _, b := range blocks {
+		if b.Type == "tool_result" {
+			return false
+		}
+	}
+	text = strings.TrimSpace(text)
+	return text != "" && !strings.HasPrefix(text, "<local-command-")
+}
+
 func (b Block) ResultText() string {
 	var s string
 	if json.Unmarshal(b.Content, &s) == nil {
@@ -62,73 +98,26 @@ func (b Block) ResultText() string {
 	return strings.Join(texts, "\n")
 }
 
-func Each(path string, from int64, fn func(Entry)) (consumed int64, err error) {
+func Read(path string) ([]Line, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return from, err
+		return nil, err
 	}
 	defer func() { _ = f.Close() }()
-	if _, err := f.Seek(from, io.SeekStart); err != nil {
-		return from, err
-	}
 	rd := bufio.NewReaderSize(f, 1<<20)
-	consumed = from
-	for {
-		line, err := rd.ReadBytes('\n')
+	var lines []Line
+	for n := 1; ; n++ {
+		raw, err := rd.ReadBytes('\n')
+		if len(raw) > 0 {
+			l := Line{N: n, Raw: raw}
+			_ = json.Unmarshal(raw, &l.Entry)
+			lines = append(lines, l)
+		}
 		if errors.Is(err, io.EOF) {
-			return consumed, nil
+			return lines, nil
 		}
 		if err != nil {
-			return consumed, err
-		}
-		consumed += int64(len(line))
-		var e Entry
-		if json.Unmarshal(line, &e) == nil {
-			fn(e)
+			return lines, err
 		}
 	}
-}
-
-func SubagentPath(transcript, agentID string) string {
-	return filepath.Join(strings.TrimSuffix(transcript, ".jsonl"), "subagents", "agent-"+agentID+".jsonl")
-}
-
-func Subagents(transcript string) []string {
-	files, _ := filepath.Glob(filepath.Join(strings.TrimSuffix(transcript, ".jsonl"), "subagents", "agent-*.jsonl"))
-	return files
-}
-
-func AgentID(path string) string {
-	id, _ := strings.CutPrefix(strings.TrimSuffix(filepath.Base(path), ".jsonl"), "agent-")
-	if id == filepath.Base(path) {
-		return ""
-	}
-	return id
-}
-
-func Count(path string, countPrompts bool) (toolCalls, prompts int) {
-	_, _ = Each(path, 0, func(e Entry) {
-		text, blocks := e.Parts()
-		for _, b := range blocks {
-			if b.Type == "tool_use" {
-				toolCalls++
-			}
-		}
-		if countPrompts && e.Type == "user" && !e.IsMeta && detect.IncludeMessage(text) {
-			prompts++
-		}
-	})
-	return toolCalls, prompts
-}
-
-func LastToolUse(path string) (last Block, ok bool) {
-	_, _ = Each(path, 0, func(e Entry) {
-		_, blocks := e.Parts()
-		for _, b := range blocks {
-			if b.Type == "tool_use" {
-				last, ok = b, true
-			}
-		}
-	})
-	return last, ok
 }
