@@ -52,6 +52,7 @@ func Run(s session.Session, agentID string, line int, o Options) (string, error)
 	if idx < 0 {
 		return "", fmt.Errorf("agent %s has no line L%d", agentID, line)
 	}
+	var lastErr error
 	_, blocks := a.Lines[idx].Parts()
 	for _, b := range blocks {
 		if b.Type != "tool_use" {
@@ -59,9 +60,13 @@ func Run(s session.Session, agentID string, line int, o Options) (string, error)
 		}
 		hook, err := blockingHook(a, idx, b.ID, o.Home)
 		if err != nil {
-			return "", err
+			lastErr = err
+			continue
 		}
 		return execute(a, idx, b.Name, b.Input, hook, o)
+	}
+	if lastErr != nil {
+		return "", lastErr
 	}
 	return "", fmt.Errorf("L%d of agent %s has no tool call", line, agentID)
 }
@@ -70,7 +75,7 @@ func blockingHook(a *session.Agent, from int, useID, home string) (string, error
 	for _, l := range a.Lines[from:] {
 		_, blocks := l.Parts()
 		for _, b := range blocks {
-			if b.Type != "tool_result" || b.ToolUseID != useID {
+			if b.Type != "tool_result" || b.ToolUseID != useID || !b.IsError {
 				continue
 			}
 			m := hookSource.FindStringSubmatch(b.ResultText())
@@ -92,8 +97,8 @@ func resolve(path, home string) (string, error) {
 	if err != nil || strings.HasPrefix(rel, "..") {
 		return "", fmt.Errorf("hook %s is outside %s", path, home)
 	}
-	if info, err := os.Stat(path); err != nil || !info.Mode().IsRegular() {
-		return "", fmt.Errorf("hook %s is not a file", path)
+	if info, err := os.Stat(path); err != nil || !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
+		return "", fmt.Errorf("hook %s is not an executable file", path)
 	}
 	return path, nil
 }
@@ -130,11 +135,11 @@ func execute(a *session.Agent, idx int, tool string, input json.RawMessage, hook
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), hookTimeout)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "bash", hook)
+	cmd := exec.CommandContext(ctx, hook)
 	cmd.Stdin = bytes.NewReader(payload)
 	cmd.Dir = cwd
 	if info, err := os.Stat(cwd); err != nil || !info.IsDir() {
-		cmd.Dir = ""
+		return "", fmt.Errorf("cwd %s is not a directory; pass --cwd", cwd)
 	}
 	cmd.Env = append(os.Environ(), "CLAUDE_PROJECT_DIR="+cwd)
 	var stderr bytes.Buffer

@@ -29,12 +29,16 @@ func fixture(t *testing.T) (session.Session, string) {
 	t.Helper()
 	home := t.TempDir()
 	hook := filepath.Join(home, "gate.sh")
-	script := "#!/bin/bash\nin=$(cat)\ncase \"$in\" in *'\"cwd\":\"/blocked\"'*) echo nope >&2; exit 2;; esac\n"
+	script := "#!/bin/bash\nin=$(cat)\ncase \"$in\" in *blocked*) echo nope >&2; exit 2;; esac\n"
 	if err := os.WriteFile(hook, []byte(script), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	blocked := filepath.Join(home, "blocked")
+	if err := os.Mkdir(blocked, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	a := &session.Agent{ID: "a1", Lines: lines(t,
-		`{"type":"assistant","cwd":"/blocked","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"grep x"}}]}}`,
+		`{"type":"assistant","cwd":"`+blocked+`","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"grep x"}}]}}`,
 		`{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","is_error":true,"content":"PreToolUse:Bash hook error: [`+hook+`]: nope"}]}}`,
 	)}
 	return session.Session{ID: "s", Agents: []*session.Agent{a}}, home
@@ -47,7 +51,7 @@ func TestRunReportsHookExitForRecordedAndOverriddenCwd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
-	moved, err := replay.Run(s, "a1", 1, replay.Options{Home: home, Cwd: "/elsewhere"})
+	moved, err := replay.Run(s, "a1", 1, replay.Options{Home: home, Cwd: home})
 	if err != nil {
 		t.Fatalf("Run(--cwd) error = %v", err)
 	}
