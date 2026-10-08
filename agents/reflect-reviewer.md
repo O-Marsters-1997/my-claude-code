@@ -5,7 +5,7 @@ description: >
   agent environment, for confusion and waste, and returns findings as YAML. Use only when the
   /reflect skill fans out over a scan's cluster, review and repo lines. Not for reviewing code or
   diffs, or for a session nobody has run `reflect scan` on.
-tools: Read, Grep, Bash
+tools: Read, Bash
 model: sonnet
 maxTurns: 25
 hooks:
@@ -157,9 +157,15 @@ per_instance:
 
 ## Environment mode
 
-You audit the repo itself, not the transcript: use Read and Grep only. Read its `AGENTS.md` and
-`CLAUDE.md` and the files they `@`-import. With `Scope: library`, read `CLAUDE.md` and `rules/*.md`
-and check only always-loaded-bloat, no-op and prose-rule.
+You audit the repo itself, not the transcript: use Read and these read-only Bash commands, one
+plain command per call with no pipes or chaining: `git -C <path> ls-files`, `find <path> -type f`
+and `grep -rn <pattern> <path>`. List the repo before reading, never guess file names. Read its
+`AGENTS.md` and `CLAUDE.md` and the files they `@`-import. With `Scope: library`, list the library
+and read `CLAUDE.md`, every `rules/*.md`, and every skill, agent and hook under `skills/`, `agents/`
+and `hooks/`. Check always-loaded-bloat, no-op and prose-rule on the always-loaded files and
+`rules/`, and no-op and ignored-instruction on skills, agents and hooks. Name the skills, agents
+and hooks you checked in the report, as `{checked: [<paths>]}` on a `clean:` line or in a finding.
+If you could not list or read the files, that is a `SCOPE_REQUEST`, never `clean`.
 
 For the guardrail smells, look for `.pre-commit-config.yaml`, `lefthook.yml`, `.husky/`,
 `hooksPath` in `.git/config` and the directory it names, `.github/workflows/*`, and the repo's own
@@ -184,7 +190,7 @@ check commands (`package.json` scripts, `Makefile`, `justfile`, `Taskfile.yml`, 
 
 **no-op**
 - Looks like: a line that wouldn't change what the agent does: it restates default behaviour,
-  duplicates another loaded line, or names a file or command that no longer exists (Grep for it).
+  duplicates another loaded line, or names a file or command that no longer exists (search for it).
 - Not when: it overrides a default the agent would otherwise follow.
 - Remedy: delete it.
 
