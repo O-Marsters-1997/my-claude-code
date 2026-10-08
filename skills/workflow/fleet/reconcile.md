@@ -58,8 +58,8 @@ gh issue list --state open --label "<label>" --json number --jq length   # must 
 gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
 ```
 
-If no PR from `feat/<slug>` into `main` is open, raise one, writing the title and body with
-/gh-desc. The body lists every ticket with the label, one `#<N> <title>` per line, from
+If no PR from `feat/<slug>` into `main` is open, raise one. Nothing in it is new to
+review, so the body only lists every ticket with the label, one `#<N> <title>` per line, from
 `gh issue list --state closed --label "<label>"`:
 
 ```bash
