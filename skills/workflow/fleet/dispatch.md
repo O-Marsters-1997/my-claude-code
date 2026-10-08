@@ -147,8 +147,12 @@ It exits non-zero on a conflict and prints the conflicting paths.
    number on a tie. A PR that conflicts whatever comes before it goes last.
 2. **Fix.** For each PR `B` that conflicts, find the earlier PR `A` whose files it collides
    with. In B's worktree, rebase B onto A's branch (`tp exec <B> -- git rebase origin/<A>`) and
-   give any conflict to a resolver subagent, one per PR. It gets both diffs and both tickets' intent,
-   resolves, runs the scoped tests, and continues the rebase. Then
+   give any conflict to a resolver subagent, one per PR. It gets both diffs and both tickets' intent
+   and, for each conflict, traces both sides to their intent. It reads commit messages only for
+   the conflicting files, and only if intent is still unclear. It keeps both intents or names
+   what it dropped, and invents no new behaviour. It runs typecheck and the scoped tests (not the
+   full suite) before `git rebase --continue`. It never aborts to dodge a real conflict; it aborts
+   only if the base is wrong (e.g. a stale base). Then
    `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so B's review diff shows only
    its own ticket. When A merges, GitHub retargets B to `feat/<label>`, and B merges cleanly
    because it already carries A's change.
@@ -156,7 +160,8 @@ It exits non-zero on a conflict and prints the conflicting paths.
    still conflicts, repeat step 2 once. If it still conflicts, stop and name that PR and its
    conflicting paths for the user to resolve by prompt; leave the rest as they are.
 
-Comment on each rebased PR with the files the resolver touched, so review checks them first.
+Comment on each rebased PR with the files the resolver touched, so review checks them first,
+and with any trade-off the resolver made (what it kept or dropped), not in code comments.
 If review changes a PR that others are stacked on, restack them with
 `git rebase --onto origin/feat/<label> <old-parent> <child>` before merging.
 

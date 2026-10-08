@@ -12,15 +12,18 @@ checkpoint with /compact between major phases (after planning, after test-writin
 final review). A single long session re-sends its whole growing history on every turn, so cost
 compounds with session length far faster than with the same work split into smaller ones.
 
-Before editing unfamiliar code, explore through `codegraph_explore` (load it via ToolSearch if
-deferred) when the repo has a `.codegraph/` index. Pass the symbols or files you expect to touch;
-the result is verbatim source, so don't `cat`, `sed -n` or `Read` what it already returned. `Read`
-only files you are about to edit or that it didn't surface. If a fleet brief is named, start from
-it. For research broader than one query, use a cheap exploration subagent (e.g. Explore) and take
-its distilled summary rather than grepping and reading extensively yourself in this session.
+Before editing unfamiliar code in a repo with a `.codegraph/` index, make `codegraph_explore`
+(load it via ToolSearch if deferred) your first lookup, before any grep or search. Pass the
+symbols or files the ticket names or you expect to touch; the result is verbatim source, so don't
+`cat`, `sed -n` or `Read` what it already returned. `Read` only files you are about to edit or
+that it didn't surface. If a fleet brief is named, start from it. For research broader than one
+query, use a cheap exploration subagent (e.g. Explore) and take its distilled summary rather than
+grepping and reading extensively yourself in this session.
 
-In a repo with a `.codegraph/` index, make `codegraph_explore` over the files and symbols the
-ticket names your first lookup, before any grep or search.
+If a merge or rebase stops on a conflict, trace each side to its intent from the diffs (read
+commit messages for the conflicting files only if intent is still unclear), keep both intents or
+name what was dropped, invent no new behaviour, and run typecheck and the scoped tests before
+continuing. Never abort to dodge a real conflict; abort only if the base is wrong.
 
 Load the standards skill for each language this change touches before editing a file in
 it, and follow it as written. Existing code that breaks the standard is not licence to
