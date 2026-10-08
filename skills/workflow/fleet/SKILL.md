@@ -26,6 +26,8 @@ the user says the wave has merged, otherwise `dispatch`. If it is still unclear,
 
 ## Shared conventions
 
+An issue whose changes are all under `skills/` is still dispatched through /implement, which hands it to skill-updater.
+
 Both halves rely on these, so they are defined once here.
 
 - **Scratchpad.** `<scratchpad>/fleet/` holds `brief.md`, one `<N>.md` report per ticket, and

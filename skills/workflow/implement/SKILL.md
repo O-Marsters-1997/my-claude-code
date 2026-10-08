@@ -32,6 +32,8 @@ match it.
 `~/.claude/rules/comments.md` is the authority on comments. It outranks a standards
 skill's own comment guidance.
 
+If every change the issue asks for is under `skills/`, run /skill-updater with the issue number instead of the steps below: it verifies old vs new on the issue's scenario and opens the draft PR itself.
+
 Use /tdd where possible, at pre-agreed seams.
 
 A ticket carrying `size:xs`, or a dispatch prompt saying `Size: xs`, is a small fix: keep the

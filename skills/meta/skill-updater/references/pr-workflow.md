@@ -16,9 +16,9 @@ If the branch name already exists (collision), append `-2`, `-3`, etc.
 Stage only the files that were actually changed:
 
 ```bash
-git -C <source-repo> add skills/<name>/SKILL.md
+git -C <source-repo> add <skill-dir>/SKILL.md <skill-dir>/evals/evals.json
 # if references/ files were added/changed:
-git -C <source-repo> add skills/<name>/references/
+git -C <source-repo> add <skill-dir>/references/
 ```
 
 Commit using conventional commits:
@@ -38,9 +38,12 @@ chore(skills/<name>): <one-line summary of the change>
 
 ## Intended impact
 <how Claude will behave differently when the skill fires>
+
+## Evidence
+<the scenario, then the old skill's result and the new skill's result on it, side by side, and the rerun count if the edit was reworked>
 ```
 
-Three sections, one short paragraph each. No boilerplate footer or checklists.
+Four sections, one short paragraph each (Evidence may be a small table). No boilerplate footer or checklists.
 
 ## Opening the PR
 
@@ -57,6 +60,9 @@ gh pr create \
 ...
 
 ## Intended impact
+...
+
+## Evidence
 ...
 EOF
 )"
