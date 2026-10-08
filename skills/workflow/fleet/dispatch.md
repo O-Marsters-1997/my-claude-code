@@ -25,20 +25,20 @@ beyond one case.
 - **Bundle.** Two or more tiny tickets go to one subagent in one worktree, worked in sequence
   with one commit each, on the bundle branch (see Shared conventions in SKILL.md). One spawn
   and one review instead of one per ticket.
-- **Everything else.** Dispatch every ready ticket in parallel off `feat/<label>`. Real
+- **Everything else.** Dispatch every ready ticket in parallel off `feat/<slug>`. Real
   dependencies live in `## Blocked by`, so a ready ticket is never waiting on another. Tickets
   that touch the same files are expected to conflict; step 6 resolves that after the work is done.
 
 ## 1b. Ensure the feature branch
 
-Every PR in this wave targets `feat/<label>`. Create it from `main` if it doesn't exist yet:
+Every PR in this wave targets `feat/<slug>`. Create it from `main` if it doesn't exist yet:
 
 ```bash
-git ls-remote --exit-code --heads origin "feat/<label>" >/dev/null \
-  || { git branch "feat/<label>" origin/main && git push -u origin "feat/<label>"; }
+git ls-remote --exit-code --heads origin "feat/<slug>" >/dev/null \
+  || { git branch "feat/<slug>" origin/main && git push -u origin "feat/<slug>"; }
 ```
 
-Use `rtk proxy "git push -u origin feat/<label>"` where rtk is in play.
+Use `rtk proxy "git push -u origin feat/<slug>"` where rtk is in play.
 
 ## 2. One shared exploration pass
 
@@ -70,7 +70,7 @@ so the base is never stale and the subagent has no reason to reset its branch:
 ```bash
 git fetch origin
 BRANCH="issue-<N>/<short-title>"
-tp new "$BRANCH" --base "origin/feat/<label>"
+tp new "$BRANCH" --base "origin/feat/<slug>"
 WT=$(tp status --json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
 [ -n "$WT" ] || { echo "no worktree path for $BRANCH" >&2; exit 1; }
 ```
@@ -92,11 +92,11 @@ Brief: <scratchpad>/fleet/brief.md
 Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
-Base: feat/<label>
+Base: feat/<slug>
 Size: <xs|s|unsized, from the ticket's size:* label>
 
 Done means: the review passes /implement requires for this size run, findings applied, committed
-on the branch, draft PR open with `gh pr create --draft --base feat/<label>` (never `main`), result written.
+on the branch, draft PR open with `gh pr create --draft --base feat/<slug>` (never `main`), result written.
 Skipping a required review pass is not allowed; return `blocked` instead.
 Read with Read and Grep on absolute paths. Don't chain `cd … && cat; grep; …` across a sibling
 worktree: the auto-mode classifier has denied such chains as destructive. If a command is denied,
@@ -132,7 +132,7 @@ run on a flaky failure.
 
 ## 6. Integrate
 
-Once every subagent has returned, make the wave merge into `feat/<label>` with no conflict in a
+Once every subagent has returned, make the wave merge into `feat/<slug>` with no conflict in a
 fixed order. The tickets were built in parallel, so conflicts are expected and are fixed here,
 before review, so the next wave starts from merged work.
 
@@ -140,7 +140,7 @@ Simulate with `git merge-tree`, which needs no worktree and touches no branch:
 
 ```bash
 git fetch origin
-TIP=$(git rev-parse "origin/feat/<label>")
+TIP=$(git rev-parse "origin/feat/<slug>")
 # for each PR branch B, in order:
 TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
   && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
@@ -159,7 +159,7 @@ It exits non-zero on a conflict and prints the conflicting paths.
    full suite) before `git rebase --continue`. It never aborts to dodge a real conflict; it aborts
    only if the base is wrong (e.g. a stale base). Then
    `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so B's review diff shows only
-   its own ticket. When A merges, GitHub retargets B to `feat/<label>`, and B merges cleanly
+   its own ticket. When A merges, GitHub retargets B to `feat/<slug>`, and B merges cleanly
    because it already carries A's change.
 3. **Verify.** Re-run the simulation over the final order. Every step must be clean. If a PR
    still conflicts, repeat step 2 once. If it still conflicts, stop and name that PR and its
@@ -168,7 +168,7 @@ It exits non-zero on a conflict and prints the conflicting paths.
 Comment on each rebased PR with the files the resolver touched, so review checks them first,
 and with any trade-off the resolver made (what it kept or dropped), not in code comments.
 If review changes a PR that others are stacked on, restack them with
-`git rebase --onto origin/feat/<label> <old-parent> <child>` before merging.
+`git rebase --onto origin/feat/<slug> <old-parent> <child>` before merging.
 
 ## 7. After the batch
 

@@ -102,7 +102,7 @@ Create `./docs/plans/` if it doesn't exist. Write the plan as a Markdown file na
 # Plan: <Feature Name>
 
 > Source: <./docs/prd-<feature>.md, PRD issue URL, ./docs/approach.md, or brief identifier>
-> Label: <feature-slug>
+> Label: project:<feature-slug>
 
 ## Technical design decisions
 
@@ -153,13 +153,14 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 
 Every plan carries a GitHub label that identifies its tickets. `to-tickets` files them under it
 and `/fleet` selects by it. The label is the plan's filename without `.md`
-(`./docs/plans/cv-tailoring.md` → `cv-tailoring`), and it is the `Label:` line in the plan header.
+prefixed with `project:` (`./docs/plans/cv-tailoring.md` → `project:cv-tailoring`), and it is the
+`Label:` line in the plan header.
 
 Create it if it doesn't exist, describing it the way the repo's existing feature labels do:
 
 ```bash
-gh label list --search "<slug>" | grep -q "^<slug>\b" || \
-  gh label create "<slug>" -d "<Feature Name> (docs/plans/<slug>.md)" -c "<any unused hex>"
+gh label list --search "project:<slug>" | grep -q "^project:<slug>\b" || \
+  gh label create "project:<slug>" -d "<Feature Name> (docs/plans/<slug>.md)" -c "<any unused hex>"
 ```
 
 Mention the label in the closing message so the user knows what `/to-tickets` will file under.
