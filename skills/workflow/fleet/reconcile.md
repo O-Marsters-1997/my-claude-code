@@ -35,7 +35,7 @@ left alone. Promote per ticket: one stuck PR holds back only its own dependents.
 ## 3. Clean up
 
 Remove the worktree and local branch of every ticket whose PR merged with
-`tp remove <branch>` (branches are named `issue-<N>/<short-title>`; find them with
+`tp remove <branch> --merged` (squash merges are not ancestors, so plain `tp remove` refuses; branches are named `issue-<N>/<short-title>`; find them with
 `tp status --json`). Never use `git worktree remove` or `git branch -d`. Skip any worktree that
 is dirty or whose PR is not merged. Do it after step 1 so nothing is removed on a guess.
 
