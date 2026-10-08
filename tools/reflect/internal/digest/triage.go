@@ -8,6 +8,11 @@ import (
 )
 
 const (
+	costlyTokens = 1_000_000
+	costlyCalls  = 40
+)
+
+const (
 	Review   = "review"
 	Skip     = "skip"
 	Overflow = "overflow"
@@ -23,6 +28,10 @@ func (d Digest) actionable() int {
 	return n
 }
 
+func (d Digest) costly(heavy int) bool {
+	return d.TokensIn > heavy || d.TokensIn >= costlyTokens || d.Calls >= costlyCalls
+}
+
 func (d Digest) clustered() bool {
 	return slices.ContainsFunc(d.Signals, func(s Signal) bool { return s.Cluster != "" })
 }
@@ -33,7 +42,7 @@ func Triage(ds []Digest, limit int) map[string]string {
 	out := map[string]string{}
 	for _, d := range ds {
 		out[d.Agent.ID] = Skip
-		if d.Agent.ID == session.MainID || d.actionable() > 0 || d.TokensIn > heavy && !d.clustered() {
+		if d.Agent.ID == session.MainID || d.actionable() > 0 || d.costly(heavy) && !d.clustered() {
 			wanted = append(wanted, d)
 		}
 	}

@@ -29,13 +29,20 @@ The brief gives a session id and one of:
 ## Per-agent mode
 
 1. Read the digest. Its header gives the agent's type, model, brief and what its parent did with
-   the result. Timeline lines start `L<n>` and may carry `[tag fp=…]` signals.
+   the result. Timeline lines start `L<n>`, show the call's result size, the input tokens of the
+   turn that issued it (`<n>k in`) and `∥` when it ran in parallel with its neighbours, and may
+   carry `[tag fp=…]` signals. The totals line gives average input tokens per call.
 2. For context run `~/.claude/bin/reflect slice <sid> <agent> <n> -C 20`, `<n>` without the `L`,
    only where you are investigating, one plain command per call: no pipes or chaining. Never
    read the raw transcript.
-3. Check each smell in the catalogue below only when its **Looks like** shows up. Drop it when
-   **Not when** applies. Propose the **Remedy** that fits, naming the file; a check, hook or
-   better error message beats a sentence of prose.
+3. Read the whole timeline, tagged or not, starting with: where did the tokens go, and what would
+   have made this cheaper or more correct? Look at the costliest calls, the longest stretches
+   before the first edit, and tools used where a dedicated one fits (Bash `cat`, `sed -n` or
+   `python3` doing Read's or Edit's job). Tags are pointers to look at first and a clean tag list
+   is not a clean agent. The smells below are vocabulary for naming what you find: use a
+   **Looks like** to recognise one, drop it when **Not when** applies, and propose the **Remedy**
+   that fits, naming the file; a check, hook or better error message beats a sentence of prose.
+   A finding with no catalogue smell gets its own short name.
 4. Leave events carrying `cluster=` tags alone.
 
 ## Session smells
