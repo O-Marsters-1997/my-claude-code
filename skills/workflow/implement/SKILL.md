@@ -40,8 +40,8 @@ observable behaviour, and then add one regression test. Skip code-simplifier. Re
 /code-review low instead of medium.
 
 Given several issues at once (a fleet bundle), work them in the order given, one commit per
-issue whose message ends `Closes #<N>`, and repeat each `Closes #<N>` line in the PR body. Run
-the review passes once, over the whole bundle.
+issue whose message ends `Closes #<N>`, and one PR for the whole bundle. Run the review passes
+once, over the whole bundle.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 For the regular checks, run the narrowest command that proves the point (a single test file
@@ -62,4 +62,4 @@ current branch is anything else, create it off `Base` with `git switch -c` befor
 
 Commit your work to the current branch.
 
-If you open a PR, always open it as a draft (`gh pr create --draft`) and write the title and body with /gh-desc. Add `--base <Base>` only when a fleet dispatch prompt names a `Base:`; ad hoc runs use the repo's default base.
+Finish by raising a PR for review. Its base is `Base:` when a fleet dispatch prompt names one; ad hoc runs use the repo's default base.
