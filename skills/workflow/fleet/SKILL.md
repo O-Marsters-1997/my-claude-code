@@ -41,8 +41,8 @@ Both halves rely on these, so they are defined once here.
   label exactly (`gh label list`), use it as is, so `sweep-YYYY-MM-DD` labels keep working;
   otherwise the label is `project:<slug>`.
 - **Feature branch.** `feat/<slug>`, where `<slug>` is the label without its `project:` prefix
-  (a label with no prefix, like `sweep-YYYY-MM-DD`, is its own slug), since git forbids `:` in ref names. Every ticket PR targets it,
-  never `main`, so several features can run in parallel without touching each other. When the
+  (a label with no prefix, like `sweep-YYYY-MM-DD`, is its own slug), since git forbids `:` in
+  ref names. Every ticket PR targets it, never `main`, so several features can run in parallel without touching each other. When the
   feature's tickets are all done, reconcile opens one PR merging `feat/<slug>` into `main`.
 - **Ticket branch.** `issue-<N>/<short-title>`: `<N>` is the issue number, `<short-title>` a
   kebab-case slug of the issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch
