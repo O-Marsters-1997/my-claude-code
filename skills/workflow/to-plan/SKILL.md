@@ -152,8 +152,8 @@ A concise description of this vertical slice. Describe the end-to-end technical 
 ### 7. Create the feature label
 
 Every plan carries a GitHub label that identifies its tickets. `to-tickets` files them under it
-and `/fleet` selects by it. The label is the plan's filename without `.md`
-prefixed with `project:` (`./docs/plans/cv-tailoring.md` → `project:cv-tailoring`), and it is the
+and `/fleet` selects by it. The label is `project:` plus the plan's
+filename without `.md` (`./docs/plans/cv-tailoring.md` → `project:cv-tailoring`), and it is the
 `Label:` line in the plan header.
 
 Create it if it doesn't exist, describing it the way the repo's existing feature labels do:
