@@ -35,7 +35,7 @@ The binary also runs directly:
 
 | Command | Does |
 | --- | --- |
-| `reflect scan <sid> [--cap 8]` | Link the session's agents, write one digest per agent to `$TMPDIR/reflect/<sid>/`, print the index with each agent's triage verdict |
+| `reflect scan <sid> [--cap 8]` | Link the session's agents, write one digest per agent to `$TMPDIR/reflect/<sid>/`, print the index with each agent's triage verdict and the repos the session touched |
 | `reflect slice <sid> <agent\|main> <line> [-C 20]` | Print redacted transcript lines around a line |
 | `reflect reports` | Print (and create) the report directory |
 | `reflect uninstall-legacy` | Strip old per-repo hooks from `.claude/settings.local.json` and delete the old event log |
@@ -58,12 +58,18 @@ The binary also runs directly:
    | `reread` / `big` | a Read of an unchanged file already read; a result over 20k chars |
    | `correction` | a user prompt that reads as a correction, confidence ≥ 0.6 |
 
+   The index also prints one `repo <path>` line per main checkout any agent worked in.
 4. Main, plus every agent with an actionable tag or in the top quarter by tokens, gets a
    `reflect-reviewer` agent (Sonnet, read-only, Bash held to `reflect slice` by
-   `hooks/allow-reflect-slice.sh`), up to the cap. Reviewers return structured findings.
+   `hooks/allow-reflect-slice.sh`), up to the cap. Each diagnoses against the agent's catalogue
+   of session smells: what each looks like, when it's only a one-off slip, and the remedy it
+   usually leads to. Every `repo` line, plus the skills library, gets one more reviewer in
+   environment mode, which audits for a missing or unwired guardrail, always-loaded bloat, no-op
+   lines and mechanical rules written as prose. Reviewers return structured findings.
 5. The skill merges and routes them, writes `.claude/reflect/reports/<date>-<sid8>.md`, shows
    Accepted / Backlog / Rejected, and files issues labelled `reflect` only for what you approve. A
-   finding whose fingerprint already sits on an open issue becomes a comment there.
+   finding whose fingerprint already sits on an open issue becomes a comment there, except an
+   environment finding, which is listed as still open and not commented.
 
 Secrets are redacted in digests and slices. Correction patterns are adapted from
 [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) (MIT).

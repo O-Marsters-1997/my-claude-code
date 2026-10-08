@@ -79,3 +79,39 @@ func TestSliceUnknownAgent(t *testing.T) {
 		t.Error("Slice(unknown agent) error = nil, want an error")
 	}
 }
+
+func TestWriteListsEachTouchedRepoOnce(t *testing.T) {
+	root := t.TempDir()
+	main := filepath.Join(root, "app")
+	worktree := filepath.Join(root, "app-wt")
+	plain := filepath.Join(root, "notes")
+	for _, d := range []string{filepath.Join(main, ".git", "worktrees", "wt"), filepath.Join(main, "sub"), worktree, plain} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	gitFile := "gitdir: " + filepath.Join(main, ".git", "worktrees", "wt")
+	if err := os.WriteFile(filepath.Join(worktree, ".git"), []byte(gitFile), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cwdLine := func(dir string) string {
+		b, _ := json.Marshal(map[string]string{"type": "user", "cwd": dir})
+		return string(b)
+	}
+	s := session.Session{ID: "s1", Agents: []*session.Agent{
+		{ID: session.MainID, Type: session.MainID, Lines: lines(t, cwdLine(main), cwdLine(filepath.Join(main, "sub")), cwdLine(plain))},
+		{ID: "sub1", Type: "claude", Parent: session.MainID, Depth: 1, Lines: lines(t, cwdLine(worktree))},
+	}}
+
+	index, err := scan.Write(s, t.TempDir(), 8)
+	if err != nil {
+		t.Fatalf("Write() error = %v", err)
+	}
+
+	if got := strings.Count(index, "repo "+main+"\n"); got != 1 {
+		t.Errorf("Write() index has %d %q lines, want 1:\n%s", got, "repo "+main, index)
+	}
+	if strings.Contains(index, "repo "+plain) {
+		t.Errorf("Write() index lists the non-repo %s:\n%s", plain, index)
+	}
+}

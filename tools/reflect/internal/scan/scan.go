@@ -11,6 +11,7 @@ import (
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/digest"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/session"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/transcript"
 )
@@ -54,10 +55,33 @@ func Write(s session.Session, dir string, limit int) (string, error) {
 		}
 		w.WriteString("\n")
 	}
+	for _, r := range repos(s) {
+		fmt.Fprintf(&w, "repo %s\n", r)
+	}
 	for _, warn := range s.Warnings {
 		fmt.Fprintf(&w, "warn: %s\n", warn)
 	}
 	return w.String(), nil
+}
+
+func repos(s session.Session) []string {
+	cwds, roots := map[string]bool{}, map[string]bool{}
+	var out []string
+	for _, a := range s.Agents {
+		for _, l := range a.Lines {
+			if l.Cwd == "" || cwds[l.Cwd] {
+				continue
+			}
+			cwds[l.Cwd] = true
+			root := repo.MainCheckout(l.Cwd)
+			if _, err := os.Stat(filepath.Join(root, ".git")); err != nil || roots[root] {
+				continue
+			}
+			roots[root] = true
+			out = append(out, root)
+		}
+	}
+	return out
 }
 
 func short(id string) string {
