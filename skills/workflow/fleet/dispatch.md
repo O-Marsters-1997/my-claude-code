@@ -69,8 +69,13 @@ so the base is never stale and the subagent has no reason to reset its branch:
 
 ```bash
 git fetch origin
-WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "origin/feat/<label>" 3>&1 1>&2)
+BRANCH="issue-<N>/<short-title>"
+tp new "$BRANCH" --base "origin/feat/<label>"
+WT=$(tp status --json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+[ -n "$WT" ] || { echo "no worktree path for $BRANCH" >&2; exit 1; }
 ```
+
+An empty `$WT` stops dispatch: spawn no subagent for that ticket.
 
 Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
