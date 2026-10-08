@@ -46,7 +46,7 @@ Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a secti
 promoted in step 2 and any other `ready` ticket with that label, each with:
 
 - the issue number and title,
-- `Base: feat/<label>` (its blockers are merged into it),
+- `Base: feat/<slug>` (its blockers are merged into it),
 - the merged PR of its most relevant blocker, as the worked example.
 
 ## 5. Raise the feature PR
@@ -55,15 +55,15 @@ Skip this step unless the feature is finished: no open issue carries the label.
 
 ```bash
 gh issue list --state open --label "<label>" --json number --jq length   # must be 0
-gh pr list --base main --head "feat/<label>" --state open --json url     # reuse if present
+gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
 ```
 
-If no PR from `feat/<label>` into `main` is open, raise one, writing the title and body with
+If no PR from `feat/<slug>` into `main` is open, raise one, writing the title and body with
 /gh-desc. The body lists every ticket with the label, one `#<N> <title>` per line, from
 `gh issue list --state closed --label "<label>"`:
 
 ```bash
-gh pr create --base main --head "feat/<label>" --title "<title>" --body "<body>"
+gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 ```
 
 It is not a draft: every ticket in it already passed review on its own PR.
