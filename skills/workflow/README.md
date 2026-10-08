@@ -149,6 +149,7 @@ appear in the map above:
 | `file-issue` | nobody — run it yourself | one ad-hoc ticket, no feature label, picked up by `/implement` — a third door to the board. Its inbox mode files a bare `inbox` issue for `/sweep` |
 | `sweep` | nobody — run it yourself | many small fixes (the `inbox` issues plus any pasted) clustered by file into tickets under one `sweep-YYYY-MM-DD` label, run with `/fleet dispatch` — a fourth door to the board |
 | `pr` | whoever opens a PR — triggers on its own description | the draft PR's title and body: visual Summary, Evidence, Merge Danger, `Closes` lines |
+| `fix-ci` | nobody — run it yourself | red checks on PRs `/implement` or `/fleet` opened: diagnose from the failed logs, one cheap local check, push, watch CI in the background. Takes a run, a job, a PR, or nothing |
 
 ## Not in scope
 
