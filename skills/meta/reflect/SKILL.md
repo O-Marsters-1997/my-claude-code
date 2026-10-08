@@ -36,7 +36,8 @@ Print the output verbatim and stop.
      <mechanism>` and one `<agent> L<n>` instance per line after it;
    - one `Agent` per index row whose verdict is `review`, with three lines: `Session: <sid>`,
      `Agent: <agent>` and `Digest: <digest path>`. Clustered events are already excluded from the
-     verdicts, so agents left with no flags are `skip`;
+     verdicts. `skip` means small and untagged: an agent over the cost threshold is `review` even
+     with no tags;
    - one `Agent` per `repo` line, with `Session: <sid>` and `Environment: <path>`;
    - one more with `Session: <sid>`, `Environment: <library path>` and `Scope: library`, the path
      taken from the `library:` line of `~/.claude/bin/reflect status`.

@@ -84,6 +84,8 @@ type step struct {
 	target string
 	failed bool
 	size   int
+	tokens int
+	msgID  string
 	text   string
 }
 
@@ -197,6 +199,7 @@ func commandOf(b transcript.Block) string {
 }
 
 func (b *builder) assistant(l transcript.Line) {
+	tokens := l.Message.Usage.In()
 	if id := l.Message.ID; id == "" || !b.seenMsgs[id] {
 		b.seenMsgs[id] = true
 		b.d.TokensIn += l.Message.Usage.In()
@@ -213,7 +216,7 @@ func (b *builder) assistant(l transcript.Line) {
 		b.d.Calls++
 		b.uses[blk.ID] = useSite{l.N, blk}
 		b.stepAt[blk.ID] = len(b.d.steps)
-		b.d.steps = append(b.d.steps, step{line: l.N, kind: "call", tool: blk.Name, target: target(blk)})
+		b.d.steps = append(b.d.steps, step{line: l.N, kind: "call", tool: blk.Name, target: target(blk), tokens: tokens, msgID: l.Message.ID})
 	}
 }
 
@@ -327,6 +330,12 @@ func (d Digest) Render() string {
 		}
 		tags[s.Line] = append(tags[s.Line], tag)
 	}
+	perMsg := map[string]int{}
+	for _, st := range d.steps {
+		if st.kind == "call" && st.msgID != "" {
+			perMsg[st.msgID]++
+		}
+	}
 	for _, st := range d.steps {
 		switch st.kind {
 		case "compact":
@@ -340,10 +349,18 @@ func (d Digest) Render() string {
 			if st.failed {
 				status = "FAIL"
 			}
-			fmt.Fprintf(&w, " L%-5d %-6s %-*s %-4s %6s%s\n", st.line, st.tool, targetPad, st.target, status, Kilo(st.size), bracket(tags[st.line]))
+			parallel := ""
+			if perMsg[st.msgID] > 1 {
+				parallel = " ∥"
+			}
+			fmt.Fprintf(&w, " L%-5d %-6s %-*s %-4s %6s %6s in%s%s\n", st.line, st.tool, targetPad, st.target, status, Kilo(st.size), Kilo(st.tokens), parallel, bracket(tags[st.line]))
 		}
 	}
-	fmt.Fprintf(&w, "totals: %d calls, %d fail, %s tok in / %s out\n", d.Calls, d.Fails, Kilo(d.TokensIn), Kilo(d.TokensOut))
+	fmt.Fprintf(&w, "totals: %d calls, %d fail, %s tok in / %s out", d.Calls, d.Fails, Kilo(d.TokensIn), Kilo(d.TokensOut))
+	if d.Calls > 0 {
+		fmt.Fprintf(&w, ", avg %s in/call", Kilo(d.TokensIn/d.Calls))
+	}
+	w.WriteString("\n")
 	return w.String()
 }
 
