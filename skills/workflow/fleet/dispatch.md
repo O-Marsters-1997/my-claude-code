@@ -27,7 +27,7 @@ beyond one case.
   and one review instead of one per ticket.
 - **Everything else.** Dispatch every ready ticket in parallel off `feat/<slug>`. Real
   dependencies live in `## Blocked by`, so a ready ticket is never waiting on another. Tickets
-  that touch the same files are expected to conflict; step 6 resolves that after the work is done.
+  that touch the same files are expected to conflict; step 5 resolves that after the work is done.
 
 ## 1b. Ensure the feature branch
 
@@ -91,7 +91,6 @@ Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>
 Brief: <scratchpad>/fleet/brief.md
 Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
-Docker: COMPOSE_PROJECT_NAME=fleet-<N>
 Base: feat/<slug>
 Size: <xs|s|unsized, from the ticket's size:* label>
 
@@ -120,17 +119,7 @@ Example: 142 done https://github.com/o/r/pull/151 reviewed=yes /tmp/…/fleet/14
 - Move the ticket `ready → in-progress` when you spawn its subagent, and `→ in-review` when
   it returns `done`. Reconcile relies on these labels to find the wave.
 
-## 5. Docker-backed tests
-
-Parallel testcontainers fight over ports and networks, and each clash burns a full test
-run on a flaky failure.
-
-- Give each worktree its own `COMPOSE_PROJECT_NAME` (as in the prompt above), so
-  networks and volumes don't collide.
-- Cap concurrent Docker-backed test runs at 2 across the batch. If the tickets need more,
-  split the wave.
-
-## 6. Integrate
+## 5. Integrate
 
 Once every subagent has returned, make the wave merge into `feat/<slug>` with no conflict in a
 fixed order. The tickets were built in parallel, so conflicts are expected and are fixed here,
@@ -170,7 +159,7 @@ and with any trade-off the resolver made (what it kept or dropped), not in code 
 If review changes a PR that others are stacked on, restack them with
 `git rebase --onto origin/feat/<slug> <old-parent> <child>` before merging.
 
-## 7. After the batch
+## 6. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio

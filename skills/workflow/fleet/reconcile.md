@@ -40,6 +40,10 @@ branches are named `issue-<N>/<short-title>`; find them with `tp status --json`)
 only for tickets step 1 saw as merged. Never use `git worktree remove` or `git branch -d`. Skip any worktree that
 is dirty or whose PR is not merged. Do it after step 1 so nothing is removed on a guess.
 
+`tp remove` is the only teardown reconcile runs. Whatever a worktree started beyond its checkout
+(services, caches, data) is the repo's to clean up in its treepad remove hook, so fleet never
+names a technology.
+
 ## 4. Write the handoff
 
 Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a section per ticket
