@@ -1,0 +1,10 @@
+{
+  "skill_name": "fleet",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A repo whose tests use Docker compose stacks. Following only the fleet skill, (1) write the exact dispatch prompt for issue #42 \"Add retry\", worktree /w/repo-issue-42, base feat/retries, size s, files internal/retry.go; (2) list exactly what reconcile does to tear down issue #42's worktree and any containers/volumes it started after its PR merges.",
+      "expected_output": "The dispatch prompt names no Docker or COMPOSE_PROJECT_NAME line. Reconcile tears down only via `tp remove <branch> --merged` and says the repo's treepad remove hook owns cleanup of anything the worktree started; fleet names no technology."
+    }
+  ]
+}
