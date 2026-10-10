@@ -117,3 +117,11 @@ func TestNonBlockingStillRecords(t *testing.T) {
 		t.Errorf("Run = %+v, %v, want recorded without blocking", res, err)
 	}
 }
+
+func TestAddedPlusPlusLineDoesNotHideMarker(t *testing.T) {
+	dir := newRepo(t)
+	write(t, dir, "a.go", "package a\n\n++ x\n// LEARN: after pluses\nfunc f() {}\n")
+	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); !res.Blocked {
+		t.Errorf("Run = %+v, want blocked", res)
+	}
+}

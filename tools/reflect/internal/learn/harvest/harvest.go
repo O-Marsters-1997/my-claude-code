@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -80,7 +81,7 @@ func Run(ctx context.Context, o Options) (Result, error) {
 	var res Result
 	seen := map[string]bool{}
 	for _, staged := range []bool{true, false} {
-		diffArgs := []string{"-c", "core.quotepath=off", "diff", "-U0", "--no-color", "--no-ext-diff"}
+		diffArgs := []string{"-c", "core.quotepath=off", "diff", "-U0", "--src-prefix=a/", "--dst-prefix=b/", "--no-color", "--no-ext-diff"}
 		if staged {
 			diffArgs = append(diffArgs, "--cached")
 		}
@@ -88,12 +89,14 @@ func Run(ctx context.Context, o Options) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		for file, added := range addedLines(diff) {
+		changed := addedLines(diff)
+		for _, file := range slices.Sorted(maps.Keys(changed)) {
+			added := changed[file]
 			content, err := read(ctx, top, file, staged)
 			if err != nil {
-				continue
+				return Result{}, err
 			}
-			lines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
+			lines := strings.Split(strings.ReplaceAll(strings.TrimSuffix(content, "\n"), "\r\n", "\n"), "\n")
 			for _, m := range marker.Parse(lines) {
 				if m.Later || !slices.Contains(added, m.Line) {
 					continue
@@ -152,9 +155,12 @@ func read(ctx context.Context, top, file string, staged bool) (string, error) {
 func addedLines(diff string) map[string][]int {
 	out := map[string][]int{}
 	var file string
+	inHunk := false
 	for _, l := range strings.Split(diff, "\n") {
 		switch {
-		case strings.HasPrefix(l, "+++ "):
+		case strings.HasPrefix(l, "diff --git "):
+			inHunk = false
+		case !inHunk && strings.HasPrefix(l, "+++ "):
 			file = ""
 			if p, ok := strings.CutPrefix(l, "+++ b/"); ok {
 				file = p
@@ -164,6 +170,7 @@ func addedLines(diff string) map[string][]int {
 			if m == nil {
 				continue
 			}
+			inHunk = true
 			start, _ := strconv.Atoi(m[1])
 			n := 1
 			if m[2] != "" {

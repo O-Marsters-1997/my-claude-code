@@ -41,13 +41,14 @@ func TestReadMissingIsEmpty(t *testing.T) {
 	}
 }
 
-func TestReadRejectsGarbage(t *testing.T) {
+func TestReadSkipsGarbage(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "l.jsonl")
-	if err := os.WriteFile(path, []byte("nope\n"), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte("nope\n{\"id\":\"a\"}\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := ledger.Read(path); err == nil {
-		t.Error("Read(garbage) error = nil, want error")
+	got, err := ledger.Read(path)
+	if err != nil || len(got) != 1 {
+		t.Errorf("Read(garbage) = %v, %v, want the one valid line", got, err)
 	}
 }
 

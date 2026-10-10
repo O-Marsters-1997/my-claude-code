@@ -5,7 +5,9 @@ import (
 	"bytes"
 	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -60,10 +62,10 @@ func Append(path string, l Learning) error {
 }
 
 // Read returns the folded learnings in order of first appearance. A missing
-// ledger reads as empty.
+// ledger reads as empty and lines that are not ledger records are skipped.
 func Read(path string) ([]Learning, error) {
 	f, err := os.Open(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
 	if err != nil {
@@ -83,7 +85,7 @@ func Read(path string) ([]Learning, error) {
 			ID string `json:"id"`
 		}
 		if err := json.Unmarshal(line, &probe); err != nil || probe.ID == "" {
-			return nil, fmt.Errorf("%s:%d: not a ledger line", path, n)
+			continue
 		}
 		i, seen := index[probe.ID]
 		if !seen {

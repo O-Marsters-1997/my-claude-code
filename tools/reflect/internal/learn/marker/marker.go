@@ -20,7 +20,7 @@ type Marker struct {
 var (
 	marked   = regexp.MustCompile(`\bLEARN(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	opener   = regexp.MustCompile(`(?:/{2,}|#+|\{?/\*+|<!--|\*)\s*$`)
-	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+|\{?/\*+|<!--|\*)`)
+	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+(?:\s|$)|\{?/\*+|<!--|\*(?:[\s/]|$))`)
 	closer   = regexp.MustCompile(`\s*(?:\*/\}?|-->)\s*$`)
 	opening  = regexp.MustCompile(`^\s*(?:/{2,}|#+|\{?/\*+|<!--|\*)\s?`)
 	hasClose = regexp.MustCompile(`(?:\*/\}?|-->)\s*$`)
@@ -47,7 +47,7 @@ func Parse(lines []string) []Marker {
 	var out []Marker
 	for i := 0; i < len(lines); i++ {
 		loc := marked.FindStringIndex(lines[i])
-		if loc == nil || !opener.MatchString(lines[i][:loc[0]]) {
+		if loc == nil || !inComment(lines[i][:loc[0]]) {
 			continue
 		}
 		m, _ := ParseComment(lines[i][loc[0]:])
@@ -79,6 +79,18 @@ func Parse(lines []string) []Marker {
 		i = m.End - 1
 	}
 	return out
+}
+
+func inComment(prefix string) bool {
+	om := opener.FindStringIndex(prefix)
+	if om == nil {
+		return false
+	}
+	before := prefix[:om[0]]
+	if before != "" && !strings.HasSuffix(before, " ") && !strings.HasSuffix(before, "\t") {
+		return false
+	}
+	return strings.Count(before, `"`)%2 == 0 && strings.Count(before, "`")%2 == 0
 }
 
 func nextCode(lines []string, from int) int {

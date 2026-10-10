@@ -69,3 +69,11 @@ func TestParseCommentNoMarker(t *testing.T) {
 		t.Error("ParseComment(note) ok = true, want false")
 	}
 }
+
+func TestParseIgnoresMarkersInStringsAndCodeLines(t *testing.T) {
+	lines := []string{`fmt.Println("// LEARN: in a string")`, `// LEARN: real`, "*p = 1", "#include <x.h>"}
+	got := marker.Parse(lines)
+	if len(got) != 1 || got[0].Text != "real" || got[0].Target != 3 {
+		t.Errorf("Parse = %+v, want one marker targeting *p = 1", got)
+	}
+}

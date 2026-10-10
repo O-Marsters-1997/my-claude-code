@@ -171,7 +171,11 @@ func runLearn(e env, args []string) (string, error) {
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
 			return "", errors.New(learnUsage)
 		}
-		res, err := harvest.Run(context.Background(), harvest.Options{Repo: e.projectDir, Ledger: ledger.DefaultPath(), Block: *block})
+		wd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		res, err := harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Block: *block})
 		if err != nil {
 			return "", err
 		}
