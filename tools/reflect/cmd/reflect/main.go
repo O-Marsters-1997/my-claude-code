@@ -194,6 +194,9 @@ func runLearn(e env, args []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if *status != "" && !ledger.ValidStatus(*status) {
+			return "", fmt.Errorf("unknown status %q", *status)
+		}
 		if *status != "" {
 			learnings = slices.DeleteFunc(learnings, func(l ledger.Learning) bool { return l.Status != *status })
 		}

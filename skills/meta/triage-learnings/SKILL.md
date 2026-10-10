@@ -36,9 +36,9 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 | Learning | Action | Mark |
 | --- | --- | --- |
 | scope global, names a library skill | one issue on the skill's source repo | `promoted` |
-| scope repo, names a repo skill | one issue on the learning's repo to amend that skill | `promoted` |
+| scope repo, names a repo skill | one issue on the learning's `repo` field (pass `-R <owner>/<repo>` from its `origin`) to amend that skill | `promoted` |
 | kind `later`, scope repo | `inbox` issue on that repo via `file-issue` inbox mode | `promoted` |
-| `LEARN(repo)`, or no owner and seen once | file nothing | `deferred` |
+| scope repo with no skill (`LEARN(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
 | user rejects, or a drop from step 3 | file nothing | `rejected` |
 
 Group by skill: one issue per skill per run, with every learning for that skill as an item. Use
@@ -47,9 +47,10 @@ library issues. Put each learning's `before`/`after` under Evidence.
 
 - **Mechanical lessons** (a script or linter could catch it): the issue also asks for a snippet in
   the skill's `lint/` folder, in the house forms (forbidigo, errorlint for Go).
-- **Public repos** (`gh repo view <repo> --json isPrivate`): rewrite each `before`/`after` as a
-  generic example, and leave out other repos' names, paths and private identifiers. An issue on the
-  private repo the code came from keeps the code as written.
+- **Global issues** always carry generic examples: rewrite each `before`/`after`, and leave out
+  repo names, paths and private identifiers, whether or not the library repo is public.
+- **Repo issues** on a public repo (`gh repo view <repo> --json isPrivate`) are genericised too. An
+  issue on the private repo the code came from keeps the code as written.
 
 ## Mark
 
@@ -62,5 +63,5 @@ reflect learn mark <id> rejected
 ```
 
 Mark only after the issue exists, so a failed filing leaves the learning pending for the next run.
-Pass `--scope` and `--skill` when step 2 inferred them. Re-running `ls --status pending` must show
+Pass `--scope` and `--skill` on any mark when step 2 inferred them. Re-running `ls --status pending` must show
 nothing already handled.

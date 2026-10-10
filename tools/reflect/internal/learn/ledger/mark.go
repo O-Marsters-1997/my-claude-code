@@ -8,11 +8,14 @@ import (
 
 var statuses = []string{"pending", "promoted", "deferred", "rejected"}
 
+// ValidStatus reports whether s is a ledger status.
+func ValidStatus(s string) bool { return slices.Contains(statuses, s) }
+
 // Mark appends a status line for the learning id. Issue, scope and skill are
 // written only when non-empty. It fails for an unknown id or status, and for
 // "promoted" without an issue.
 func Mark(path, id, status, issue, scope, skill string) error {
-	if !slices.Contains(statuses, status) {
+	if !ValidStatus(status) {
 		return fmt.Errorf("status %q must be one of %v", status, statuses)
 	}
 	if status == "promoted" && issue == "" {
