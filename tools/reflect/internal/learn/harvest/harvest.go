@@ -211,8 +211,13 @@ func addedLines(diff string) map[string][]int {
 }
 
 func git(ctx context.Context, dir string, args ...string) (string, error) {
+	return gitStdin(ctx, dir, "", args...)
+}
+
+func gitStdin(ctx context.Context, dir, stdin string, args ...string) (string, error) {
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
+	cmd.Stdin = strings.NewReader(stdin)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	if err := cmd.Run(); err != nil {

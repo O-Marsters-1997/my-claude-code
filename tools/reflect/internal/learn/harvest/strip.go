@@ -1,14 +1,11 @@
 package harvest
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
 	"maps"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -18,11 +15,10 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
 )
 
+var afterCloser = regexp.MustCompile(`(?:\*/\}?|-->)\s*(\S.*)$`)
+
 var commentOpener = regexp.MustCompile(`\s*(?:/{2,}|#+|\{?/\*+|<!--)\s*$`)
 
-// stripMarkers removes the markers whose ids are listed per file from both
-// the staged blob and the working tree copy, each independently, so unstaged
-// hunks stay unstaged. It never runs git add.
 func stripMarkers(ctx context.Context, top, root string, ids map[string]map[string]bool) error {
 	for _, file := range slices.Sorted(maps.Keys(ids)) {
 		drop := func(m marker.Marker) bool {
@@ -44,7 +40,7 @@ func stripIndex(ctx context.Context, top, file string, drop func(marker.Marker) 
 		return err
 	}
 	fields := strings.Fields(entry)
-	if len(fields) < 3 || fields[2] != "0" {
+	if len(fields) < 3 || fields[2] != "0" || fields[0] == "120000" || fields[0] == "160000" {
 		return nil
 	}
 	content, err := git(ctx, top, "show", ":"+file)
@@ -83,8 +79,6 @@ func stripWorktree(top, file string, drop func(marker.Marker) bool) error {
 	return os.WriteFile(path, []byte(stripped), info.Mode().Perm())
 }
 
-// removeMarkers deletes the comment lines of every marker drop accepts. A
-// marker trailing code loses only its comment, so the code stays.
 func removeMarkers(content string, drop func(marker.Marker) bool) (string, bool) {
 	raw := strings.Split(content, "\n")
 	lines := make([]string, len(raw))
@@ -102,6 +96,10 @@ func removeMarkers(content string, drop func(marker.Marker) bool) (string, bool)
 			for n := m.Line; n <= m.End; n++ {
 				gone[n-1] = true
 			}
+			if rest := afterCloser.FindStringSubmatch(lines[m.End-1]); rest != nil {
+				delete(gone, m.End-1)
+				raw[m.End-1] = rest[1] + strings.TrimPrefix(raw[m.End-1], lines[m.End-1])
+			}
 			continue
 		}
 		code := strings.TrimRight(commentOpener.ReplaceAllString(lines[m.Line-1][:m.Col], ""), " \t")
@@ -114,23 +112,11 @@ func removeMarkers(content string, drop func(marker.Marker) bool) (string, bool)
 	if !changed {
 		return content, false
 	}
-	kept := raw[:0:0]
+	kept := make([]string, 0, len(raw))
 	for i, l := range raw {
 		if !gone[i] {
 			kept = append(kept, l)
 		}
 	}
 	return strings.Join(kept, "\n"), true
-}
-
-func gitStdin(ctx context.Context, dir, stdin string, args ...string) (string, error) {
-	cmd := exec.CommandContext(ctx, "git", args...)
-	cmd.Dir = dir
-	cmd.Stdin = strings.NewReader(stdin)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdout, &stderr
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("git %s: %w: %s", strings.Join(args, " "), err, strings.TrimSpace(stderr.String()))
-	}
-	return stdout.String(), nil
 }

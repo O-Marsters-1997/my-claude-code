@@ -95,6 +95,15 @@ func TestStripKeepsCodeBesideTrailingMarker(t *testing.T) {
 	}
 }
 
+func TestStripKeepsCodeAfterBlockCommentMarker(t *testing.T) {
+	dir := newRepo(t)
+	write(t, dir, "a.go", "package a\n\n/* LEARN later: x */ func f() {}\n")
+	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
+	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n" {
+		t.Errorf("worktree = %q, want code kept", got)
+	}
+}
+
 func TestStripFlagRemovesFixMarkersWithoutBlocking(t *testing.T) {
 	dir := newRepo(t)
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
