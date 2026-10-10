@@ -91,6 +91,8 @@ check "off switch" 0 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE")" CC_CODEG
 check "read never gated" 0 "$(payload Read '{"file_path":"x.go"}' "$I" "$T_NONE")"
 check "subagent with own query passes" 0 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE" a1)"
 check "subagent without own query is blocked" 2 "$(payload Grep '{"pattern":"x"}' "$I" "$T_MCP" a2)"
+check "reflect-reviewer is not gated" 0 "$(payload Bash '{"command":"grep -rn golang-patterns skills"}' "$I" "$T_NONE" | jq -c '. + {agent_type: "reflect-reviewer"}')"
+check "other agent types are still gated" 2 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE" | jq -c '. + {agent_type: "Explore"}')"
 
 err=$("$HOOK" <<<"$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE")" 2>&1 >/dev/null)
 case $err in *"before Claude Code launches"*) ;; *) echo "FAIL block message lacks launch-time env note"; fails=$((fails + 1)) ;; esac
