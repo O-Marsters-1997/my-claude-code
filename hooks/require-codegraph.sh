@@ -5,6 +5,7 @@ command -v jq >/dev/null || exit 0
 INPUT=$(cat)
 TOOL=$(jq -r '.tool_name // empty' <<<"$INPUT")
 CWD=$(jq -r '.cwd // empty' <<<"$INPUT")
+[ "$(jq -r '.agent_type // empty' <<<"$INPUT")" = reflect-reviewer ] && exit 0
 
 reads_ref() {
 	local words tok have_pattern=0
