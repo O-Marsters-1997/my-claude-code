@@ -6,15 +6,20 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/digest"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/session"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/transcript"
 )
 
+var fileHeading = regexp.MustCompile("(?m)^\\*\\*`([^`]+)`\\*\\*")
+
 const (
+	maxHeadings   = 20
 	sliceTextMax  = 2000
 	sliceInputMax = 1000
 )
@@ -27,6 +32,7 @@ func Write(s session.Session, dir string, limit int) (string, error) {
 	for i, a := range s.Agents {
 		ds[i] = digest.Build(a)
 	}
+	clusters := digest.Clusters(ds)
 	verdicts := digest.Triage(ds, limit)
 	var w strings.Builder
 	fmt.Fprintf(&w, "session %s: %d agents, review cap %d\ndigests: %s/<agent>.txt\n", s.ID, len(s.Agents), limit, dir)
@@ -42,10 +48,40 @@ func Write(s session.Session, dir string, limit int) (string, error) {
 			a.ID, a.Type, cmp.Or(a.Model, "?"), a.Depth, cmp.Or(a.Link, "-"), short(cmp.Or(a.Parent, "-")),
 			d.Calls, d.Fails, digest.Kilo(d.TokensIn), verdicts[a.ID], signalCounts(d))
 	}
+	for _, c := range clusters {
+		fmt.Fprintf(&w, "cluster %s: %d instances, %d agents:", c.Mechanism, len(c.Instances), len(c.Agents()))
+		for _, i := range c.Instances {
+			fmt.Fprintf(&w, " %s L%d", i.Agent, i.Line)
+		}
+		w.WriteString("\n")
+	}
+	for _, r := range repos(s) {
+		fmt.Fprintf(&w, "repo %s\n", r)
+	}
 	for _, warn := range s.Warnings {
 		fmt.Fprintf(&w, "warn: %s\n", warn)
 	}
 	return w.String(), nil
+}
+
+func repos(s session.Session) []string {
+	cwds, roots := map[string]bool{}, map[string]bool{}
+	var out []string
+	for _, a := range s.Agents {
+		for _, l := range a.Lines {
+			if l.Cwd == "" || cwds[l.Cwd] {
+				continue
+			}
+			cwds[l.Cwd] = true
+			root := repo.MainCheckout(l.Cwd)
+			if _, err := os.Stat(filepath.Join(root, ".git")); err != nil || roots[root] {
+				continue
+			}
+			roots[root] = true
+			out = append(out, root)
+		}
+	}
+	return out
 }
 
 func short(id string) string {
@@ -107,13 +143,28 @@ func render(l transcript.Line) string {
 			if b.IsError {
 				status = "error"
 			}
-			fmt.Fprintf(&w, " tool_result %s %s: %s", b.ToolUseID, status, redact.Clean(b.ResultText(), sliceTextMax))
+			text := b.ResultText()
+			fmt.Fprintf(&w, " tool_result %s %s: %s%s", b.ToolUseID, status, redact.Clean(text, sliceTextMax), headings(text))
 		}
 	}
 	if l.Subtype != "" {
 		fmt.Fprintf(&w, " %s", l.Subtype)
 	}
 	return w.String()
+}
+
+func headings(text string) string {
+	if len(text) <= sliceTextMax {
+		return ""
+	}
+	var files []string
+	for _, m := range fileHeading.FindAllStringSubmatch(text, -1) {
+		files = append(files, m[1])
+	}
+	if len(files) == 0 {
+		return ""
+	}
+	return " [files: " + strings.Join(files[:min(len(files), maxHeadings)], ", ") + "]"
 }
 
 func compact(raw json.RawMessage) string {

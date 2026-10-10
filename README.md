@@ -53,6 +53,16 @@ for s in grilling source-synthesis triage-issue; do
 done
 ```
 
+## Skill maintenance
+
+`skill-updater` verifies and ships every change to a skill, and `skill-feedback-collector` turns feedback into issues it can take. Install both:
+
+```
+for s in skill-updater skill-feedback-collector; do
+  npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
+done
+```
+
 ## Planning & Design
 
 These skills help you think through problems before writing code.

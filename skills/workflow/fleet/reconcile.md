@@ -35,9 +35,14 @@ left alone. Promote per ticket: one stuck PR holds back only its own dependents.
 ## 3. Clean up
 
 Remove the worktree and local branch of every ticket whose PR merged with
-`tp remove <branch>` (branches are named `issue-<N>/<short-title>`; find them with
-`tp status --json`). Never use `git worktree remove` or `git branch -d`. Skip any worktree that
+`tp remove <branch> --merged` (squash merges are not ancestors, so plain `tp remove` refuses;
+branches are named `issue-<N>/<short-title>`; find them with `tp status --json`). Use `--merged`
+only for tickets step 1 saw as merged. Never use `git worktree remove` or `git branch -d`. Skip any worktree that
 is dirty or whose PR is not merged. Do it after step 1 so nothing is removed on a guess.
+
+`tp remove` is the only teardown reconcile runs. Whatever a worktree started beyond its checkout
+(services, caches, data) is the repo's to clean up in its treepad remove hook, so fleet never
+names a technology.
 
 ## 4. Write the handoff
 
@@ -45,7 +50,7 @@ Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a secti
 promoted in step 2 and any other `ready` ticket with that label, each with:
 
 - the issue number and title,
-- `Base: feat/<label>` (its blockers are merged into it),
+- `Base: feat/<slug>` (its blockers are merged into it),
 - the merged PR of its most relevant blocker, as the worked example.
 
 ## 5. Raise the feature PR
@@ -54,15 +59,15 @@ Skip this step unless the feature is finished: no open issue carries the label.
 
 ```bash
 gh issue list --state open --label "<label>" --json number --jq length   # must be 0
-gh pr list --base main --head "feat/<label>" --state open --json url     # reuse if present
+gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
 ```
 
-If no PR from `feat/<label>` into `main` is open, raise one, writing the title and body with
-/gh-desc. The body lists every ticket with the label, one `#<N> <title>` per line, from
+If no PR from `feat/<slug>` into `main` is open, raise one. Nothing in it is new to
+review, so the body only lists every ticket with the label, one `#<N> <title>` per line, from
 `gh issue list --state closed --label "<label>"`:
 
 ```bash
-gh pr create --base main --head "feat/<label>" --title "<title>" --body "<body>"
+gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 ```
 
 It is not a draft: every ticket in it already passed review on its own PR.

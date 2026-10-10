@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/detect"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
@@ -25,6 +26,9 @@ const (
 	Reread     = "reread"
 	Big        = "big"
 	Correction = "correction"
+	Idle       = "idle"
+	Wait       = "wait"
+	Slow       = "slow"
 )
 
 const (
@@ -36,15 +40,25 @@ const (
 	targetMax     = 80
 	targetPad     = 40
 	sayMax        = 160
+	idleGap       = 30 * time.Second
+	slowTool      = 60 * time.Second
 )
 
-var leadingCd = regexp.MustCompile(`^cd \S+ && `)
+var (
+	leadingCd  = regexp.MustCompile(`^cd \S+ && `)
+	hookError  = regexp.MustCompile(`hook (?:blocking )?error: \[(.+?)\]: `)
+	sleepOnly  = regexp.MustCompile(`^(?:perl -e '?sleep \d+'?|sleep \d+)\b`)
+	waitsOnKid = map[string]bool{"Agent": true, "Task": true, "TaskOutput": true, "Monitor": true}
+)
 
 type Signal struct {
 	Tag   string
 	Line  int
 	Key   string
 	Class string
+
+	Mechanism string
+	Cluster   string
 }
 
 func (s Signal) FP() string {
@@ -70,6 +84,8 @@ type step struct {
 	target string
 	failed bool
 	size   int
+	tokens int
+	msgID  string
 	text   string
 }
 
@@ -99,6 +115,7 @@ type builder struct {
 	reads     map[string]bool
 	seenMsgs  map[string]bool
 	stepAt    map[string]int
+	prevAt    time.Time
 }
 
 type useSite struct {
@@ -123,6 +140,7 @@ func Build(a *session.Agent) Digest {
 }
 
 func (b *builder) line(l transcript.Line) {
+	b.timing(l)
 	switch {
 	case l.Type == "system" && l.Subtype == "compact_boundary":
 		b.d.steps = append(b.d.steps, step{line: l.N, kind: "compact", text: fmt.Sprintf("compact_boundary (%s → %s)",
@@ -141,7 +159,47 @@ func (b *builder) line(l transcript.Line) {
 	}
 }
 
+func (b *builder) timing(l transcript.Line) {
+	if l.Type != "assistant" && l.Type != "user" {
+		return
+	}
+	at, ok := l.Time()
+	if !ok {
+		return
+	}
+	prev := b.prevAt
+	b.prevAt = at
+	gap := at.Sub(prev)
+	if prev.IsZero() || gap < idleGap {
+		return
+	}
+	if l.Type == "assistant" {
+		b.tag(Idle, l.N, fmt.Sprintf("pause|%d", b.d.Calls), "")
+		return
+	}
+	_, blocks := l.Parts()
+	for _, blk := range blocks {
+		use, ok := b.uses[blk.ToolUseID]
+		if blk.Type != "tool_result" || !ok {
+			continue
+		}
+		switch {
+		case waitsOnKid[use.block.Name], use.block.Name == "Bash" && sleepOnly.MatchString(commandOf(use.block)):
+			b.tag(Wait, use.line, use.block.Name+"|"+target(use.block), "")
+		case gap >= slowTool:
+			b.tag(Slow, use.line, use.block.Name+"|"+target(use.block), "")
+		}
+	}
+}
+
+func commandOf(b transcript.Block) string {
+	var in input
+	_ = json.Unmarshal(b.Input, &in)
+	return strings.TrimSpace(in.Command)
+}
+
 func (b *builder) assistant(l transcript.Line) {
+	tokens := l.Message.Usage.In()
 	if id := l.Message.ID; id == "" || !b.seenMsgs[id] {
 		b.seenMsgs[id] = true
 		b.d.TokensIn += l.Message.Usage.In()
@@ -158,7 +216,7 @@ func (b *builder) assistant(l transcript.Line) {
 		b.d.Calls++
 		b.uses[blk.ID] = useSite{l.N, blk}
 		b.stepAt[blk.ID] = len(b.d.steps)
-		b.d.steps = append(b.d.steps, step{line: l.N, kind: "call", tool: blk.Name, target: target(blk)})
+		b.d.steps = append(b.d.steps, step{line: l.N, kind: "call", tool: blk.Name, target: target(blk), tokens: tokens, msgID: l.Message.ID})
 	}
 }
 
@@ -221,6 +279,13 @@ func (b *builder) failure(use useSite, text string) {
 	if b.failsByFP[key]++; b.failsByFP[key] >= repeatMin {
 		b.tag(Repeat, use.line, key, class)
 	}
+	if m := hookError.FindStringSubmatch(text); m != nil {
+		for i := range b.d.Signals {
+			if b.d.Signals[i].Line == use.line && b.d.Signals[i].Mechanism == "" {
+				b.d.Signals[i].Mechanism = m[1]
+			}
+		}
+	}
 }
 
 func (b *builder) edited(line int, file string, e edit) {
@@ -259,7 +324,17 @@ func (d Digest) Render() string {
 	}
 	tags := map[int][]string{}
 	for _, s := range d.Signals {
-		tags[s.Line] = append(tags[s.Line], fmt.Sprintf("%s fp=%s", s.Tag, s.FP()))
+		tag := fmt.Sprintf("%s fp=%s", s.Tag, s.FP())
+		if s.Cluster != "" {
+			tag += " cluster=" + s.Cluster
+		}
+		tags[s.Line] = append(tags[s.Line], tag)
+	}
+	perMsg := map[string]int{}
+	for _, st := range d.steps {
+		if st.kind == "call" && st.msgID != "" {
+			perMsg[st.msgID]++
+		}
 	}
 	for _, st := range d.steps {
 		switch st.kind {
@@ -274,10 +349,18 @@ func (d Digest) Render() string {
 			if st.failed {
 				status = "FAIL"
 			}
-			fmt.Fprintf(&w, " L%-5d %-6s %-*s %-4s %6s%s\n", st.line, st.tool, targetPad, st.target, status, Kilo(st.size), bracket(tags[st.line]))
+			parallel := ""
+			if perMsg[st.msgID] > 1 {
+				parallel = " ∥"
+			}
+			fmt.Fprintf(&w, " L%-5d %-6s %-*s %-4s %6s %6s in%s%s\n", st.line, st.tool, targetPad, st.target, status, Kilo(st.size), Kilo(st.tokens), parallel, bracket(tags[st.line]))
 		}
 	}
-	fmt.Fprintf(&w, "totals: %d calls, %d fail, %s tok in / %s out\n", d.Calls, d.Fails, Kilo(d.TokensIn), Kilo(d.TokensOut))
+	fmt.Fprintf(&w, "totals: %d calls, %d fail, %s tok in / %s out", d.Calls, d.Fails, Kilo(d.TokensIn), Kilo(d.TokensOut))
+	if d.Calls > 0 {
+		fmt.Fprintf(&w, ", avg %s in/call", Kilo(d.TokensIn/d.Calls))
+	}
+	w.WriteString("\n")
 	return w.String()
 }
 

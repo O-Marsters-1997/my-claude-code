@@ -137,7 +137,7 @@ func TestRenderShowsContext(t *testing.T) {
 
 	out := digest.Build(a).Render()
 
-	for _, want := range []string{"agent a1 general-purpose sonnet", "brief: do the thing", "outcome: used the result", "L1", "Read", "/r/missing.go", "FAIL", "[halluc fp=", "compact_boundary (180k → 22k)", "totals: 1 calls, 1 fail"} {
+	for _, want := range []string{"agent a1 general-purpose sonnet", "brief: do the thing", "outcome: used the result", "L1", "Read", "/r/missing.go", "FAIL", "[halluc fp=", "compact_boundary (180k → 22k)", "totals: 1 calls, 1 fail", "avg 1.0k in/call"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("Render() lacks %q:\n%s", want, out)
 		}
@@ -180,6 +180,53 @@ func TestTriage(t *testing.T) {
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("Triage() (-want +got):\n%s", diff)
+	}
+}
+
+func TestTriageReviewsUntaggedAgentAboveAbsoluteCost(t *testing.T) {
+	cheap := func(id string) digest.Digest { return digest.Digest{Agent: &session.Agent{ID: id}, TokensIn: 10} }
+	ds := []digest.Digest{
+		cheap("a"), cheap("b"), cheap("c"), cheap("d"),
+		{Agent: &session.Agent{ID: "big"}, TokensIn: 6_500_000, Calls: 61},
+		{Agent: &session.Agent{ID: "bigtoo"}, TokensIn: 7_000_000, Calls: 5},
+		{Agent: &session.Agent{ID: "chatty"}, TokensIn: 20, Calls: 45},
+	}
+
+	got := digest.Triage(ds, 5)
+
+	for _, id := range []string{"big", "bigtoo", "chatty"} {
+		if got[id] != digest.Review {
+			t.Errorf("Triage()[%q] = %q, want %q", id, got[id], digest.Review)
+		}
+	}
+	if got["a"] != digest.Skip {
+		t.Errorf("Triage()[a] = %q, want %q", got["a"], digest.Skip)
+	}
+}
+
+func TestRenderShowsCallCostAndParallelism(t *testing.T) {
+	s := &script{t: t}
+	s.add(map[string]any{"type": "assistant", "message": map[string]any{"id": "m1", "content": []any{
+		map[string]any{"type": "tool_use", "id": "ta", "name": "Read", "input": map[string]any{"file_path": "/r/a.go"}},
+		map[string]any{"type": "tool_use", "id": "tb", "name": "Read", "input": map[string]any{"file_path": "/r/b.go"}},
+	}, "usage": map[string]any{"input_tokens": 17000}}})
+	s.call("Bash", map[string]any{"command": "make build"}, "x", false)
+
+	lines := strings.Split(digest.Build(s.agent("a1")).Render(), "\n")
+
+	for _, tc := range []struct {
+		target, in string
+		parallel   bool
+	}{{"/r/a.go", "17k", true}, {"/r/b.go", "17k", true}, {"make build", "1.0k", false}} {
+		var line string
+		for _, l := range lines {
+			if strings.Contains(l, tc.target) {
+				line = l
+			}
+		}
+		if !strings.Contains(line, tc.in+" in") || strings.Contains(line, "∥") != tc.parallel {
+			t.Errorf("line for %s = %q, want %q in, parallel=%v", tc.target, line, tc.in, tc.parallel)
+		}
 	}
 }
 

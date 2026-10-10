@@ -16,15 +16,18 @@ Run test suites expected to take over about 30 seconds with `run_in_background`,
 wait for the completion notification. Never poll with sleep or Monitor loops: each poll re-sends
 the whole session.
 
-Before editing unfamiliar code, explore through `codegraph_explore` (load it via ToolSearch if
-deferred) when the repo has a `.codegraph/` index. Pass the symbols or files you expect to touch;
-the result is verbatim source, so don't `cat`, `sed -n` or `Read` what it already returned. `Read`
-only files you are about to edit or that it didn't surface. If a fleet brief is named, start from
-it. For research broader than one query, use a cheap exploration subagent (e.g. Explore) and take
-its distilled summary rather than grepping and reading extensively yourself in this session.
+Before editing unfamiliar code in a repo with a `.codegraph/` index, make `codegraph_explore`
+(load it via ToolSearch if deferred) your first lookup, before any grep or search. Pass the
+symbols or files the ticket names or you expect to touch; the result is verbatim source, so don't
+`cat`, `sed -n` or `Read` what it already returned. `Read` only files you are about to edit or
+that it didn't surface. If a fleet brief is named, start from it. For research broader than one
+query, use a cheap exploration subagent (e.g. Explore) and take its distilled summary rather than
+grepping and reading extensively yourself in this session.
 
-In a repo with a `.codegraph/` index, make `codegraph_explore` over the files and symbols the
-ticket names your first lookup, before any grep or search.
+If a merge or rebase stops on a conflict, trace each side to its intent from the diffs (read
+commit messages for the conflicting files only if intent is still unclear), keep both intents or
+name what was dropped, invent no new behaviour, and run typecheck and the scoped tests before
+continuing. Never abort to dodge a real conflict; abort only if the base is wrong.
 
 Load the standards skill for each language this change touches before editing a file in
 it, and follow it as written. Existing code that breaks the standard is not licence to
@@ -32,6 +35,8 @@ match it.
 
 `~/.claude/rules/comments.md` is the authority on comments. It outranks a standards
 skill's own comment guidance.
+
+If every change the issue asks for is under `skills/`, run /skill-updater with the issue number instead of the steps below: it verifies old vs new on the issue's scenario and opens the draft PR itself.
 
 Use /tdd where possible, at pre-agreed seams.
 
@@ -41,8 +46,8 @@ observable behaviour, and then add one regression test. Skip code-simplifier. Re
 /code-review low instead of medium.
 
 Given several issues at once (a fleet bundle), work them in the order given, one commit per
-issue whose message ends `Closes #<N>`, and repeat each `Closes #<N>` line in the PR body. Run
-the review passes once, over the whole bundle.
+issue whose message ends `Closes #<N>`, and one PR for the whole bundle. Run the review passes
+once, over the whole bundle.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 For the regular checks, run the narrowest command that proves the point (a single test file
@@ -69,4 +74,4 @@ current branch is anything else, create it off `Base` with `git switch -c` befor
 
 Commit your work to the current branch.
 
-If you open a PR, always open it as a draft (`gh pr create --draft`) and write the title and body with /gh-desc. Add `--base <Base>` only when a fleet dispatch prompt names a `Base:`; ad hoc runs use the repo's default base.
+Finish by raising a PR for review. Its base is `Base:` when a fleet dispatch prompt names one; ad hoc runs use the repo's default base.

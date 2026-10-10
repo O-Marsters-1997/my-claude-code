@@ -2,13 +2,15 @@
 
 | The fix is | Target |
 | --- | --- |
-| A pattern or convention the agent should follow | `AGENTS.md` |
+| A navigation pointer, or a convention nearly every task needs | `AGENTS.md` |
+| A coding standard that takes judgement | the review skill's standards, never `AGENTS.md` |
 | Wiring, order of steps, or procedure for one task | the skill that owns the task (`SKILL.md` or its `references/`) |
 | Something a script can check or enforce | a hook, or a linter rule, never prose |
 | Agent-specific behaviour | the agent's file under `agents/` |
 | Cross-project preference | `rules/*.md` |
 
-Prefer the narrowest target. A single skill's problem goes in that skill, not in `AGENTS.md`.
+Standards belong to review, which carries the least context; `AGENTS.md` is loaded into every
+agent, so it holds navigation pointers. Prefer the narrowest target. A single skill's problem goes in that skill, not in `AGENTS.md`.
 
 ## AGENTS.md
 

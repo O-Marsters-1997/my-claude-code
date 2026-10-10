@@ -27,6 +27,8 @@ the user says the wave has merged, otherwise `dispatch`. If it is still unclear,
 
 ## Shared conventions
 
+An issue whose changes are all under `skills/` is still dispatched through /implement, which hands it to skill-updater.
+
 Both halves rely on these, so they are defined once here.
 
 - **Scratchpad.** `<scratchpad>/fleet/` holds `brief.md`, one `<N>.md` report per ticket, and
@@ -37,13 +39,18 @@ Both halves rely on these, so they are defined once here.
 - **Blockers.** A ticket's `## Blocked by` section lists `- Blocked by #<N>` lines, or "None".
   This is the only record of dependencies; both subcommands read it.
 - **Feature label.** The label `to-plan` creates and `to-tickets` applies to every ticket of a
-  feature. It scopes every `gh issue list` in both subcommands with `--label "<label>"`.
-- **Feature branch.** `feat/<label>`, the label as the feature name. Every ticket PR targets it,
-  never `main`, so several features can run in parallel without touching each other. When the
-  feature's tickets are all done, reconcile opens one PR merging `feat/<label>` into `main`.
+  feature, `project:<slug>`. It scopes every `gh issue list` in both subcommands with
+  `--label "<label>"`. The argument may be `<slug>` or `project:<slug>`: if it matches an existing
+  label exactly (`gh label list`), use it as is, so `sweep-YYYY-MM-DD` and older bare labels keep
+  working; otherwise strip any leading `project:` and the label is `project:<slug>`.
+- **Feature branch.** `feat/<slug>`, where `<slug>` is the label without its `project:` prefix
+  (a label with no prefix, like `sweep-YYYY-MM-DD`, is its own slug), since git forbids `:` in
+  ref names. Every ticket PR targets it, never `main`, so several features can run in parallel
+  without touching each other. When the feature's tickets are all done, reconcile opens one PR
+  merging `feat/<slug>` into `main`.
 - **Chain.** Tickets whose declared files overlap. Dispatch runs a chain in issue-number order,
   each ticket branched from its parent's branch, each PR targeting its parent. GitHub retargets
-  the child to `feat/<label>` when its parent merges.
+  the child to `feat/<slug>` when its parent merges.
 - **Fleet section.** A repo's CLAUDE.md may carry a `Fleet` section listing its generated,
   committed paths (minified CSS, goldens) and the command that rebuilds them. Those files conflict
   by construction, so fleet regenerates them mechanically instead of resolving them.

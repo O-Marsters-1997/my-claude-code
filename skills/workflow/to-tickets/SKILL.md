@@ -58,7 +58,7 @@ Load the chosen source in full:
 
 Settle the **feature label** every ticket gets. Read the plan header's `Label:` line. If the source
 has none (a PRD, a conversation, an older plan), ask the user for one before drafting. Never file
-unlabelled tickets. Existing feature labels are bare slugs (`gh label list`); offer the closest as
+unlabelled tickets. Feature labels are `project:<slug>` (`gh label list`); offer the closest as
 a suggestion.
 
 Extract from whichever source: **technical design decisions** (data models, schema, API contracts, module boundaries, routes), **user stories**, and **acceptance criteria**. Note the source type — it selects the ticket-body source header in step 5.

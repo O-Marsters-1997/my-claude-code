@@ -25,7 +25,7 @@ beyond one case.
 - **Bundle.** Two or more tiny tickets go to one subagent in one worktree, worked in sequence
   with one commit each, on the bundle branch (see Shared conventions in SKILL.md). One spawn
   and one review instead of one per ticket.
-- **Everything else.** Dispatch every ready ticket off `feat/<label>`, stacking the ones that
+- **Everything else.** Dispatch every ready ticket off `feat/<slug>`, stacking the ones that
   overlap (below). Real dependencies live in `## Blocked by`, so a ready ticket is never
   waiting on another.
 
@@ -41,14 +41,14 @@ chain, its order and each ticket's parent into the brief.
 
 ## 1b. Ensure the feature branch
 
-Every PR in this wave targets `feat/<label>`. Create it from `main` if it doesn't exist yet:
+Every PR in this wave targets `feat/<slug>`. Create it from `main` if it doesn't exist yet:
 
 ```bash
-git ls-remote --exit-code --heads origin "feat/<label>" >/dev/null \
-  || { git branch "feat/<label>" origin/main && git push -u origin "feat/<label>"; }
+git ls-remote --exit-code --heads origin "feat/<slug>" >/dev/null \
+  || { git branch "feat/<slug>" origin/main && git push -u origin "feat/<slug>"; }
 ```
 
-Use `rtk proxy "git push -u origin feat/<label>"` where rtk is in play.
+Use `rtk proxy "git push -u origin feat/<slug>"` where rtk is in play.
 
 ## 2. One shared exploration pass
 
@@ -79,15 +79,20 @@ Shared conventions in SKILL.md).
 
 **Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you). Fetch first
 so the base is never stale and the subagent has no reason to reset its branch. The first ticket
-of a chain branches from `origin/feat/<label>`. Each later one is created only after its parent
+of a chain branches from `origin/feat/<slug>`. Each later one is created only after its parent
 returns `done`, with `--base origin/<parent branch>`, so it starts with the parent's work and
 its PR targets the parent's branch. If a parent returns `blocked`, spawn nothing further down
 that chain and report it:
 
 ```bash
 git fetch origin
-WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "origin/feat/<label>" 3>&1 1>&2)
+BRANCH="issue-<N>/<short-title>"
+tp new "$BRANCH" --base "origin/feat/<slug>"
+WT=$(tp status --json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+[ -n "$WT" ] || { echo "no worktree path for $BRANCH" >&2; exit 1; }
 ```
+
+An empty `$WT` stops dispatch: spawn no subagent for that ticket.
 
 Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
@@ -106,8 +111,7 @@ Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>
 Brief: <scratchpad>/fleet/brief.md (use only the absolute paths in it and here)
 Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact absolute paths, from the ticket, ADR table or CONTEXT.md>
-Docker: COMPOSE_PROJECT_NAME=fleet-<N>
-Base: <feat/<label>, or the parent ticket's branch inside a chain>
+Base: <feat/<slug>, or the parent ticket's branch inside a chain>
 Regen: <the repo's `Fleet` section in CLAUDE.md: generated paths and command, or none>
 Size: <xs|s|unsized, from the ticket's size:* label>
 Scratch dir: <scratchpad>/fleet/<N>/ (write every flag, log and temp file here, never /tmp)
@@ -138,25 +142,15 @@ Example: 142 done https://github.com/o/r/pull/151 reviewed=yes /tmp/…/fleet/14
 - Move the ticket `ready → in-progress` when you spawn its subagent, and `→ in-review` when
   it returns `done`. Reconcile relies on these labels to find the wave.
 
-## 5. Docker-backed tests
-
-Parallel testcontainers fight over ports and networks, and each clash burns a full test
-run on a flaky failure.
-
-- Give each worktree its own `COMPOSE_PROJECT_NAME` (as in the prompt above), so
-  networks and volumes don't collide.
-- Cap concurrent Docker-backed test runs at 2 across the batch. If the tickets need more,
-  split the wave.
-
-## 6. Integrate
+## 5. Integrate
 
 Chains already make overlapping tickets a linear stack, so this step only verifies. Simulate
-the wave merging into `feat/<label>` in stack order, parent before child and chains by lowest
+the wave merging into `feat/<slug>` in stack order, parent before child and chains by lowest
 issue number, with `git merge-tree`, which needs no worktree and touches no branch:
 
 ```bash
 git fetch origin
-TIP=$(git rev-parse "origin/feat/<label>")
+TIP=$(git rev-parse "origin/feat/<slug>")
 # for each PR branch B, in order:
 TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
   && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
@@ -188,7 +182,7 @@ checks them first, and with any trade-off it made. If review changes a PR that o
 stacked on, restack them with `git rebase --onto origin/<parent> <old-parent> <child>` before
 merging.
 
-## 7. After the batch
+## 6. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio
@@ -204,7 +198,7 @@ Report to the user:
 Tell them to merge in that order, and once the wave has merged, to run
 `/fleet reconcile <label>` with the label filled in.
 
-## 8. CI follow-up
+## 7. CI follow-up
 
 Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`). With no file or `ci = "off"`, do nothing: never read, watch
 or poll CI.

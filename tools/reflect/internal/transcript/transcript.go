@@ -7,12 +7,14 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 type Entry struct {
 	Type             string          `json:"type"`
 	Subtype          string          `json:"subtype"`
 	Timestamp        string          `json:"timestamp"`
+	Cwd              string          `json:"cwd"`
 	IsMeta           bool            `json:"isMeta"`
 	IsCompactSummary bool            `json:"isCompactSummary"`
 	ToolUseResult    json.RawMessage `json:"toolUseResult"`
@@ -68,6 +70,11 @@ func (e Entry) Parts() (text string, blocks []Block) {
 		}
 	}
 	return strings.Join(texts, "\n"), blocks
+}
+
+func (e Entry) Time() (time.Time, bool) {
+	t, err := time.Parse(time.RFC3339Nano, e.Timestamp)
+	return t, err == nil
 }
 
 func (e Entry) IsPrompt() bool {
