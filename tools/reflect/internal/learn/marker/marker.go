@@ -7,11 +7,13 @@ import (
 
 // Marker is one LEARN marker found in a file. Line, End and Target are
 // 1-based; Target is 0 when an own-line marker has no code line after it.
+// Col is the byte offset of the LEARN keyword within line Line.
 type Marker struct {
 	Skill      string
 	Later      bool
 	Text       string
 	Line       int
+	Col        int
 	End        int
 	Target     int
 	TargetText string
@@ -51,7 +53,7 @@ func Parse(lines []string) []Marker {
 			continue
 		}
 		m, _ := ParseComment(lines[i][loc[0]:])
-		m.Line, m.End = i+1, i+1
+		m.Line, m.End, m.Col = i+1, i+1, loc[0]
 		own := leading.MatchString(lines[i])
 		closed := hasClose.MatchString(lines[i])
 		for own && !closed && m.End < len(lines) {
