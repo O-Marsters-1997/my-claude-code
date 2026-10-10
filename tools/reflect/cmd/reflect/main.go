@@ -241,7 +241,8 @@ func runLearn(e env, args []string) (string, error) {
 		if err := fs.Parse(reorder(args[1:])); err != nil || fs.NArg() != 2 {
 			return "", errors.New(learnUsage)
 		}
-		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), ledger.MarkFields{Issue: *issue, Proposal: *proposal, Scope: *scope, Skill: *skill})
+		fields := ledger.MarkFields{Issue: *issue, Proposal: *proposal, Scope: *scope, Skill: *skill}
+		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), fields)
 	case "status":
 		remind := fs.Bool("remind", false, "print the triage reminder instead of the count, only at or above the threshold")
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {

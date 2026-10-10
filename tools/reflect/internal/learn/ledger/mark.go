@@ -12,15 +12,13 @@ var statuses = []string{"pending", "promoted", "deferred", "rejected"}
 func ValidStatus(s string) bool { return slices.Contains(statuses, s) }
 
 // MarkFields are the optional ledger fields a mark writes when non-empty.
-// Proposal is the URL of a proposal issue grouping the learning, kept apart
-// from Issue so a promoted learning keeps its own issue.
 type MarkFields struct {
 	Issue, Proposal, Scope, Skill string
 }
 
 // Mark appends a status line for the learning id, writing the non-empty
-// fields. It fails for an unknown id or status, and for "promoted" without an
-// issue.
+// fields. It fails for an unknown id or status, and for "promoted" when neither
+// f nor the ledger already has an issue.
 func Mark(path, id, status string, f MarkFields) error {
 	if !ValidStatus(status) {
 		return fmt.Errorf("status %q must be one of %v", status, statuses)

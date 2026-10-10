@@ -61,7 +61,7 @@ filed group: skip it, so a group is never proposed twice.
 
 | Group | Proposal |
 | --- | --- |
-| 3+ learnings in one repo on one theme, with no owning skill | one issue on that repo suggesting a repo skill, an `AGENTS.md` line or an ADR |
+| 3+ learnings in one repo on one theme, with an empty `skill` field and no repo skill in `<repo>/.claude/skills/` covering it | one issue on that repo suggesting a repo skill, an `AGENTS.md` line or an ADR |
 | the same lesson in 2+ repos | one issue on the most likely library skill's source repo, with the `from:` line |
 
 Judge "one theme" and "same lesson" by reading `text`, `before` and `after`; when unsure, leave the
