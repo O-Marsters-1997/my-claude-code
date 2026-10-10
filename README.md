@@ -107,6 +107,12 @@ These skills help you write, refactor, and fix code.
   npx skills add O-Marsters-1997/skills --skill triage-issue
   ```
 
+- **feedback** — Turn loose feedback about how the system behaves into verified tickets: split it into points, check each against the code and recorded intent, play back the findings until you agree (silence counts as agreement), then file one ticket per finding under a `feedback:<area>` label for `/implement` or `/fleet dispatch`.
+
+  ```
+  npx skills add O-Marsters-1997/my-claude-code --skill feedback
+  ```
+
 - **improve-codebase-architecture** — Explore a codebase for architectural improvement opportunities, focusing on deepening shallow modules and improving testability.
 
   ```
