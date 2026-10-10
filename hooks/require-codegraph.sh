@@ -38,7 +38,7 @@ grep -qE "$NON_CODE" <<<"$TARGET" && exit 0
 
 DIR=$(jq -r '.tool_input.path // empty' <<<"$INPUT")
 if [ -z "$DIR" ] && [ "$TOOL" = Bash ]; then
-	DIR=$(sed -nE '1s/^[[:space:]]*cd[[:space:]]+"?([^ "&;]+)"?[[:space:]]*&&.*/\1/p' <<<"$TARGET")
+	DIR=$(sed -nE '1s/^[[:space:]]*cd[[:space:]]+"?([^ "&;]+)"?[[:space:]]*(&&|;).*/\1/p' <<<"$TARGET")
 	[[ $DIR == /* ]] || DIR="$CWD/$DIR"
 fi
 [ -d "$DIR" ] || DIR=$(dirname "${DIR:-.}")
