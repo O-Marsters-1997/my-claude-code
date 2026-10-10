@@ -6,6 +6,14 @@ set -e
 REPO="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE=~/.claude
 
+BRANCH="$(git -C "$REPO" branch --show-current)"
+if [ "$BRANCH" != main ] && [ "${SETUP_ALLOW_BRANCH:-}" != 1 ]; then
+  echo "setup.sh: $REPO is on '${BRANCH:-detached HEAD}', not main. Running it here repoints ~/.claude at this checkout and regenerates settings.json from it." >&2
+  echo "Run it from the main checkout, or set SETUP_ALLOW_BRANCH=1 to do this deliberately." >&2
+  exit 1
+fi
+echo "setup.sh: wiring from $REPO ($BRANCH @ $(git -C "$REPO" rev-parse --short HEAD))"
+
 mkdir -p "$CLAUDE"
 
 link() { ln -sfn "$REPO/$1" "$CLAUDE/$1"; }
