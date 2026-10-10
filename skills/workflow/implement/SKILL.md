@@ -12,6 +12,10 @@ checkpoint with /compact between major phases (after planning, after test-writin
 final review). A single long session re-sends its whole growing history on every turn, so cost
 compounds with session length far faster than with the same work split into smaller ones.
 
+Run test suites expected to take over about 30 seconds with `run_in_background`, end the turn and
+wait for the completion notification. Never poll with sleep or Monitor loops: each poll re-sends
+the whole session.
+
 Before editing unfamiliar code, explore through `codegraph_explore` (load it via ToolSearch if
 deferred) when the repo has a `.codegraph/` index. Pass the symbols or files you expect to touch;
 the result is verbatim source, so don't `cat`, `sed -n` or `Read` what it already returned. `Read`

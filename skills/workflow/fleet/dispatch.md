@@ -51,6 +51,9 @@ pattern, explore it once:
 - Read the completed worked example, the governing ADR or design doc, and CONTEXT.md.
 - Write a short brief (files, pattern, gotchas, test command) to
   `<scratchpad>/fleet/brief.md`.
+- Write the worked example's `git show --stat <merge sha>` output and its route registration
+  into the brief once. Prompts only point at the brief.
+- Resolve every doc, prototype and example path to an absolute path when writing the brief.
 - Pass the brief's path into every dispatch prompt. Don't let each subagent rediscover it.
 
 When research is needed, spawn the `Explore` agent with `model: "haiku"`. Never let a
@@ -75,6 +78,9 @@ WT=$(TREEPAD_CD_FD=3 tp new "issue-<N>/<short-title>" --base "origin/feat/<label
 Use `tp exec <branch> -- <cmd>`
 or `tp status --json` to reach an existing worktree, not `cd` or `git -C` on a guessed path.
 
+**Scratch dir.** Create one per dispatched ticket (`mkdir -p <scratchpad>/fleet/<N>`). The
+prompt passes its absolute path.
+
 ## 4. Write the dispatch prompt
 
 Every prompt has the same shape, so the cached prefix stays identical across the batch.
@@ -83,12 +89,13 @@ Fixed text first, ticket-specific text last.
 ```
 Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>.
 
-Brief: <scratchpad>/fleet/brief.md
+Brief: <scratchpad>/fleet/brief.md (use only the absolute paths in it and here)
 Worked example: <merged PR of the previous wave, if any>
-Files to touch: <exact paths, from the ticket, ADR table or CONTEXT.md>
+Files to touch: <exact absolute paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
 Base: feat/<label>
 Size: <xs|s|unsized, from the ticket's size:* label>
+Scratch dir: <scratchpad>/fleet/<N>/ (write every flag, log and temp file here, never /tmp)
 
 Done means: the review passes /implement requires for this size run, findings applied, committed
 on the branch, draft PR open with `gh pr create --draft --base feat/<label>` (never `main`), result written.
