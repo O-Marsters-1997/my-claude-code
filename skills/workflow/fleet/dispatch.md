@@ -25,9 +25,19 @@ beyond one case.
 - **Bundle.** Two or more tiny tickets go to one subagent in one worktree, worked in sequence
   with one commit each, on the bundle branch (see Shared conventions in SKILL.md). One spawn
   and one review instead of one per ticket.
-- **Everything else.** Dispatch every ready ticket in parallel off `feat/<label>`. Real
-  dependencies live in `## Blocked by`, so a ready ticket is never waiting on another. Tickets
-  that touch the same files are expected to conflict; step 6 resolves that after the work is done.
+- **Everything else.** Dispatch every ready ticket off `feat/<label>`, stacking the ones that
+  overlap (below). Real dependencies live in `## Blocked by`, so a ready ticket is never
+  waiting on another.
+
+**Overlap.** Tickets that touch the same files conflict, and fixing that after the work costs
+a rebase, a resolver and a full check run per PR. Prevent it up front. Collect each ticket's
+paths from its "Where to look" and "Files to touch". Two tickets overlap when they share a path
+or a directory the ticket names as a whole; a ticket that names no paths overlaps everything.
+Group overlapping tickets into **chains** (overlap is transitive) and order each chain by issue
+number, with path-less tickets last. A ticket in no chain is a chain of one.
+
+Chains run in parallel; the tickets inside a chain run one after another (step 3). Write each
+chain, its order and each ticket's parent into the brief.
 
 ## 1b. Ensure the feature branch
 
@@ -68,7 +78,11 @@ also syncs the local configs a bare worktree lacks.
 Shared conventions in SKILL.md).
 
 **Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you). Fetch first
-so the base is never stale and the subagent has no reason to reset its branch:
+so the base is never stale and the subagent has no reason to reset its branch. The first ticket
+of a chain branches from `origin/feat/<label>`. Each later one is created only after its parent
+returns `done`, with `--base origin/<parent branch>`, so it starts with the parent's work and
+its PR targets the parent's branch. If a parent returns `blocked`, spawn nothing further down
+that chain and report it:
 
 ```bash
 git fetch origin
@@ -93,12 +107,14 @@ Brief: <scratchpad>/fleet/brief.md (use only the absolute paths in it and here)
 Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact absolute paths, from the ticket, ADR table or CONTEXT.md>
 Docker: COMPOSE_PROJECT_NAME=fleet-<N>
-Base: feat/<label>
+Base: <feat/<label>, or the parent ticket's branch inside a chain>
+Regen: <the repo's `Fleet` section in CLAUDE.md: generated paths and command, or none>
 Size: <xs|s|unsized, from the ticket's size:* label>
 Scratch dir: <scratchpad>/fleet/<N>/ (write every flag, log and temp file here, never /tmp)
 
 Done means: the review passes /implement requires for this size run, findings applied, committed
-on the branch, draft PR open with `gh pr create --draft --base feat/<label>` (never `main`), result written.
+on the branch, draft PR open with `gh pr create --draft --base <Base>` (never `main`), result written.
+On a conflict in a Regen path, take either side, run the Regen command and commit; never hand-merge it.
 Skipping a required review pass is not allowed; return `blocked` instead.
 Read with Read and Grep on absolute paths. Don't chain `cd … && cat; grep; …` across a sibling
 worktree: the auto-mode classifier has denied such chains as destructive. If a command is denied,
@@ -134,11 +150,9 @@ run on a flaky failure.
 
 ## 6. Integrate
 
-Once every subagent has returned, make the wave merge into `feat/<label>` with no conflict in a
-fixed order. The tickets were built in parallel, so conflicts are expected and are fixed here,
-before review, so the next wave starts from merged work.
-
-Simulate with `git merge-tree`, which needs no worktree and touches no branch:
+Chains already make overlapping tickets a linear stack, so this step only verifies. Simulate
+the wave merging into `feat/<label>` in stack order, parent before child and chains by lowest
+issue number, with `git merge-tree`, which needs no worktree and touches no branch:
 
 ```bash
 git fetch origin
@@ -148,24 +162,28 @@ TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
   && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
 ```
 
-It exits non-zero on a conflict and prints the conflicting paths.
+It exits non-zero on a conflict and prints the conflicting paths. If every step is clean, stop.
 
-1. **Order.** Greedily pick the next PR that merges cleanly onto the current `TIP`, lowest issue
-   number on a tie. A PR that conflicts whatever comes before it goes last.
-2. **Fix.** For each PR `B` that conflicts, find the earlier PR `A` whose files it collides
-   with. In B's worktree, rebase B onto A's branch (`tp exec <B> -- git rebase origin/<A>`) and
-   give any conflict to a resolver subagent, one per PR. It gets both diffs and both tickets' intent,
-   resolves, runs the scoped tests, and continues the rebase. Then
-   `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so B's review diff shows only
-   its own ticket. When A merges, GitHub retargets B to `feat/<label>`, and B merges cleanly
-   because it already carries A's change.
-3. **Verify.** Re-run the simulation over the final order. Every step must be clean. If a PR
-   still conflicts, repeat step 2 once. If it still conflicts, stop and name that PR and its
+A conflict means overlap slipped past step 1. Fix it in one pass, never by chaining a single PR
+onto its collider, because that leaves a partial stack and the re-simulation fails again:
+
+1. Put every PR of the wave in one linear order (the order above, the conflicting PR after the
+   one it collides with).
+2. Rebase each PR onto its predecessor in that order, from the first down:
+   `tp exec <B> -- git rebase origin/<A>`. For a conflict in a Regen path, run the Regen command.
+   Give any other conflict to a resolver subagent, one per PR, with both diffs and both
+   tickets' intent. It keeps both intents or names what it dropped, and invents no behaviour.
+3. After each rebase run the build and the tests scoped to the files that step touched, then
+   `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so its review diff shows
+   only its own ticket.
+4. Re-run the simulation over the final heads. If a PR still conflicts, stop and name it and its
    conflicting paths for the user to resolve by prompt; leave the rest as they are.
 
-Comment on each rebased PR with the files the resolver touched, so review checks them first.
-If review changes a PR that others are stacked on, restack them with
-`git rebase --onto origin/feat/<label> <old-parent> <child>` before merging.
+Run the full suite, e2e included, once on the top PR of each chain, not per step, and note the
+result on that PR. Comment on each rebased PR with the files the resolver touched, so review
+checks them first, and with any trade-off it made. If review changes a PR that others are
+stacked on, restack them with `git rebase --onto origin/<parent> <old-parent> <child>` before
+merging.
 
 ## 7. After the batch
 
@@ -177,7 +195,7 @@ per-ticket text too early). Fix the template before the next batch.
 Report to the user:
 
 - the merge order as a numbered list, one PR per line (`1. #151 issue-142/stuck-scrape-run`),
-  marking each PR the resolver rebased and why;
+  marking each stacked PR with its parent and each PR the integrate fallback rebased and why;
 - the blocked tickets with their reason, and any PR left for a manual conflict prompt.
 
 Tell them to merge in that order, and once the wave has merged, to run

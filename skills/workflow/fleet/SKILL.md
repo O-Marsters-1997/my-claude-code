@@ -3,7 +3,8 @@ name: fleet
 description: >
   Run a batch of tickets through parallel worktrees, wave by wave. Two subcommands:
   `/fleet dispatch <label>` fans /implement out across the ready tickets carrying that feature
-  label, one subagent per ticket, and rebases conflicting PRs so they merge cleanly in a fixed order;
+  label, one subagent per ticket, stacking tickets that touch the same files so they merge
+  cleanly in a fixed order;
   `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, writes the handoff for the next dispatch, and opens
   the feature's PR into main once no tickets are left. A /sweep's `sweep-YYYY-MM-DD` label
@@ -40,6 +41,12 @@ Both halves rely on these, so they are defined once here.
 - **Feature branch.** `feat/<label>`, the label as the feature name. Every ticket PR targets it,
   never `main`, so several features can run in parallel without touching each other. When the
   feature's tickets are all done, reconcile opens one PR merging `feat/<label>` into `main`.
+- **Chain.** Tickets whose declared files overlap. Dispatch runs a chain in issue-number order,
+  each ticket branched from its parent's branch, each PR targeting its parent. GitHub retargets
+  the child to `feat/<label>` when its parent merges.
+- **Fleet section.** A repo's CLAUDE.md may carry a `Fleet` section listing its generated,
+  committed paths (minified CSS, goldens) and the command that rebuilds them. Those files conflict
+  by construction, so fleet regenerates them mechanically instead of resolving them.
 - **Ticket branch.** `issue-<N>/<short-title>`: `<N>` is the issue number, `<short-title>` a
   kebab-case slug of the issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch
   creates it, /implement works on it, reconcile removes it.
