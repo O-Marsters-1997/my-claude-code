@@ -22,12 +22,14 @@ if [ -e "$out" ] && [ "$force" = 0 ] && [ "$dry" = 0 ]; then
   exit 1
 fi
 
-quick_re='^(lint|fmt|format|fmtcheck|check|typecheck|tc|vet|test|unit|assets|css|generate|gen)$'
+quick_re='^(lint|fmt|format|fmtcheck|check|typecheck|tc|vet|test|unit|assets|css)$'
 max_seconds=60
 
 cands=()
 add_cands() { local r; while read -r r; do cands+=("$r|$1 $r"); done; }
-if f=$(ls justfile Justfile 2>/dev/null | head -1) && [ -n "$f" ]; then
+f=""
+for n in justfile Justfile; do [ -f "$n" ] && f=$n && break; done
+if [ -n "$f" ]; then
   add_cands "just" < <(
     grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*[^:=]*:([^=]|$)' "$f" | sed -E 's/[ :].*//' | sort -u)
 fi
@@ -48,7 +50,7 @@ for c in ${cands[@]+"${cands[@]}"}; do
   if ! [[ "$name" =~ $quick_re ]]; then
     excluded+=("$cmd"); continue
   fi
-  if [ "$measure" = 1 ]; then
+  if [ "$measure" = 1 ] && [ "$dry" = 0 ]; then
     s=$(date +%s)
     if ! bash -c "$cmd" >/dev/null 2>&1; then
       echo "fleet-init: '$cmd' failed while measuring, left out" >&2; excluded+=("$cmd"); continue
@@ -66,15 +68,15 @@ if [ -d .github/workflows ]; then
     hit=0
     for p in ${picked[@]+"${picked[@]}"}; do [[ "$p" == *"${j%%[-_]*}"* ]] && hit=1; done
     [ "$hit" = 0 ] && unmatched+=("$j")
-  done < <(awk '/^jobs:/{in_j=1;next} in_j && /^[^ #]/{in_j=0} in_j && /^  [A-Za-z0-9_-]+:/{gsub(/[: ]/,"");print}' .github/workflows/*.y*ml | sort -u)
+  done < <(awk '/^jobs:/{in_j=1;next} in_j && /^[^ #]/{in_j=0} in_j && /^  [A-Za-z0-9_-]+:/{sub(/:.*/,"");gsub(/ /,"");print}' .github/workflows/*.y*ml | sort -u)
 fi
 
 body="# Written by fleet-init. Review before committing.
-# ci: \"off\" ignores CI after a PR opens; \"async\" resumes the ticket's subagent once on a red run.
+ci = \"off\"
 [checks]
 pre_push = ["
 for p in ${picked[@]+"${picked[@]}"}; do body+=$'\n'"  \"$p\","; done
-body+=$'\n]\nci = "off"\n'
+body+=$'\n]\n'
 
 if [ "$dry" = 1 ]; then
   printf '%s\n' "$body"

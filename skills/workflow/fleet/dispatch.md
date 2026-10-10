@@ -206,12 +206,12 @@ Tell them to merge in that order, and once the wave has merged, to run
 
 ## 8. CI follow-up
 
-Read `ci` from `.claude/fleet.toml`. With no file or `ci = "off"`, do nothing: never read, watch
+Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`). With no file or `ci = "off"`, do nothing: never read, watch
 or poll CI.
 
-With `ci = "async"`, after a ticket returns `done`, watch its PR's checks in the background
+With `ci = "async"`, after a ticket returns `done` with `reviewed=yes`, watch its PR's checks in the background
 (`gh pr checks <PR> --watch` with `run_in_background`) without blocking the wave. Green costs
 nothing. On the first red run, resume that ticket's subagent once with SendMessage, passing the
-`gh run view <run-id> --log-failed` excerpt, and ask for one fix pushed. Don't wait for the
-re-run. If a later run on that PR is red again, report the PR and the failing check to the user
+`gh run view <run-id> --log-failed` excerpt, and ask for one fix pushed. A `pre_push` failure after a rebase is fixed by the resolver, or reported to the user if it can't. Don't wait for the
+re-run, but keep the background watch on that PR. If the subagent can't be resumed, or a later run on that PR is red again, report the PR and the failing check to the user
 and stop.
