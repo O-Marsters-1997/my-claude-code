@@ -3,9 +3,9 @@ name: triage-learnings
 description: >
   Routes pending LEARN-marker learnings from the reflect ledger to GitHub issues. Use when the user
   says "triage learnings", "/triage-learnings", "process my LEARN markers", "what have I learned",
-  or when the statusline shows learn:N. Infers missing skill and scope, drops duplicates and
-  lessons already covered by a rule or lint config, proposes routes for the user to accept, files
-  one issue per skill, and writes every decision back to the ledger with `reflect learn mark`.
+  or when the statusline shows learn:N. Infers missing skill and scope, merges duplicates into one
+  item with every example, drops lessons already covered by a rule or lint config, proposes routes
+  for the user to accept, files one issue per skill, and writes every decision back to the ledger with `reflect learn mark`.
 ---
 
 # Triage learnings
@@ -23,11 +23,13 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
    and file, then match it to a repo skill (`<repo>/.claude/skills/`) or a library skill
    (`reflect status` gives the `library:` path). Resolve an installed copy to its library source
    as `routing.md` describes.
-3. **Drop.** Mark `rejected` any learning that duplicates another pending one (keep the one with
-   the fullest `before`/`after`; mark the rest `rejected`), or that an existing skill, `AGENTS.md`,
-   rule or lint config already states. Check by reading the target; do not assume.
-4. **Propose.** Show a table, one row per learning: id, text, route, reason. Wait for the user to
-   accept, change or reject each row. Never file before this.
+3. **Merge and drop.** Merge pending learnings that say the same thing into one item, keeping
+   every example (file, line, `before`/`after`) and a count such as "seen in 4 places": the
+   repetition is the evidence, and each merged learning still counts toward a proposal's 3+.
+   Mark `rejected` only a learning that an existing skill, `AGENTS.md`, rule or lint config
+   already states. Check by reading the target; do not assume.
+4. **Propose.** Show a table, one row per item: ids, text, count, route, reason. Wait for the user
+   to accept, change or reject each row. Never file before this.
 5. **File** the accepted rows (below), then **mark** each.
 6. **Propose upward** (below) over the deferred and promoted learnings.
 7. **Report** the issue URLs, the proposals, and counts of promoted, deferred and rejected.
@@ -42,9 +44,11 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 | scope repo with no skill (`LEARN(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
 | user rejects, or a drop from step 3 | file nothing | `rejected` |
 
-Group by skill: one issue per skill per run, with every learning for that skill as an item. Use
+A merged item takes one route, and every learning in it gets that item's mark and `--issue` URL.
+
+Group by skill: one issue per skill per run, listing every item for that skill. Use
 the reflect issue format with labels `reflect` and `status:ready`, and add the `from:` line for
-library issues. Put each learning's `before`/`after` under Evidence.
+library issues. Put each item's count and every example's `before`/`after` under Evidence.
 
 - **Mechanical lessons** (a script or linter could catch it): the issue also asks for a snippet in
   the skill's `lint/` folder, in the house forms (forbidigo, errorlint for Go).
