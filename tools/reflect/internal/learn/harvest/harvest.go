@@ -133,6 +133,9 @@ func Run(ctx context.Context, o Options) (Result, error) {
 		}
 		return a.Line - b.Line
 	})
+	if err := recordFixes(ctx, top, root, o.Ledger); err != nil {
+		return Result{}, err
+	}
 	res.Blocked = o.Block && len(res.Found) > 0
 	return res, nil
 }
