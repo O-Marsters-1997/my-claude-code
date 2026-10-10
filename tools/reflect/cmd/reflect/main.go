@@ -161,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name]"
+	const learnUsage = "usage: reflect learn harvest [--block] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -240,8 +240,36 @@ func runLearn(e env, args []string) (string, error) {
 			return "", errors.New(learnUsage)
 		}
 		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), *issue, *scope, *skill)
+	case "status":
+		remind := fs.Bool("remind", false, "print the triage reminder instead of the count, only at or above the threshold")
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		return learnStatus(ledger.DefaultPath(), *remind)
 	}
 	return "", errors.New(learnUsage)
+}
+
+const remindThreshold = 10
+
+func learnStatus(path string, remind bool) (string, error) {
+	learnings, err := ledger.Read(path)
+	if err != nil {
+		return "", err
+	}
+	pending := 0
+	for _, l := range learnings {
+		if l.Status == "pending" {
+			pending++
+		}
+	}
+	if !remind {
+		return fmt.Sprintf("%d\n", pending), nil
+	}
+	if pending < remindThreshold {
+		return "", nil
+	}
+	return fmt.Sprintf("%d pending learnings: run /triage-learnings\n", pending), nil
 }
 
 func reportsDir(root string) (string, error) {
