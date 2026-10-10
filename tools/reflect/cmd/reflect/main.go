@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -159,7 +160,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] | ls [--json]"
+	const learnUsage = "usage: reflect learn harvest [--block] | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -185,12 +186,16 @@ func runLearn(e env, args []string) (string, error) {
 		return "", nil
 	case "ls":
 		asJSON := fs.Bool("json", false, "print the folded ledger as JSON")
+		status := fs.String("status", "", "only learnings with this status")
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
 			return "", errors.New(learnUsage)
 		}
 		learnings, err := ledger.Read(ledger.DefaultPath())
 		if err != nil {
 			return "", err
+		}
+		if *status != "" {
+			learnings = slices.DeleteFunc(learnings, func(l ledger.Learning) bool { return l.Status != *status })
 		}
 		if *asJSON {
 			if learnings == nil {
@@ -204,6 +209,14 @@ func runLearn(e env, args []string) (string, error) {
 			fmt.Fprintf(&sb, "%s\t%s\t%s\t%s:%d\t%s\n", l.ID, l.Status, l.Kind, l.File, l.Line, l.Text)
 		}
 		return sb.String(), nil
+	case "mark":
+		issue := fs.String("issue", "", "issue URL, required for promoted")
+		scope := fs.String("scope", "", "global or repo")
+		skill := fs.String("skill", "", "owning skill")
+		if err := fs.Parse(reorder(args[1:])); err != nil || fs.NArg() != 2 {
+			return "", errors.New(learnUsage)
+		}
+		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), *issue, *scope, *skill)
 	}
 	return "", errors.New(learnUsage)
 }
