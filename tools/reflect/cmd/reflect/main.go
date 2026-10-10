@@ -18,6 +18,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/harvest"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/pull"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/legacy"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/record"
@@ -160,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name]"
+	const learnUsage = "usage: reflect learn harvest [--block] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -184,6 +185,25 @@ func runLearn(e env, args []string) (string, error) {
 			return res.Report(), fmt.Errorf("%d fix marker(s) remain; resolve or remove them before committing", len(res.Found))
 		}
 		return "", nil
+	case "pull":
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		res, err := pull.Run(context.Background(), pull.Options{
+			Ledger: ledger.DefaultPath(),
+			Roots:  []string{filepath.Join(home, "Documents", "coding")},
+		})
+		for _, w := range res.Warnings {
+			fmt.Fprintln(os.Stderr, "reflect: warning:", w)
+		}
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("recorded %d learning(s) from PR comments\n", res.Recorded), nil
 	case "ls":
 		asJSON := fs.Bool("json", false, "print the folded ledger as JSON")
 		status := fs.String("status", "", "only learnings with this status")
@@ -220,8 +240,48 @@ func runLearn(e env, args []string) (string, error) {
 			return "", errors.New(learnUsage)
 		}
 		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), *issue, *scope, *skill)
+	case "status":
+		remind := fs.Bool("remind", false, "print the triage reminder instead of the count, only at or above the threshold")
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		return learnStatus(ledger.DefaultPath(), *remind)
 	}
 	return "", errors.New(learnUsage)
+}
+
+const remindThreshold = 10
+
+func learnStatus(path string, remind bool) (string, error) {
+	n, err := pendingCount(path)
+	if err != nil {
+		return "", err
+	}
+	if !remind {
+		return fmt.Sprintf("%d\n", n), nil
+	}
+	return reminder(n), nil
+}
+
+func pendingCount(path string) (int, error) {
+	learnings, err := ledger.Read(path)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, l := range learnings {
+		if l.Status == "pending" {
+			n++
+		}
+	}
+	return n, nil
+}
+
+func reminder(pending int) string {
+	if pending < remindThreshold {
+		return ""
+	}
+	return fmt.Sprintf("%d pending learnings: run /triage-learnings\n", pending)
 }
 
 func reportsDir(root string) (string, error) {
