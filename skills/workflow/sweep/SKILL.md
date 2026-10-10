@@ -39,8 +39,13 @@ An item stays in the sweep only if all hold:
 - no schema, public API or dependency change;
 - the cause is known. A bug whose cause still needs finding is triage, not a sweep item.
 
-Rejects are listed with their route (`triage-issue` for an unexplained bug, `capture-idea` or
-`to-prd` for a feature). Their inbox issues stay open.
+Rejects are listed with their route: `triage-issue` for an unexplained bug, `capture-idea` or
+`to-prd` for a feature, and `needs-design` for a design or refactor concern with no known fix
+(such as a `LEARN later:` marker). Name no skill for `needs-design`: deciding the fix is the
+open work.
+
+A rejected inbox issue stays open but leaves the inbox, or every later sweep explores and
+rejects it again. Step 6 relabels it.
 
 ## 4. Cluster by file
 
@@ -62,7 +67,7 @@ Show one table and wait for a yes. The clustering is the decision, so this is th
 ```
 Label: sweep-2026-10-07
 | Ticket | Items (inbox #) | Files | Size |
-Rejected: <item> → <route>
+Rejected: <item> (inbox #) → <route>
 ```
 
 ## 6. File
@@ -93,6 +98,11 @@ gh issue create --title "<title>" --body-file <tmpfile> \
 
 A chained ticket from step 4 gets `status:backlog` and a `- Blocked by #<N>` line instead.
 Then close every absorbed inbox issue: `gh issue close <N> --comment "Swept into #<ticket>"`.
+
+Take every rejected inbox issue out of the inbox:
+`gh issue edit <N> --remove-label inbox`, adding `--add-label needs-design` for a `needs-design`
+reject. Create `needs-design` first if missing:
+`gh label create needs-design -d "Needs a design decision before it can be fixed"`.
 
 ## 7. Report
 

@@ -1,0 +1,10 @@
+{
+  "skill_name": "sweep",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Inbox holds #201 \"Fix typo in README install step\" (1 file, cause known) and #202 \"LEARN later: the retry loop in scheduler.go is tangled; unclear how to restructure it\" (design smell, no known fix). The batch is confirmed. List how #202 is routed, every gh command for #201 and #202, and #202's labels afterwards.",
+      "expected_output": "#202 is rejected with route needs-design and no skill named. Sweep creates the needs-design label if missing and runs gh issue edit 202 --remove-label inbox --add-label needs-design, so the next sweep does not pick it up. #201 becomes a sweep ticket and its inbox issue is closed."
+    }
+  ]
+}
