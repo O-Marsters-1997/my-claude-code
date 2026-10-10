@@ -1,0 +1,13 @@
+#!/bin/sh
+reflect="$HOME/.claude/bin/reflect"
+
+if [ -x "$reflect" ]; then
+	"$reflect" learn harvest --block || exit $?
+else
+	echo "pre-commit: $reflect missing, skipping learn harvest (run setup.sh)" >&2
+fi
+
+repo_hook="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+if [ -x "$repo_hook" ]; then
+	exec "$repo_hook" "$@"
+fi
