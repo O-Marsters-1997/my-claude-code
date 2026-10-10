@@ -18,16 +18,18 @@ import (
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/marker"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/scope"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 )
 
-// Options configures Run. Repo is any directory inside the repository and
-// Ledger the learnings.jsonl path.
+// Options configures Run. Repo is any directory inside the repository,
+// Ledger the learnings.jsonl path and Library the skill library root.
 type Options struct {
-	Repo   string
-	Ledger string
-	Block  bool
+	Repo    string
+	Ledger  string
+	Library string
+	Block   bool
 }
 
 // Found is one fix marker still present in a staged or unstaged diff.
@@ -111,9 +113,10 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				if have[id] {
 					continue
 				}
+				scopeName, skill := scope.Resolve(root, o.Library, m.Skill)
 				l := ledger.Learning{
 					ID: id, TS: time.Now().UTC().Format(time.RFC3339), Source: "editor", Kind: "fix",
-					Skill: m.Skill, Text: text, Repo: root, Origin: origin, File: file, Line: m.Line,
+					Scope: scopeName, Skill: skill, Text: text, Repo: root, Origin: origin, File: file, Line: m.Line,
 					TargetText: redact.Clean(m.TargetText, maxField),
 					Before:     redact.Clean(snippet(lines, m), maxField), Status: "pending",
 				}
