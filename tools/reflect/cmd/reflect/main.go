@@ -161,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name] | status [--remind]"
+	const learnUsage = "usage: reflect learn harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -235,12 +235,13 @@ func runLearn(e env, args []string) (string, error) {
 		return sb.String(), nil
 	case "mark":
 		issue := fs.String("issue", "", "issue URL, required for promoted")
+		proposal := fs.String("proposal", "", "proposal issue URL grouping this learning")
 		scope := fs.String("scope", "", "global or repo")
 		skill := fs.String("skill", "", "owning skill")
 		if err := fs.Parse(reorder(args[1:])); err != nil || fs.NArg() != 2 {
 			return "", errors.New(learnUsage)
 		}
-		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), *issue, *scope, *skill)
+		return "", ledger.Mark(ledger.DefaultPath(), fs.Arg(0), fs.Arg(1), ledger.MarkFields{Issue: *issue, Proposal: *proposal, Scope: *scope, Skill: *skill})
 	case "status":
 		remind := fs.Bool("remind", false, "print the triage reminder instead of the count, only at or above the threshold")
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
