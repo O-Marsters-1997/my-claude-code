@@ -35,8 +35,11 @@ func TestLearnStatus(t *testing.T) {
 				}
 			}
 			got, err := learnStatus(path, tt.remind)
-			if err != nil || got != tt.want {
-				t.Fatalf("got %q, %v; want %q", got, err, tt.want)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != tt.want {
+				t.Fatalf("got %q; want %q", got, tt.want)
 			}
 		})
 	}

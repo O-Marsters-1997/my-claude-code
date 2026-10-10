@@ -253,23 +253,35 @@ func runLearn(e env, args []string) (string, error) {
 const remindThreshold = 10
 
 func learnStatus(path string, remind bool) (string, error) {
-	learnings, err := ledger.Read(path)
+	n, err := pendingCount(path)
 	if err != nil {
 		return "", err
 	}
-	pending := 0
+	if !remind {
+		return fmt.Sprintf("%d\n", n), nil
+	}
+	return reminder(n), nil
+}
+
+func pendingCount(path string) (int, error) {
+	learnings, err := ledger.Read(path)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
 	for _, l := range learnings {
 		if l.Status == "pending" {
-			pending++
+			n++
 		}
 	}
-	if !remind {
-		return fmt.Sprintf("%d\n", pending), nil
-	}
+	return n, nil
+}
+
+func reminder(pending int) string {
 	if pending < remindThreshold {
-		return "", nil
+		return ""
 	}
-	return fmt.Sprintf("%d pending learnings: run /triage-learnings\n", pending), nil
+	return fmt.Sprintf("%d pending learnings: run /triage-learnings\n", pending)
 }
 
 func reportsDir(root string) (string, error) {
