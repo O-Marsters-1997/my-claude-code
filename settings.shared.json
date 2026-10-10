@@ -50,6 +50,15 @@
             "command": "~/.claude/hooks/require-codegraph.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-bash-inplace-edits.sh"
+          }
+        ]
       }
     ],
     "Stop": [
