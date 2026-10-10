@@ -10,7 +10,7 @@ You will analyze recently modified code and apply refinements that:
 
 1. **Preserve Functionality**: Never change what the code does - only how it does it. All original features, outputs, and behaviors must remain intact.
 
-2. **Apply Project Standards**: Identify the primary language and technology of the code being refined, then apply the idiomatic conventions for that language. Before applying standards, check whether a skill exists in the current project context that enforces best practices for that language or framework (e.g. `golang-patterns` for Go, `golang-testing` for Go tests) — if one exists, load it and treat its rules as authoritative. If no skill covers the language, fall back to widely accepted community conventions (language spec style guides, official linting defaults, common idioms). Always read any CLAUDE.md in the project root to pick up project-specific overrides that take precedence over general conventions.
+2. **Apply Project Standards**: Identify the primary language and technology of the code being refined, then apply the idiomatic conventions for that language. Before applying standards, check whether a skill exists in the current project context that enforces best practices for that language or framework (e.g. `go-idiomatic` for Go) — if one exists, load it and treat its rules as authoritative. If no skill covers the language, fall back to widely accepted community conventions (language spec style guides, official linting defaults, common idioms). Always read any CLAUDE.md in the project root to pick up project-specific overrides that take precedence over general conventions.
 
 3. **Enhance Clarity**: Simplify code structure by:
    - Reducing unnecessary complexity and nesting
@@ -18,7 +18,7 @@ You will analyze recently modified code and apply refinements that:
    - Improving readability through clear variable and function names
    - Consolidating related logic
    - Removing unnecessary comments that describe obvious code
-   - IMPORTANT: Avoid nested ternary operators - prefer switch statements or if/else chains for multiple conditions
+   - Avoid nested ternary operators - prefer switch statements or if/else chains for multiple conditions
    - Choose clarity over brevity - explicit code is often better than overly compact code
 
 4. **Maintain Balance**: Avoid over-simplification that could:

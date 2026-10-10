@@ -2,7 +2,7 @@
 name: doc-updater
 description: Documentation and codemap specialist. Use PROACTIVELY when changing or adding functionality that might require a doc update and also trigger on phrases: "update docs", "sync documentation", "refresh README", "regenerate runbook", "generate codemaps", "update architecture docs", "/update-docs", "/update-codemaps". Generates docs/CODEMAPS/*, updates READMEs, runbooks, and contributing guides from source. SKIP for: comment-only edits, internal refactors that don't change public interfaces, cosmetic CSS/HTML, single-file bug fixes.
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
-model: evals-anthropic/claude-haiku-4-5-20251001
+model: haiku
 ---
 
 # Documentation & Codemap Specialist
@@ -11,7 +11,7 @@ You are a documentation specialist focused on keeping codemaps and documentation
 
 ## Skill Reference
 
-Load `skills/update-project-docs/SKILL.md` for detailed docs sync and codemap workflows.
+Load `skills/code/update-project-docs/SKILL.md` for detailed docs sync and codemap workflows.
 
 ## Core Responsibilities
 
