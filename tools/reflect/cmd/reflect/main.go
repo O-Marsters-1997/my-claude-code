@@ -18,6 +18,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/harvest"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/pull"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/legacy"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/record"
@@ -160,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name]"
+	const learnUsage = "usage: reflect learn harvest [--block] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -184,6 +185,25 @@ func runLearn(e env, args []string) (string, error) {
 			return res.Report(), fmt.Errorf("%d fix marker(s) remain; resolve or remove them before committing", len(res.Found))
 		}
 		return "", nil
+	case "pull":
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		res, err := pull.Run(context.Background(), pull.Options{
+			Ledger: ledger.DefaultPath(),
+			Roots:  []string{filepath.Join(home, "Documents", "coding")},
+		})
+		for _, w := range res.Warnings {
+			fmt.Fprintln(os.Stderr, "reflect: warning:", w)
+		}
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("recorded %d learning(s) from PR comments\n", res.Recorded), nil
 	case "ls":
 		asJSON := fs.Bool("json", false, "print the folded ledger as JSON")
 		status := fs.String("status", "", "only learnings with this status")
