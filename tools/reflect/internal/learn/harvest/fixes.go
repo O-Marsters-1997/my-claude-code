@@ -34,7 +34,7 @@ func recordFixes(ctx context.Context, top, root, ledgerPath string) error {
 		return err
 	}
 	for _, l := range known {
-		if l.Kind != "fix" || l.Status != "pending" || l.After != "" || l.Repo != root || l.File == "" {
+		if !awaitsFix(l, root) {
 			continue
 		}
 		content, err := git(ctx, top, "show", ":"+l.File)
@@ -55,6 +55,10 @@ func recordFixes(ctx context.Context, top, root, ledgerPath string) error {
 		}
 	}
 	return nil
+}
+
+func awaitsFix(l ledger.Learning, root string) bool {
+	return l.Kind == "fix" && l.Status == "pending" && l.After == "" && l.Repo == root && l.File != ""
 }
 
 func markerPresent(content, root string, l ledger.Learning) bool {
@@ -102,7 +106,7 @@ func pickHunk(hunks []fixHunk, l ledger.Learning) (fixHunk, bool) {
 	}
 	if target := strings.TrimSpace(l.TargetText); target != "" {
 		for _, h := range hunks {
-			if slices.ContainsFunc(h.removed, func(r string) bool { return strings.Contains(r, target) }) {
+			if slices.ContainsFunc(h.removed, func(r string) bool { return strings.Contains(redact.Clean(r, maxField), target) }) {
 				return h, true
 			}
 		}

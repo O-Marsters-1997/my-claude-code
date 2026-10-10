@@ -238,3 +238,39 @@ func TestFixNotRecordedWhileMarkerRemains(t *testing.T) {
 		t.Errorf("after = %q, want empty while marker remains", got)
 	}
 }
+
+func TestFixMatchesAfterLinesRemovedAbove(t *testing.T) {
+	dir := newRepo(t)
+	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\nfunc f() {}\n")
+	gitIn(t, dir, "add", ".")
+	gitIn(t, dir, "commit", "-qm", "more")
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\n// LEARN: wrap\nfunc f() {}\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); !strings.Contains(got, "-func f() {}") || !strings.Contains(got, "+func f() error { return nil }") {
+		t.Errorf("after = %q", got)
+	}
+}
+
+func TestFixFallsBackToNearestHunk(t *testing.T) {
+	dir := newRepo(t)
+	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\nfunc g() {}\n")
+	gitIn(t, dir, "add", ".")
+	gitIn(t, dir, "commit", "-qm", "g")
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\n// LEARN: tidy\nfunc g() {}\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\nfunc g() int { return 1 }\n")
+	gitIn(t, dir, "add", "a.go")
+	if got := run(t, dir, lp); got.Blocked {
+		t.Fatal("blocked")
+	}
+	if got := afterOf(t, lp); !strings.Contains(got, "+func g() int { return 1 }") {
+		t.Errorf("after = %q", got)
+	}
+}
