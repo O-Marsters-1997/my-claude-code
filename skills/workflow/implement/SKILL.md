@@ -52,6 +52,9 @@ Once done, use /code-review medium to review the work, or low for a small fix. P
 worktree path and the diff against `Base:` (`git -C <worktree> diff origin/<base>...HEAD`). If
 that diff is empty, stop and report; never fall back to `HEAD~1`.
 
+Run /code-review in the foreground and read its result when it returns. Never wait with
+`sleep`, `timeout`, `tail -f` or `perl -e 'sleep …'`.
+
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
 issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch normally creates it; if the
