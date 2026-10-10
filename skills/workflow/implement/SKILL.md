@@ -49,6 +49,10 @@ For the regular checks, run the narrowest command that proves the point (a singl
 or package, e.g. `go test ./path -run TestName`) rather than the project's full test/lint
 runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass at the end.
 
+If the repo has `.claude/fleet.toml`, the final pass before pushing runs every command in its
+`[checks] pre_push` list, in order, and fixes failures before pushing. Run only the listed
+commands; anything not listed is left to CI. Without the file, behave as above.
+
 Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
 change, right before /code-review.
 

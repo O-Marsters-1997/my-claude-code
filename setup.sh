@@ -17,6 +17,9 @@ link statusline-command.sh
 link RTK.md
 link CLAUDE.md
 
+mkdir -p "$CLAUDE/bin"
+ln -sfn "$REPO/bin/fleet-init" "$CLAUDE/bin/fleet-init"
+
 ln -sfn "$REPO/githooks/post-merge" "$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir)/hooks/post-merge"
 
 if [ "${1:-}" = "--reflect" ]; then
