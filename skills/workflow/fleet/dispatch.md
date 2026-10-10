@@ -179,6 +179,9 @@ onto its collider, because that leaves a partial stack and the re-simulation fai
 4. Re-run the simulation over the final heads. If a PR still conflicts, stop and name it and its
    conflicting paths for the user to resolve by prompt; leave the rest as they are.
 
+If the repo has `.claude/fleet.toml`, run every command in `[checks] pre_push` after each rebase
+and before pushing, in addition to the scoped tests. Run no command that is not listed.
+
 Run the full suite, e2e included, once on the top PR of each chain, not per step, and note the
 result on that PR. Comment on each rebased PR with the files the resolver touched, so review
 checks them first, and with any trade-off it made. If review changes a PR that others are
@@ -200,3 +203,15 @@ Report to the user:
 
 Tell them to merge in that order, and once the wave has merged, to run
 `/fleet reconcile <label>` with the label filled in.
+
+## 8. CI follow-up
+
+Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`). With no file or `ci = "off"`, do nothing: never read, watch
+or poll CI.
+
+With `ci = "async"`, after a ticket returns `done` with `reviewed=yes`, watch its PR's checks in the background
+(`gh pr checks <PR> --watch` with `run_in_background`) without blocking the wave. Green costs
+nothing. On the first red run, resume that ticket's subagent once with SendMessage, passing the
+`gh run view <run-id> --log-failed` excerpt, and ask for one fix pushed. A `pre_push` failure after a rebase is fixed by the resolver, or reported to the user if it can't. Don't wait for the
+re-run, but keep the background watch on that PR. If the subagent can't be resumed, or a later run on that PR is red again, report the PR and the failing check to the user
+and stop.
