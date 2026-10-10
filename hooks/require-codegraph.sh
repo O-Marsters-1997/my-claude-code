@@ -75,5 +75,5 @@ for _ in 1 2 3 4 5; do
 	sleep 0.25
 done
 
-printf 'This repo has a CodeGraph index. Query it once before searching code: call mcp__codegraph__codegraph_explore (load it via ToolSearch if deferred), or run `codegraph explore "<symbols or question>"` in Bash if the MCP tool is not available. After one query, Grep/Glob/grep are unlocked for the rest of this agent. Searches of docs, templates, CSS and config files are never gated. Set CC_CODEGRAPH_GATE_OFF=1 to skip this check.\n' >&2
+printf 'This repo has a CodeGraph index. Query it once before searching code: call mcp__codegraph__codegraph_explore (load it via ToolSearch if deferred), or run `codegraph explore "<symbols or question>"` in Bash if the MCP tool is not available. After one query, Grep/Glob/grep are unlocked for the rest of this agent. Searches of docs, templates, CSS and config files are never gated. CC_CODEGRAPH_GATE_OFF=1 skips this check only when set in the environment before Claude Code launches; setting it inside the command has no effect.\n' >&2
 exit 2
