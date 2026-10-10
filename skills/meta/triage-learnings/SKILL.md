@@ -5,7 +5,8 @@ description: >
   says "triage learnings", "/triage-learnings", "process my LEARN markers", "what have I learned",
   or when the statusline shows learn:N. Infers missing skill and scope, merges duplicates into one
   item with every example, drops lessons already covered by a rule or lint config, proposes routes
-  for the user to accept, files one issue per skill, and writes every decision back to the ledger with `reflect learn mark`.
+  for the user to accept, files one issue per skill, and writes every decision back to the ledger
+  with `reflect learn mark`.
 ---
 
 # Triage learnings
@@ -23,9 +24,10 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
    and file, then match it to a repo skill (`<repo>/.claude/skills/`) or a library skill
    (`reflect status` gives the `library:` path). Resolve an installed copy to its library source
    as `routing.md` describes.
-3. **Merge and drop.** Merge pending learnings that say the same thing into one item, keeping
-   every example (file, line, `before`/`after`) and a count such as "seen in 4 places": the
-   repetition is the evidence, and each merged learning still counts toward a proposal's 3+.
+3. **Merge and drop.** Merge pending learnings with the same skill and scope that say the same
+   thing (judged by reading `text`, `before` and `after`) into one item, keeping every example
+   (file, line, `before`/`after`) and a count such as "seen in 4 places": the repetition is the
+   evidence, and each merged learning still counts toward a proposal's 3+.
    Mark `rejected` only a learning that an existing skill, `AGENTS.md`, rule or lint config
    already states. Check by reading the target; do not assume.
 4. **Propose.** Show a table, one row per item: ids, text, count, route, reason. Wait for the user
