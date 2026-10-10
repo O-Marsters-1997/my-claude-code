@@ -2,6 +2,8 @@ package main
 
 import (
 	"cmp"
+	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,9 +11,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/hook"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/harvest"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/legacy"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/record"
@@ -22,7 +27,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/status"
 )
 
-const usage = "usage: reflect scan|slice|replay|metrics|status|reports|uninstall-legacy|hook"
+const usage = "usage: reflect scan|slice|replay|metrics|status|learn|reports|uninstall-legacy|hook"
 
 var library string
 
@@ -69,6 +74,8 @@ func run(e env, cmd string, args []string) (string, error) {
 		return runReplay(e, args)
 	case "metrics":
 		return runMetrics(e, args)
+	case "learn":
+		return runLearn(e, args)
 	case "status":
 		return status.Report(e.claudeDir, library)
 	case "reports":
@@ -149,6 +156,56 @@ func runMetrics(e env, args []string) (string, error) {
 		return "", err
 	}
 	return metrics.Report(metrics.Options{Projects: e.projects(), Records: records, Root: e.root(), Exclude: *exclude}), nil
+}
+
+func runLearn(e env, args []string) (string, error) {
+	const learnUsage = "usage: reflect learn harvest [--block] | ls [--json]"
+	if len(args) == 0 {
+		return "", errors.New(learnUsage)
+	}
+	fs := flag.NewFlagSet("learn "+args[0], flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	switch args[0] {
+	case "harvest":
+		block := fs.Bool("block", false, "exit 1 while fix markers remain")
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		res, err := harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Block: *block})
+		if err != nil {
+			return "", err
+		}
+		if res.Blocked {
+			return res.Report(), fmt.Errorf("%d fix marker(s) remain; resolve or remove them before committing", len(res.Found))
+		}
+		return "", nil
+	case "ls":
+		asJSON := fs.Bool("json", false, "print the folded ledger as JSON")
+		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
+			return "", errors.New(learnUsage)
+		}
+		learnings, err := ledger.Read(ledger.DefaultPath())
+		if err != nil {
+			return "", err
+		}
+		if *asJSON {
+			if learnings == nil {
+				learnings = []ledger.Learning{}
+			}
+			b, err := json.MarshalIndent(learnings, "", "  ")
+			return string(b) + "\n", err
+		}
+		var sb strings.Builder
+		for _, l := range learnings {
+			fmt.Fprintf(&sb, "%s\t%s\t%s\t%s:%d\t%s\n", l.ID, l.Status, l.Kind, l.File, l.Line, l.Text)
+		}
+		return sb.String(), nil
+	}
+	return "", errors.New(learnUsage)
 }
 
 func reportsDir(root string) (string, error) {
