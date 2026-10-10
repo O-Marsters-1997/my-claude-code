@@ -125,3 +125,34 @@ func TestAddedPlusPlusLineDoesNotHideMarker(t *testing.T) {
 		t.Errorf("Run = %+v, want blocked", res)
 	}
 }
+
+func TestRecordsResolvedScope(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	dir := newRepo(t)
+	if err := os.MkdirAll(filepath.Join(dir, ".claude", "skills", "mine"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(dir, ".claude", "skills", "mine"), "SKILL.md", "x")
+	lib := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(lib, "skills", "code", "shared"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, dir, "a.go", "package a\n\n// LEARN(mine): a\n// LEARN(shared): b\n// LEARN(repo): c\n// LEARN(nope): d\n// LEARN: e\nfunc f() {}\n")
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	if _, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: lp, Library: lib}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ledger.Read(lp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string][2]string{"a": {"repo", "mine"}, "b": {"global", "shared"}, "c": {"repo", ""}, "d": {"", "nope"}, "e": {"", ""}}
+	for _, l := range got {
+		if w := want[l.Text]; l.Scope != w[0] || l.Skill != w[1] {
+			t.Errorf("%q: scope %q skill %q, want %v", l.Text, l.Scope, l.Skill, w)
+		}
+	}
+	if len(got) != len(want) {
+		t.Errorf("recorded %d, want %d", len(got), len(want))
+	}
+}
