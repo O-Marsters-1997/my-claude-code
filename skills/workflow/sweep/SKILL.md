@@ -3,10 +3,10 @@ name: sweep
 description: >
   Turn a pile of small fixes into a batch /fleet can dispatch. Takes the open `inbox` issues and
   any items pasted with the command, explores them in one pass, rejects anything too big for a
-  small fix, merges items that touch the same files into one ticket, and files the tickets under
-  one dated `sweep-YYYY-MM-DD` label. Use for "sweep the inbox", "batch these fixes", "turn
-  these into tickets and fleet them". For one ad-hoc ticket, use file-issue; for a feature, use
-  /to-tickets.
+  small fix and takes it out of the inbox, merges items that touch the same files into one
+  ticket, and files the tickets under one dated `sweep-YYYY-MM-DD` label. Use for "sweep the
+  inbox", "batch these fixes", "turn these into tickets and fleet them". For one ad-hoc ticket,
+  use file-issue; for a feature, use /to-tickets.
 disable-model-invocation: true
 ---
 
@@ -39,8 +39,11 @@ An item stays in the sweep only if all hold:
 - no schema, public API or dependency change;
 - the cause is known. A bug whose cause still needs finding is triage, not a sweep item.
 
-Rejects are listed with their route (`triage-issue` for an unexplained bug, `capture-idea` or
-`to-prd` for a feature). Their inbox issues stay open.
+Rejects are listed with their route: `triage-issue` for an unexplained bug, `capture-idea` or
+`to-prd` for a feature, and `needs-design` for a design or refactor concern with no known fix
+(such as a `LEARN later:` marker). Name no skill for `needs-design`: deciding the fix is the
+open work. A rejected inbox issue stays open but leaves the inbox in step 6, or every later
+sweep explores and rejects it again.
 
 ## 4. Cluster by file
 
@@ -62,7 +65,7 @@ Show one table and wait for a yes. The clustering is the decision, so this is th
 ```
 Label: sweep-2026-10-07
 | Ticket | Items (inbox #) | Files | Size |
-Rejected: <item> → <route>
+Rejected: <item> (inbox #) → <route>
 ```
 
 ## 6. File
@@ -93,6 +96,11 @@ gh issue create --title "<title>" --body-file <tmpfile> \
 
 A chained ticket from step 4 gets `status:backlog` and a `- Blocked by #<N>` line instead.
 Then close every absorbed inbox issue: `gh issue close <N> --comment "Swept into #<ticket>"`.
+
+Take every reject that came from an inbox issue out of the inbox with
+`gh issue edit <N> --remove-label inbox`. A `needs-design` reject also gets
+`--add-label needs-design`; create that label first if missing:
+`gh label create needs-design -d "Needs a design decision before it can be fixed"`.
 
 ## 7. Report
 

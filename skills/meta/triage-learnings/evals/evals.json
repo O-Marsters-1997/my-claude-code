@@ -1,0 +1,10 @@
+{
+  "skill_name": "triage-learnings",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Pending learnings L1-L5 all say \"tests need improving\" for library skill tdd, scope global, each from a different file and line with its own before/after. L6 says \"wrap errors with %w\", which an existing errorlint config already enforces. The user accepts every row. Give the propose table, the tdd issue's Evidence, and the reflect learn mark command for each learning.",
+      "expected_output": "L1-L5 merge into one item shown with a count (seen in 5 places), the issue's Evidence lists all five examples with file, line and before/after, and L1-L5 are all marked promoted with the same --issue URL. Only L6 is marked rejected."
+    }
+  ]
+}
