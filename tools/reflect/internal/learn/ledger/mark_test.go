@@ -1,9 +1,10 @@
 package ledger_test
 
 import (
-	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
 	"path/filepath"
 	"testing"
+
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
 )
 
 func TestMark(t *testing.T) {
@@ -30,7 +31,10 @@ func TestMark(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("err = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, _ := ledger.Read(path)
+			got, err := ledger.Read(path)
+			if err != nil {
+				t.Fatal(err)
+			}
 			if len(got) != 1 || got[0].Text != "keep" {
 				t.Fatalf("fold lost fields: %+v", got)
 			}

@@ -1,6 +1,7 @@
 package ledger
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 )
@@ -15,7 +16,7 @@ func Mark(path, id, status, issue, scope, skill string) error {
 		return fmt.Errorf("status %q must be one of %v", status, statuses)
 	}
 	if status == "promoted" && issue == "" {
-		return fmt.Errorf("promoted needs --issue")
+		return errors.New("promoted needs an issue URL")
 	}
 	if scope != "" && scope != "global" && scope != "repo" {
 		return fmt.Errorf("scope %q must be global or repo", scope)

@@ -36,7 +36,7 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 | Learning | Action | Mark |
 | --- | --- | --- |
 | scope global, names a library skill | one issue on the skill's source repo | `promoted` |
-| scope repo, names a repo skill | one issue on this learning's repo to amend that skill | `promoted` |
+| scope repo, names a repo skill | one issue on the learning's repo to amend that skill | `promoted` |
 | kind `later`, scope repo | `inbox` issue on that repo via `file-issue` inbox mode | `promoted` |
 | `LEARN(repo)`, or no owner and seen once | file nothing | `deferred` |
 | user rejects, or a drop from step 3 | file nothing | `rejected` |
