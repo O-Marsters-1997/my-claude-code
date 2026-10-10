@@ -156,3 +156,85 @@ func TestRecordsResolvedScope(t *testing.T) {
 		t.Errorf("recorded %d, want %d", len(got), len(want))
 	}
 }
+
+func afterOf(t *testing.T, lp string) string {
+	t.Helper()
+	got, err := ledger.Read(lp)
+	if err != nil || len(got) != 1 {
+		t.Fatalf("Read = %v, %v, want one learning", got, err)
+	}
+	return got[0].After
+}
+
+func recordMarked(t *testing.T) (string, string) {
+	t.Helper()
+	dir := newRepo(t)
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "a.go", marked)
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	return dir, lp
+}
+
+func TestFixFillsAfterFromStagedHunk(t *testing.T) {
+	dir, lp := recordMarked(t)
+	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got != "-func f() {}\n+func f() error { return nil }" {
+		t.Errorf("after = %q", got)
+	}
+}
+
+func TestFixMatchesAfterLinesShiftAbove(t *testing.T) {
+	dir, lp := recordMarked(t)
+	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); !strings.Contains(got, "-func f() {}") || !strings.Contains(got, "+func f() error { return nil }") {
+		t.Errorf("after = %q", got)
+	}
+}
+
+func TestFixWaitsUntilFileStaged(t *testing.T) {
+	dir, lp := recordMarked(t)
+	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	write(t, dir, "b.go", "package a\n")
+	gitIn(t, dir, "reset", "-q", "a.go")
+	gitIn(t, dir, "add", "b.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got != "" {
+		t.Fatalf("after = %q, want empty while file unstaged", got)
+	}
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got == "" {
+		t.Error("after still empty after staging the file")
+	}
+}
+
+func TestFixNeverOverwritesAfter(t *testing.T) {
+	dir, lp := recordMarked(t)
+	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	first := afterOf(t, lp)
+	gitIn(t, dir, "commit", "-qm", "fix")
+	write(t, dir, "a.go", "package a\n\nfunc f() error { return errors.New(\"x\") }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got != first {
+		t.Errorf("after = %q, want unchanged %q", got, first)
+	}
+}
+
+func TestFixNotRecordedWhileMarkerRemains(t *testing.T) {
+	dir, lp := recordMarked(t)
+	write(t, dir, "a.go", "package a\n\n// LEARN(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() error { return nil }\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got != "" {
+		t.Errorf("after = %q, want empty while marker remains", got)
+	}
+}
