@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# fleet-init: write .claude/fleet.toml for the repo in the current directory.
-# Usage: fleet-init [--dry-run] [--force] [--measure]
 set -euo pipefail
+
+usage() { echo "usage: fleet-init [--dry-run] [--force] [--measure]"; }
 
 dry=0 force=0 measure=0
 for a in "$@"; do
@@ -9,8 +9,8 @@ for a in "$@"; do
     --dry-run) dry=1 ;;
     --force) force=1 ;;
     --measure) measure=1 ;;
-    -h|--help) sed -n '2,3p' "$0"; exit 0 ;;
-    *) echo "fleet-init: unknown flag $a" >&2; exit 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "fleet-init: unknown flag $a" >&2; usage >&2; exit 2 ;;
   esac
 done
 
@@ -22,38 +22,39 @@ if [ -e "$out" ] && [ "$force" = 0 ] && [ "$dry" = 0 ]; then
   exit 1
 fi
 
-quick='^(lint|fmt|format|fmtcheck|check|typecheck|tc|vet|test|unit|assets|css|generate|gen)$'
-slow='(e2e|integration|docker|deploy|bench|slow|release|publish|install|watch|dev|serve)'
+quick_re='^(lint|fmt|format|fmtcheck|check|typecheck|tc|vet|test|unit|assets|css|generate|gen)$'
+max_seconds=60
 
 cands=()
+add_cands() { local r; while read -r r; do cands+=("$r|$1 $r"); done; }
 if f=$(ls justfile Justfile 2>/dev/null | head -1) && [ -n "$f" ]; then
-  while read -r r; do cands+=("$r|just $r"); done < <(
+  add_cands "just" < <(
     grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*[^:=]*:([^=]|$)' "$f" | sed -E 's/[ :].*//' | sort -u)
 fi
 if [ -f Makefile ]; then
-  while read -r r; do cands+=("$r|make $r"); done < <(
+  add_cands "make" < <(
     grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*:([^=]|$)' Makefile | sed -E 's/:.*//' | sort -u)
 fi
 if [ -f package.json ] && command -v jq >/dev/null; then
-  while read -r r; do cands+=("$r|npm run $r"); done < <(jq -r '.scripts // {} | keys[]' package.json)
+  add_cands "npm run" < <(jq -r '.scripts // {} | keys[]' package.json)
 fi
 
-picked=() left=()
+picked=() excluded=()
 seen=" "
 for c in ${cands[@]+"${cands[@]}"}; do
   name=${c%%|*} cmd=${c#*|}
   [[ "$seen" == *" $name "* ]] && continue
   seen+="$name "
-  if [[ "$name" =~ $slow ]] || ! [[ "$name" =~ $quick ]]; then
-    left+=("$cmd"); continue
+  if ! [[ "$name" =~ $quick_re ]]; then
+    excluded+=("$cmd"); continue
   fi
   if [ "$measure" = 1 ]; then
     s=$(date +%s)
     if ! bash -c "$cmd" >/dev/null 2>&1; then
-      echo "fleet-init: '$cmd' failed while measuring, left out" >&2; left+=("$cmd"); continue
+      echo "fleet-init: '$cmd' failed while measuring, left out" >&2; excluded+=("$cmd"); continue
     fi
     t=$(( $(date +%s) - s ))
-    if [ "$t" -gt 60 ]; then echo "fleet-init: '$cmd' took ${t}s, left out" >&2; left+=("$cmd"); continue; fi
+    if [ "$t" -gt "$max_seconds" ]; then echo "fleet-init: '$cmd' took ${t}s, left out" >&2; excluded+=("$cmd"); continue; fi
   fi
   picked+=("$cmd")
 done
@@ -82,6 +83,6 @@ else
   printf '%s\n' "$body" > "$out"
   echo "fleet-init: wrote $out"
 fi
-[ ${#left[@]} -gt 0 ] && printf 'Left out of pre_push (slow or not a quick check): %s\n' "$(IFS=,; echo "${left[*]}")" >&2
+[ ${#excluded[@]} -gt 0 ] && printf 'Left out of pre_push (slow or not a quick check): %s\n' "$(IFS=,; echo "${excluded[*]}")" >&2
 [ ${#unmatched[@]} -gt 0 ] && printf 'CI jobs with no local equivalent: %s\n' "$(IFS=,; echo "${unmatched[*]}")" >&2
 exit 0
