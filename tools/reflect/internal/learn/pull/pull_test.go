@@ -39,12 +39,12 @@ func (f *fakeGh) run(_ context.Context, args ...string) ([]byte, error) {
 func checkout(t *testing.T, root, name, remote string) {
 	t.Helper()
 	dir := filepath.Join(root, name)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	for _, args := range [][]string{{"init", "-q"}, {"remote", "add", "origin", remote}} {
 		cmd := exec.Command("git", args...)
 		cmd.Dir = dir
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			t.Fatal(err)
-		}
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v: %s", args, err, out)
 		}
@@ -52,7 +52,7 @@ func checkout(t *testing.T, root, name, remote string) {
 }
 
 const pageOne = `[
- {"id":1,"body":"learn(go-idiomatic): use errors.Is","path":"a.go","line":7,"diff_hunk":"@@ -1 +1 @@\n+x","user":{"login":"me"}},
+ {"id":1,"body":"learn(go-idiomatic): use errors.Is\nbecause wrapping","path":"a.go","line":7,"diff_hunk":"@@ -1 +1 @@\n+x","user":{"login":"me"}},
  {"id":2,"body":"learn: not mine","path":"a.go","line":8,"user":{"login":"other"}},
  {"id":3,"body":"looks fine","path":"a.go","line":9,"user":{"login":"me"}}
 ]`
@@ -91,13 +91,28 @@ func TestRunRecordsOwnLearnComments(t *testing.T) {
 		t.Fatalf("ledger has %d learnings, want 2", len(got))
 	}
 	fix, later := got[0], got[1]
-	if fix.Source != "pr" || fix.Kind != "fix" || fix.Skill != "go-idiomatic" || fix.Text != "use errors.Is" ||
-		fix.File != "a.go" || fix.Line != 7 || fix.Before != "@@ -1 +1 @@\n+x" || fix.Status != "pending" ||
-		fix.Origin != "https://github.com/o/good" {
-		t.Errorf("fix learning = %+v", fix)
+	want := ledger.Learning{
+		Source: "pr", Kind: "fix", Skill: "go-idiomatic", Text: "use errors.Is\nbecause wrapping", File: "a.go", Line: 7,
+		Before: "@@ -1 +1 @@\n+x", Status: "pending", Origin: "https://github.com/o/good",
+	}
+	fix.ID, fix.TS, fix.Repo = "", "", ""
+	if fix != want {
+		t.Errorf("Run() fix learning = %+v, want %+v", fix, want)
 	}
 	if later.Kind != "later" || later.Line != 3 || later.Text != "rename this" {
 		t.Errorf("later learning = %+v", later)
+	}
+}
+
+func TestRunFollowsPagination(t *testing.T) {
+	o, gh := setup(t)
+	if _, err := pull.Run(context.Background(), o); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range gh.calls {
+		if strings.Contains(c, "repos/") && !strings.Contains(c, "--paginate") {
+			t.Errorf("gh call %q lacks --paginate", c)
+		}
 	}
 }
 
@@ -113,7 +128,10 @@ func TestRunTwiceRecordsNothingNew(t *testing.T) {
 	if res.Recorded != 0 {
 		t.Errorf("second Run recorded %d, want 0", res.Recorded)
 	}
-	got, _ := ledger.Read(o.Ledger)
+	got, err := ledger.Read(o.Ledger)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(got) != 2 {
 		t.Errorf("ledger has %d learnings, want 2", len(got))
 	}

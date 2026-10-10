@@ -2,6 +2,7 @@ package pull
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -23,7 +24,6 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 )
 
-// Gh runs the gh CLI with args and returns its stdout.
 type Gh func(ctx context.Context, args ...string) ([]byte, error)
 
 // Options configures Run. Roots are directories whose children are checked
@@ -35,7 +35,7 @@ type Options struct {
 	Now    func() time.Time
 }
 
-// Result reports what a Run did. Warnings name repos that were skipped.
+// Result reports what a Run recorded and the repos it skipped.
 type Result struct {
 	Recorded int
 	Warnings []string
@@ -47,7 +47,7 @@ const (
 )
 
 var (
-	learnComment = regexp.MustCompile(`(?i)^\s*learn(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	learnComment = regexp.MustCompile(`(?is)^\s*learn(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	githubRemote = regexp.MustCompile(`github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$`)
 )
 
@@ -124,7 +124,7 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				line = c.OrigLine
 			}
 			l := ledger.Learning{
-				ID: id, TS: started.Format(time.RFC3339), Source: "pr", Kind: kind, Skill: m[1],
+				ID: id, TS: cmp.Or(c.CreatedAt, started.Format(time.RFC3339)), Source: "pr", Kind: kind, Skill: m[1],
 				Text: redact.Clean(strings.TrimSpace(m[3]), maxField), Repo: repos[slug],
 				Origin: "https://github.com/" + slug, File: c.Path, Line: line,
 				Before: redact.Clean(c.DiffHunk, maxField), Status: "pending",
@@ -166,8 +166,6 @@ func fetch(ctx context.Context, gh Gh, slug, since string) ([]comment, error) {
 	}
 }
 
-// discover maps owner/repo to a local checkout path ("" when only the ledger
-// knew the remote), from ledger origins and the children of roots.
 func discover(ctx context.Context, known []ledger.Learning, roots []string) map[string]string {
 	repos := map[string]string{}
 	add := func(remote, dir string) {
