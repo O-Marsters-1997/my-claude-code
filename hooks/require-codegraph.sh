@@ -5,6 +5,7 @@ command -v jq >/dev/null || exit 0
 INPUT=$(cat)
 TOOL=$(jq -r '.tool_name // empty' <<<"$INPUT")
 CWD=$(jq -r '.cwd // empty' <<<"$INPUT")
+[ "$(jq -r '.agent_type // empty' <<<"$INPUT")" = reflect-reviewer ] && exit 0
 
 reads_ref() {
 	local words tok have_pattern=0
@@ -37,6 +38,10 @@ esac
 grep -qE "$NON_CODE" <<<"$TARGET" && exit 0
 
 DIR=$(jq -r '.tool_input.path // empty' <<<"$INPUT")
+if [ -z "$DIR" ] && [ "$TOOL" = Bash ]; then
+	DIR=$(sed -nE '1s/^[[:space:]]*cd[[:space:]]+"?([^ "&;]+)"?[[:space:]]*(&&|;).*/\1/p' <<<"$TARGET")
+	[[ $DIR == /* ]] || DIR="$CWD/$DIR"
+fi
 [ -d "$DIR" ] || DIR=$(dirname "${DIR:-.}")
 [ -d "$DIR" ] && [ "$DIR" != . ] || DIR=$CWD
 ROOT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null) || exit 0
@@ -75,5 +80,5 @@ for _ in 1 2 3 4 5; do
 	sleep 0.25
 done
 
-printf 'This repo has a CodeGraph index. Query it once before searching code: call mcp__codegraph__codegraph_explore (load it via ToolSearch if deferred), or run `codegraph explore "<symbols or question>"` in Bash if the MCP tool is not available. After one query, Grep/Glob/grep are unlocked for the rest of this agent. Searches of docs, templates, CSS and config files are never gated. Set CC_CODEGRAPH_GATE_OFF=1 to skip this check.\n' >&2
+printf 'This repo has a CodeGraph index. Query it once before searching code: call mcp__codegraph__codegraph_explore (load it via ToolSearch if deferred), or run `codegraph explore "<symbols or question>"` in Bash if the MCP tool is not available. After one query, Grep/Glob/grep are unlocked for the rest of this agent. Searches of docs, templates, CSS and config files are never gated. CC_CODEGRAPH_GATE_OFF=1 skips this check only when set in the environment before Claude Code launches; setting it inside the command has no effect.\n' >&2
 exit 2

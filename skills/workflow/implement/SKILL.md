@@ -12,6 +12,10 @@ checkpoint with /compact between major phases (after planning, after test-writin
 final review). A single long session re-sends its whole growing history on every turn, so cost
 compounds with session length far faster than with the same work split into smaller ones.
 
+Run test suites expected to take over about 30 seconds with `run_in_background`, end the turn and
+wait for the completion notification. Never poll with sleep or Monitor loops: each poll re-sends
+the whole session.
+
 Before editing unfamiliar code in a repo with a `.codegraph/` index, make `codegraph_explore`
 (load it via ToolSearch if deferred) your first lookup, before any grep or search. Pass the
 symbols or files the ticket names or you expect to touch; the result is verbatim source, so don't
@@ -50,12 +54,18 @@ For the regular checks, run the narrowest command that proves the point (a singl
 or package, e.g. `go test ./path -run TestName`) rather than the project's full test/lint
 runner (e.g. `just test`, `just lint`) — save that for the one full-suite pass at the end.
 
+If the repo has `.claude/fleet.toml`, the final pass before pushing runs every command in its
+`[checks] pre_push` list, in order, and fixes failures before pushing. Run only the listed
+commands; anything not listed is left to CI. Without the file, behave as above.
+
 Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
 change, right before /code-review.
 
 Once done, use /code-review medium to review the work, or low for a small fix. Pass it the
 worktree path and the diff against `Base:` (`git -C <worktree> diff origin/<base>...HEAD`). If
 that diff is empty, stop and report; never fall back to `HEAD~1`.
+Run /code-review in the foreground and read its result when it returns. Never wait on it by
+polling or sleeping (`sleep`, `timeout`, `tail -f`, `perl -e 'sleep …'`): that only idles the turn.
 
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() { echo "usage: fleet-init [--dry-run] [--force] [--measure]"; }
+
+dry=0 force=0 measure=0
+for a in "$@"; do
+  case "$a" in
+    --dry-run) dry=1 ;;
+    --force) force=1 ;;
+    --measure) measure=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "fleet-init: unknown flag $a" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+out=.claude/fleet.toml
+if [ -e "$out" ] && [ "$force" = 0 ] && [ "$dry" = 0 ]; then
+  echo "fleet-init: $out exists; pass --force to overwrite or --dry-run to preview" >&2
+  exit 1
+fi
+
+quick_re='^(lint|fmt|format|fmtcheck|check|typecheck|tc|vet|test|unit|assets|css)$'
+max_seconds=60
+
+cands=()
+add_cands() { local r; while read -r r; do cands+=("$r|$1 $r"); done; }
+f=""
+for n in justfile Justfile; do [ -f "$n" ] && f=$n && break; done
+if [ -n "$f" ]; then
+  add_cands "just" < <(
+    grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*[^:=]*:([^=]|$)' "$f" | sed -E 's/[ :].*//' | sort -u)
+fi
+if [ -f Makefile ]; then
+  add_cands "make" < <(
+    grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*:([^=]|$)' Makefile | sed -E 's/:.*//' | sort -u)
+fi
+if [ -f package.json ] && command -v jq >/dev/null; then
+  add_cands "npm run" < <(jq -r '.scripts // {} | keys[]' package.json)
+fi
+
+picked=() excluded=()
+seen=" "
+for c in ${cands[@]+"${cands[@]}"}; do
+  name=${c%%|*} cmd=${c#*|}
+  [[ "$seen" == *" $name "* ]] && continue
+  seen+="$name "
+  if ! [[ "$name" =~ $quick_re ]]; then
+    excluded+=("$cmd"); continue
+  fi
+  if [ "$measure" = 1 ] && [ "$dry" = 0 ]; then
+    s=$(date +%s)
+    if ! bash -c "$cmd" >/dev/null 2>&1; then
+      echo "fleet-init: '$cmd' failed while measuring, left out" >&2; excluded+=("$cmd"); continue
+    fi
+    t=$(( $(date +%s) - s ))
+    if [ "$t" -gt "$max_seconds" ]; then echo "fleet-init: '$cmd' took ${t}s, left out" >&2; excluded+=("$cmd"); continue; fi
+  fi
+  picked+=("$cmd")
+done
+
+unmatched=()
+if [ -d .github/workflows ]; then
+  while read -r j; do
+    [ -z "$j" ] && continue
+    hit=0
+    for p in ${picked[@]+"${picked[@]}"}; do [[ "$p" == *"${j%%[-_]*}"* ]] && hit=1; done
+    [ "$hit" = 0 ] && unmatched+=("$j")
+  done < <(awk '/^jobs:/{in_j=1;next} in_j && /^[^ #]/{in_j=0} in_j && /^  [A-Za-z0-9_-]+:/{sub(/:.*/,"");gsub(/ /,"");print}' .github/workflows/*.y*ml | sort -u)
+fi
+
+body="# Written by fleet-init. Review before committing.
+ci = \"off\"
+[checks]
+pre_push = ["
+for p in ${picked[@]+"${picked[@]}"}; do body+=$'\n'"  \"$p\","; done
+body+=$'\n]\n'
+
+if [ "$dry" = 1 ]; then
+  printf '%s\n' "$body"
+else
+  mkdir -p .claude
+  printf '%s\n' "$body" > "$out"
+  echo "fleet-init: wrote $out"
+fi
+[ ${#excluded[@]} -gt 0 ] && printf 'Left out of pre_push (slow or not a quick check): %s\n' "$(IFS=,; echo "${excluded[*]}")" >&2
+[ ${#unmatched[@]} -gt 0 ] && printf 'CI jobs with no local equivalent: %s\n' "$(IFS=,; echo "${unmatched[*]}")" >&2
+exit 0

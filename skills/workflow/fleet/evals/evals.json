@@ -3,8 +3,13 @@
   "evals": [
     {
       "id": 1,
+<<<<<<< HEAD
+      "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10 names app.css (minified, committed) and page.go, #11 names app.css, #12 names main.go. Say how each is based, what runs in parallel, each PR's base, what step 6 does if #10 and #11 conflict, and which checks run per step.",
+      "expected_output": "#10 and #11 form a chain: #11 branches from #10's branch after #10 returns done and its PR targets #10's branch; #12 runs in parallel off the feature branch. A conflict in app.css is fixed by running the repo's regen command, not a resolver. Step 6 restacks the whole wave linearly in one pass. Scoped checks run per step and the full suite once at the top of each chain."
+=======
       "prompt": "A repo whose tests use Docker compose stacks. Following only the fleet skill, (1) write the exact dispatch prompt for issue #42 \"Add retry\", worktree /w/repo-issue-42, base feat/retries, size s, files internal/retry.go; (2) list exactly what reconcile does to tear down issue #42's worktree and any containers/volumes it started after its PR merges.",
       "expected_output": "The dispatch prompt names no Docker or COMPOSE_PROJECT_NAME line. Reconcile tears down only via `tp remove <branch> --merged` and says the repo's treepad remove hook owns cleanup of anything the worktree started; fleet names no technology."
+>>>>>>> origin/main
     }
   ]
 }

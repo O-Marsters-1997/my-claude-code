@@ -55,6 +55,9 @@ check "grep blocked before query" 2 "$(payload Grep '{"pattern":"func Run"}' "$I
 check "glob blocked before query" 2 "$(payload Glob '{"pattern":"**/*.go"}' "$I" "$T_NONE")"
 check "bash rg blocked" 2 "$(payload Bash '{"command":"rg -n \"func Run\" internal"}' "$I" "$T_NONE")"
 check "bash grep after cd blocked" 2 "$(payload Bash '{"command":"cd internal && grep -rn Spawn ."}' "$I" "$T_NONE")"
+check "bash grep after cd into linked worktree passes" 0 "$(payload Bash "$(jq -nc --arg c "cd $TMP/linked && grep -rn Spawn ." '{command: $c}')" "$I" "$T_NONE")"
+check "bash grep after cd; into linked worktree passes" 0 "$(payload Bash "$(jq -nc --arg c "cd $TMP/linked; grep -rn Spawn ." '{command: $c}')" "$I" "$T_NONE")"
+check "bash grep after cd into main checkout blocked" 2 "$(payload Bash "$(jq -nc --arg c "cd $TMP/indexed && grep -rn Spawn ." '{command: $c}')" "$TMP/plain" "$T_NONE")"
 check "mention is not a query" 2 "$(payload Grep '{"pattern":"Spawn"}' "$I" "$T_MENTION")"
 check "grep allowed after mcp query" 0 "$(payload Grep '{"pattern":"Spawn"}' "$I" "$T_MCP")"
 check "grep allowed after shell query" 0 "$(payload Grep '{"pattern":"Spawn"}' "$I" "$T_SHELL")"
@@ -72,6 +75,10 @@ check "git grep ref after a pipe does not pass" 2 "$(payload Bash '{"command":"g
 check "git grep pathspec named like a ref is blocked" 2 "$(payload Bash '{"command":"git grep -n Spawn -- HEAD"}' "$I" "$T_NONE")"
 check "linked worktree copied index passes" 0 "$(payload Grep '{"pattern":"x"}' "$TMP/linked" "$T_NONE")"
 check "piped grep passes" 0 "$(payload Bash '{"command":"go test ./... | grep FAIL"}' "$I" "$T_NONE")"
+check "git diff piped to grep passes" 0 "$(payload Bash '{"command":"git diff origin/main...HEAD | grep -n Spawn"}' "$I" "$T_NONE")"
+check "ls then go test passes" 0 "$(payload Bash '{"command":"ls internal; go test ./... -run Spawn"}' "$I" "$T_NONE")"
+check "git log piped to grep passes" 0 "$(payload Bash '{"command":"git log --oneline | grep fix"}' "$I" "$T_NONE")"
+check "grep in unindexed cwd passes" 0 "$(payload Bash '{"command":"grep -rn Spawn ."}' "$TMP/plain" "$T_NONE")"
 check "other bash passes" 0 "$(payload Bash '{"command":"go build ./..."}' "$I" "$T_NONE")"
 check "markdown grep passes" 0 "$(payload Grep '{"pattern":"Repo","glob":"*.md"}' "$I" "$T_NONE")"
 check "template grep passes" 0 "$(payload Grep '{"pattern":"hx-get","path":"internal/cc/board.tmpl"}' "$I" "$T_NONE")"
@@ -84,5 +91,10 @@ check "off switch" 0 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE")" CC_CODEG
 check "read never gated" 0 "$(payload Read '{"file_path":"x.go"}' "$I" "$T_NONE")"
 check "subagent with own query passes" 0 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE" a1)"
 check "subagent without own query is blocked" 2 "$(payload Grep '{"pattern":"x"}' "$I" "$T_MCP" a2)"
+check "reflect-reviewer is not gated" 0 "$(payload Bash '{"command":"grep -rn golang-patterns skills"}' "$I" "$T_NONE" | jq -c '. + {agent_type: "reflect-reviewer"}')"
+check "other agent types are still gated" 2 "$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE" | jq -c '. + {agent_type: "Explore"}')"
+
+err=$("$HOOK" <<<"$(payload Grep '{"pattern":"x"}' "$I" "$T_NONE")" 2>&1 >/dev/null)
+case $err in *"before Claude Code launches"*) ;; *) echo "FAIL block message lacks launch-time env note"; fails=$((fails + 1)) ;; esac
 
 [ "$fails" = 0 ] && echo ok || exit 1
