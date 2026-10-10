@@ -41,8 +41,8 @@ func TestParseTargets(t *testing.T) {
 		"call() // LEARN later: trailing",
 	}
 	want := []marker.Marker{
-		{Text: "first line second line", Line: 2, End: 3, Target: 6, TargetText: "return nil"},
-		{Text: "trailing", Later: true, Line: 7, End: 7, Target: 7, TargetText: "call() // LEARN later: trailing"},
+		{Text: "first line second line", Line: 2, Col: 3, End: 3, Target: 6, TargetText: "return nil"},
+		{Text: "trailing", Later: true, Line: 7, Col: 10, End: 7, Target: 7, TargetText: "call() // LEARN later: trailing"},
 	}
 	if diff := cmp.Diff(want, marker.Parse(lines)); diff != "" {
 		t.Errorf("Parse mismatch (-want +got):\n%s", diff)

@@ -161,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name] | status [--remind]"
+	const learnUsage = "usage: reflect learn harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -170,6 +170,7 @@ func runLearn(e env, args []string) (string, error) {
 	switch args[0] {
 	case "harvest":
 		block := fs.Bool("block", false, "exit 1 while fix markers remain")
+		strip := fs.Bool("strip", false, "delete every recorded marker, fix markers included")
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
 			return "", errors.New(learnUsage)
 		}
@@ -177,7 +178,7 @@ func runLearn(e env, args []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		res, err := harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Library: library, Block: *block})
+		res, err := harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Library: library, Block: *block, Strip: *strip})
 		if err != nil {
 			return "", err
 		}

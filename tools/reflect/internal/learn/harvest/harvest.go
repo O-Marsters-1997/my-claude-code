@@ -30,6 +30,7 @@ type Options struct {
 	Ledger  string
 	Library string
 	Block   bool
+	Strip   bool
 }
 
 // Found is one fix marker still present in a staged or unstaged diff.
@@ -60,8 +61,10 @@ const maxField = 4000
 
 var hunk = regexp.MustCompile(`^@@ -\S+ \+(\d+)(?:,(\d+))? @@`)
 
-// Run records the fix markers in the staged and unstaged diffs as pending
-// learnings, skipping ones already in the ledger.
+// Run records the markers in the staged and unstaged diffs as pending
+// learnings, skipping ones already in the ledger. Later markers are removed
+// from the staged blobs and the working tree without blocking; Strip removes
+// fix markers the same way.
 func Run(ctx context.Context, o Options) (Result, error) {
 	top, err := git(ctx, o.Repo, "rev-parse", "--show-toplevel")
 	if err != nil {
@@ -81,6 +84,7 @@ func Run(ctx context.Context, o Options) (Result, error) {
 	origin = strings.TrimSpace(origin)
 
 	var res Result
+	toStrip := map[string]map[string]bool{}
 	seen := map[string]bool{}
 	for _, staged := range []bool{true, false} {
 		diffArgs := []string{"-c", "core.quotepath=off", "diff", "-U0", "--src-prefix=a/", "--dst-prefix=b/", "--no-color", "--no-ext-diff"}
@@ -100,22 +104,35 @@ func Run(ctx context.Context, o Options) (Result, error) {
 			}
 			lines := strings.Split(strings.ReplaceAll(strings.TrimSuffix(content, "\n"), "\r\n", "\n"), "\n")
 			for _, m := range marker.Parse(lines) {
-				if m.Later || !slices.Contains(added, m.Line) {
+				if !slices.Contains(added, m.Line) {
 					continue
 				}
 				text := redact.Clean(m.Text, maxField)
 				id := learningID(root, file, text)
+				stripped := m.Later || o.Strip
+				if stripped {
+					if toStrip[file] == nil {
+						toStrip[file] = map[string]bool{}
+					}
+					toStrip[file][id] = true
+				}
 				if seen[id] {
 					continue
 				}
 				seen[id] = true
-				res.Found = append(res.Found, Found{File: file, Line: m.Line, Text: text})
+				kind := "fix"
+				if m.Later {
+					kind = "later"
+				}
+				if !stripped {
+					res.Found = append(res.Found, Found{File: file, Line: m.Line, Text: text})
+				}
 				if have[id] {
 					continue
 				}
 				scopeName, skill := scope.Resolve(root, o.Library, m.Skill)
 				l := ledger.Learning{
-					ID: id, TS: time.Now().UTC().Format(time.RFC3339), Source: "editor", Kind: "fix",
+					ID: id, TS: time.Now().UTC().Format(time.RFC3339), Source: "editor", Kind: kind,
 					Scope: scopeName, Skill: skill, Text: text, Repo: root, Origin: origin, File: file, Line: m.Line,
 					TargetText: redact.Clean(m.TargetText, maxField),
 					Before:     redact.Clean(snippet(lines, m), maxField), Status: "pending",
@@ -126,6 +143,9 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				res.Recorded++
 			}
 		}
+	}
+	if err := stripMarkers(ctx, top, root, toStrip); err != nil {
+		return Result{}, err
 	}
 	slices.SortFunc(res.Found, func(a, b Found) int {
 		if c := strings.Compare(a.File, b.File); c != 0 {
