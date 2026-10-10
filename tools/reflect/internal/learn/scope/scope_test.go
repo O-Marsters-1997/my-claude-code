@@ -18,8 +18,13 @@ func mkdir(t *testing.T, parts ...string) {
 func TestResolve(t *testing.T) {
 	home, repo, lib := t.TempDir(), t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
-	mkdir(t, repo, ".claude", "skills", "both")
-	mkdir(t, repo, ".claude", "skills", "mine")
+	for _, n := range []string{"both", "mine"} {
+		mkdir(t, repo, ".claude", "skills", n)
+		if err := os.WriteFile(filepath.Join(repo, ".claude", "skills", n, "SKILL.md"), nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mkdir(t, repo, ".claude", "skills", "empty")
 	mkdir(t, lib, "skills", "code", "both")
 	mkdir(t, lib, "skills", "code", "libonly")
 	mkdir(t, home, ".agents", "skills", "agents")
@@ -36,6 +41,8 @@ func TestResolve(t *testing.T) {
 		{"repo", "repo", ""},
 		{"", "", ""},
 		{"nope", "", "nope"},
+		{"empty", "", "empty"},
+		{"..", "", ".."},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

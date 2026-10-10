@@ -132,6 +132,7 @@ func TestRecordsResolvedScope(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(dir, ".claude", "skills", "mine"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	write(t, filepath.Join(dir, ".claude", "skills", "mine"), "SKILL.md", "x")
 	lib := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(lib, "skills", "code", "shared"), 0o755); err != nil {
 		t.Fatal(err)

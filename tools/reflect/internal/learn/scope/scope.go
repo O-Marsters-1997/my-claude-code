@@ -5,25 +5,26 @@ import (
 	"path/filepath"
 )
 
-// Resolve maps the name in LEARN(name) to a scope and skill. A skill in the
-// repo wins over one in the library or the user's skill directories. "repo"
-// is reserved for repo scope with no skill. A bare or unknown name has an
-// empty scope; an unknown name is kept as the skill.
-func Resolve(repoRoot, library, name string) (scope, skill string) {
+// Resolve maps the name in LEARN(name) to a scope and skill: a repo skill wins
+// over a library one, "repo" is repo scope with no skill, and a bare or
+// unknown name has an empty scope.
+func Resolve(repoRoot, library, name string) (scopeName, skill string) {
 	switch {
 	case name == "":
 		return "", ""
+	case name == "." || name == "..":
+		return "", name
 	case name == "repo":
 		return "repo", ""
-	case isDir(filepath.Join(repoRoot, ".claude", "skills", name)):
+	case isFile(filepath.Join(repoRoot, ".claude", "skills", name, "SKILL.md")):
 		return "repo", name
-	case inLibrary(library, name):
+	case installed(library, name):
 		return "global", name
 	}
 	return "", name
 }
 
-func inLibrary(library, name string) bool {
+func installed(library, name string) bool {
 	if library != "" {
 		if hits, _ := filepath.Glob(filepath.Join(library, "skills", "*", name)); len(hits) > 0 {
 			return true
@@ -40,4 +41,9 @@ func inLibrary(library, name string) bool {
 func isDir(p string) bool {
 	fi, err := os.Stat(p)
 	return err == nil && fi.IsDir()
+}
+
+func isFile(p string) bool {
+	fi, err := os.Stat(p)
+	return err == nil && fi.Mode().IsRegular()
 }
