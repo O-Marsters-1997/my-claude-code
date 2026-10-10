@@ -27,7 +27,7 @@ func TestMark(t *testing.T) {
 			if err := ledger.Append(path, ledger.Learning{ID: "a", Text: "keep", Status: "pending", Kind: "fix"}); err != nil {
 				t.Fatal(err)
 			}
-			err := ledger.Mark(path, tt.id, tt.status, tt.issue, tt.scope, "")
+			err := ledger.Mark(path, tt.id, tt.status, ledger.MarkFields{Issue: tt.issue, Scope: tt.scope})
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("err = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -49,5 +49,25 @@ func TestMark(t *testing.T) {
 				t.Errorf("scope = %q", got[0].Scope)
 			}
 		})
+	}
+}
+
+func TestMarkProposalKeepsIssue(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "l.jsonl")
+	if err := ledger.Append(path, ledger.Learning{ID: "a", Status: "pending"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := ledger.Mark(path, "a", "promoted", ledger.MarkFields{Issue: "https://x/1"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := ledger.Mark(path, "a", "promoted", ledger.MarkFields{Proposal: "https://x/2"}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ledger.Read(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got[0].Issue != "https://x/1" || got[0].Proposal != "https://x/2" {
+		t.Errorf("issue=%q proposal=%q, want https://x/1 and https://x/2", got[0].Issue, got[0].Proposal)
 	}
 }

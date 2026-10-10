@@ -32,6 +32,7 @@ type Learning struct {
 	After      string `json:"after,omitempty"`
 	Status     string `json:"status,omitempty"`
 	Issue      string `json:"issue,omitempty"`
+	Proposal   string `json:"proposal,omitempty"`
 }
 
 // DefaultPath is $XDG_DATA_HOME/learn/learnings.jsonl, falling back to

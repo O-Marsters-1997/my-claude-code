@@ -29,7 +29,8 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 4. **Propose.** Show a table, one row per learning: id, text, route, reason. Wait for the user to
    accept, change or reject each row. Never file before this.
 5. **File** the accepted rows (below), then **mark** each.
-6. **Report** the issue URLs and counts of promoted, deferred and rejected.
+6. **Propose upward** (below) over the deferred and promoted learnings.
+7. **Report** the issue URLs, the proposals, and counts of promoted, deferred and rejected.
 
 ## Routes
 
@@ -51,6 +52,31 @@ library issues. Put each learning's `before`/`after` under Evidence.
   repo names, paths and private identifiers, whether or not the library repo is public.
 - **Repo issues** on a public repo (`gh repo view <repo> --json isPrivate`) are genericised too. An
   issue on the private repo the code came from keeps the code as written.
+
+## Proposals
+
+After marking, run `reflect learn ls --json` and consider every learning with status `deferred` or
+`promoted` and an empty `proposal` field. A learning already carrying a `proposal` URL belongs to a
+filed group: skip it, so a group is never proposed twice.
+
+| Group | Proposal |
+| --- | --- |
+| 3+ learnings in one repo on one theme, with an empty `skill` field and no repo skill in `<repo>/.claude/skills/` covering it | one issue on that repo suggesting a repo skill, an `AGENTS.md` line or an ADR |
+| the same lesson in 2+ repos | one issue on the most likely library skill's source repo, with the `from:` line |
+
+Judge "one theme" and "same lesson" by reading `text`, `before` and `after`; when unsure, leave the
+learning out. Show the proposed groups to the user and wait for acceptance before filing, as in
+step 4. A proposal lists each learning (id, text, repo, `before`/`after`) as evidence and stops
+there: it contains no skill draft, no proposed wording and no patch. Use the reflect issue format
+with label `reflect`, and the genericising rules above for global and public-repo issues.
+
+After the proposal exists, for every learning in it, keep its status and record the URL:
+
+```bash
+reflect learn mark <id> <current-status> --proposal <proposal-url>
+```
+
+`--proposal` is separate from `--issue`, so a promoted learning keeps its own issue link.
 
 ## Mark
 
