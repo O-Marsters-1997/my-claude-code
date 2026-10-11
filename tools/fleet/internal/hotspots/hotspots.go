@@ -22,13 +22,14 @@ type Input struct {
 var (
 	sectionHead = regexp.MustCompile(`(?i)^\s*#+\s*.*(where to look|files to touch)`)
 	anyHead     = regexp.MustCompile(`^\s*#+\s`)
-	codeSpan    = regexp.MustCompile("`([^`\\s]+)`")
+	fileExt     = regexp.MustCompile(`\.[a-z0-9]+$`)
+	codeSpan    =regexp.MustCompile("`([^`\\s]+)`")
 )
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
 	issues, err := d.GH.ReadyIssues(ctx, in.Label)
 	if err != nil {
-		return err
+		return fmt.Errorf("list ready issues for %q: %w", in.Label, err)
 	}
 	named := map[string][]int{}
 	for _, issue := range issues {
@@ -91,5 +92,5 @@ func paths(body string) []string {
 }
 
 func looksLikePath(s string) bool {
-	return strings.Contains(s, "/") || strings.Contains(s, ".")
+	return strings.Contains(s, "/") || fileExt.MatchString(s)
 }

@@ -3,6 +3,7 @@ package hotspots_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -12,11 +13,23 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/hotspots"
 )
 
-type fakeGH struct{ issues []deps.Issue }
+type fakeGH struct {
+	issues []deps.Issue
+	err    error
+}
 
 func (f fakeGH) Run(context.Context, ...string) ([]byte, error) { return nil, nil }
 func (f fakeGH) ReadyIssues(context.Context, string) ([]deps.Issue, error) {
-	return f.issues, nil
+	return f.issues, f.err
+}
+
+func TestRunListError(t *testing.T) {
+	boom := errors.New("boom")
+	d := deps.Deps{GH: fakeGH{err: boom}, Out: &bytes.Buffer{}}
+	err := hotspots.Run(context.Background(), d, hotspots.Input{Label: "l"})
+	if !errors.Is(err, boom) {
+		t.Errorf("Run() error = %v, want it to wrap %v", err, boom)
+	}
 }
 
 func ticket(n int, files ...string) deps.Issue {
@@ -56,6 +69,17 @@ func TestRun(t *testing.T) {
 			want:   "none\n",
 		},
 		{
+			name:   "identifiers are not paths",
+			issues: []deps.Issue{ticket(1, "cfg.RegenGlobs"), ticket(2, "cfg.RegenGlobs"), ticket(3, "cfg.RegenGlobs")},
+			want:   "none\n",
+		},
+		{
+			name:   "directory path matches regen glob",
+			issues: []deps.Issue{ticket(1, "t/golden/"), ticket(2, "t/golden/"), ticket(3, "t/golden/")},
+			regen:  []string{"t/golden/**"},
+			want:   "none\n",
+		},
+		{
 			name:   "duplicate mention in one ticket counts once",
 			issues: []deps.Issue{ticket(1, "a.go", "a.go"), ticket(2, "a.go")},
 			want:   "none\n",
@@ -64,7 +88,7 @@ func TestRun(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var out bytes.Buffer
-			d := deps.Deps{GH: fakeGH{tt.issues}, Out: &out}
+			d := deps.Deps{GH: fakeGH{issues: tt.issues}, Out: &out}
 			if err := hotspots.Run(context.Background(), d, hotspots.Input{Label: "l", RegenGlobs: tt.regen}); err != nil {
 				t.Fatal(err)
 			}
