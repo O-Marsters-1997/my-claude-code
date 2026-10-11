@@ -148,7 +148,7 @@ merged into its branch by hand. Once the wave has merged, tell them to run
 
 ## 6. CI follow-up
 
-Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`). With no file or `ci = "off"`, do nothing: never read, watch
+Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`; `fleet init --dry-run` previews a detected file). With no file or `ci = "off"`, do nothing: never read, watch
 or poll CI.
 
 With `ci = "async"`, after a ticket returns `done` with `reviewed=yes`, watch its PR's checks in the background
