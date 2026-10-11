@@ -231,3 +231,21 @@ func TestRunAcceptsResolvedLineAndContinues(t *testing.T) {
 		t.Errorf("log %q missing the resolver line", log.String())
 	}
 }
+
+func TestRunFailedResolutionStopsBeforeLanding(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	var out bytes.Buffer
+	d := deps.DefaultDeps(&out, &bytes.Buffer{})
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#21 failed rewrite /r/my report.md"}}
+	if err := land.Run(context.Background(), d, in); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "gate-failed #21" {
+		t.Errorf("Run() = %q, want %q", got, "gate-failed #21")
+	}
+	if len(w.merged) != 0 {
+		t.Errorf("merged %v, want none", w.merged)
+	}
+}

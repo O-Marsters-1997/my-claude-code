@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/deps"
@@ -21,22 +22,43 @@ type Input struct {
 	Resolved   []string
 }
 
-func parseResolved(l string) error {
-	f := strings.Fields(l)
-	if len(f) != 4 || !strings.HasPrefix(f[0], "#") ||
-		(f[1] != "resolved" && f[1] != "failed") ||
-		(f[2] != "append" && f[2] != "rewrite") {
-		return fmt.Errorf("bad --resolved line %q: want \"#<PR> resolved|failed append|rewrite <report path>\"", l)
+type resolution struct {
+	PR     int
+	Failed bool
+	Class  string
+	Report string
+}
+
+func parseResolution(l string) (resolution, error) {
+	bad := fmt.Errorf("bad --resolved line %q: want \"#<PR> resolved|failed append|rewrite <report path>\"", l)
+	f := strings.SplitN(l, " ", 4)
+	if len(f) != 4 || f[3] == "" {
+		return resolution{}, bad
 	}
-	return nil
+	pr, err := strconv.Atoi(strings.TrimPrefix(f[0], "#"))
+	if err != nil || !strings.HasPrefix(f[0], "#") || pr <= 0 {
+		return resolution{}, bad
+	}
+	if (f[1] != "resolved" && f[1] != "failed") || (f[2] != "append" && f[2] != "rewrite") {
+		return resolution{}, bad
+	}
+	return resolution{PR: pr, Failed: f[1] == "failed", Class: f[2], Report: f[3]}, nil
 }
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
+	var resolutions []resolution
 	for _, l := range in.Resolved {
-		if err := parseResolved(l); err != nil {
+		r, err := parseResolution(l)
+		if err != nil {
 			return err
 		}
 		fmt.Fprintf(d.Log, "resolver: %s\n", l)
+		resolutions = append(resolutions, r)
+	}
+	for _, r := range resolutions {
+		if r.Failed {
+			return line(d, "gate-failed #%d", r.PR)
+		}
 	}
 	tip := "feat/" + strings.TrimPrefix(in.Label, "project:")
 	if err := fetch(ctx, d, in.Dir); err != nil {

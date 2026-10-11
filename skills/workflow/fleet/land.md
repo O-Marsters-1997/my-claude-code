@@ -18,6 +18,8 @@ Progress goes to stderr and is for the user. Read only the one line on stdout:
 - `needs-resolver <PR> <branch> <path>...`: that PR conflicts with the feature branch in the
   listed paths, and every later PR is still unlanded. Spawn exactly one fresh resolver for that PR
   (see Resolver below), never the ticket's own subagent. Do not reconcile yet.
+- `gate-failed <PR>`: the resolver's `pre_push` gate failed for that PR. Handle it as `failed`
+  under Resolver below.
 - `suite-red`: the suite failed on the feature branch after landing. Report it to the user and
   stop. Do not reconcile.
 
@@ -35,8 +37,9 @@ worktree via `tp`, and `[checks] pre_push` from `.claude/fleet.toml` as the gate
    (`append` when both sides only added code, `rewrite` when it had to change existing lines).
 
 On `resolved`, re-run `fleet land "<label>" --resolved "<line>"`, passing the line verbatim; the
-remaining PRs then continue in order. On `failed`, stop: name the PR, say the later PRs are still
-unlanded, hand the PR to the user, and do not re-run land or reconcile. Never spawn a second
-resolver for the same PR.
+remaining PRs then continue in order. On `failed`, record it once with
+`fleet land "<label>" --resolved "<line>"`, which lands nothing and prints `gate-failed <PR>`. Then
+stop: name the PR, say the later PRs are still unlanded, hand the PR to the user, and do not
+reconcile. Never spawn a second resolver for the same PR.
 
 A non-zero exit is an error, not an outcome: show its stderr to the user and stop.

@@ -29,7 +29,7 @@
     {
       "id": 6,
       "prompt": "Follow land.md for label `demo`. #20 and #21 both edit the body of `Parse` in internal/app.go and are marked ready. `fleet land demo` landed #20 and prints `needs-resolver #21 issue-21/add-cache internal/app.go` on stdout. Say what you do next, and what happens when the resolver returns `#21 resolved rewrite <report>` versus `#21 failed rewrite <report>`.",
-      "expected_output": "Spawns exactly one fresh resolver for #21, never the ticket's own subagent, briefed with both PRs' diffs, both tickets' intent, internal/app.go, the worktree via `tp` and `[checks] pre_push` as the gate. It does not hand the conflict to the user first and does not reconcile. On `resolved` it re-runs `fleet land demo --resolved \"#21 resolved rewrite <report>\"`. On `failed` (for example a red pre_push gate) it stops, names #21, says later PRs are still unlanded, hands #21 to the user, and does not re-run land, spawn a second resolver or reconcile."
+      "expected_output": "Spawns exactly one fresh resolver for #21, never the ticket's own subagent, briefed with both PRs' diffs, both tickets' intent, internal/app.go, the worktree via `tp` and `[checks] pre_push` as the gate. It does not hand the conflict to the user first and does not reconcile. On `resolved` it re-runs `fleet land demo --resolved \"#21 resolved rewrite <report>\"`. On `failed` (for example a red pre_push gate) it stops, names #21, says later PRs are still unlanded, hands #21 to the user, and does not spawn a second resolver or reconcile. Its only further land call records the line with `fleet land demo --resolved \"#21 failed rewrite <report>\"`, which prints `gate-failed #21` and lands nothing."
     }
   ]
 }
