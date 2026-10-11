@@ -13,10 +13,11 @@ import (
 func landCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "land",
-		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver or suite-red",
+		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver, gate-failed or suite-red",
 		ArgsUsage: "<label>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
+			&cli.StringSliceFlag{Name: "resolved", Usage: "a resolver's return line, repeatable"},
 		},
 		Action: runLand,
 	}
@@ -36,5 +37,6 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 		Label:      cmd.Args().Get(0),
 		RegenGlobs: cfg.RegenGlobs(),
 		Suite:      cfg.Checks.Suite,
+		Resolved:   cmd.StringSlice("resolved"),
 	})
 }
