@@ -60,9 +60,12 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		landed++
 	}
 
-	green, err := suiteGreen(ctx, d, in, tip)
-	if err != nil {
-		return err
+	green := true
+	if landed > 0 {
+		green, err = suiteGreen(ctx, d, in, tip)
+		if err != nil {
+			return err
+		}
 	}
 	switch {
 	case !green:
