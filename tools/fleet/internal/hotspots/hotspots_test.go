@@ -10,16 +10,17 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/deps"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/gh"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/hotspots"
 )
 
 type fakeGH struct {
-	issues []deps.Issue
+	deps.GH
+	issues []gh.Issue
 	err    error
 }
 
-func (f fakeGH) Run(context.Context, ...string) ([]byte, error) { return nil, nil }
-func (f fakeGH) ReadyIssues(context.Context, string) ([]deps.Issue, error) {
+func (f fakeGH) OpenIssues(context.Context, ...string) ([]gh.Issue, error) {
 	return f.issues, f.err
 }
 
@@ -32,56 +33,56 @@ func TestRunListError(t *testing.T) {
 	}
 }
 
-func ticket(n int, files ...string) deps.Issue {
+func ticket(n int, files ...string) gh.Issue {
 	body := "## What to build\n`ignored/outside.go`\n\n## Files to touch\n"
 	for _, f := range files {
 		body += fmt.Sprintf("- `%s`\n", f)
 	}
-	return deps.Issue{Number: n, Body: body + "\n## Blocked by\n\n- `not/a/path.go`\n"}
+	return gh.Issue{Number: n, Body: body + "\n## Blocked by\n\n- `not/a/path.go`\n"}
 }
 
 func TestRun(t *testing.T) {
 	tests := []struct {
 		name   string
-		issues []deps.Issue
+		issues []gh.Issue
 		regen  []string
 		want   string
 	}{
 		{
 			name:   "three tickets make a hotspot",
-			issues: []deps.Issue{ticket(3, "a/x.go"), ticket(1, "a/x.go", "b.go"), ticket(2, "./a/x.go")},
+			issues: []gh.Issue{ticket(3, "a/x.go"), ticket(1, "a/x.go", "b.go"), ticket(2, "./a/x.go")},
 			want:   "a/x.go #1 #2 #3\n",
 		},
 		{
 			name:   "two tickets are not enough",
-			issues: []deps.Issue{ticket(1, "a/x.go"), ticket(2, "a/x.go")},
+			issues: []gh.Issue{ticket(1, "a/x.go"), ticket(2, "a/x.go")},
 			want:   "none\n",
 		},
 		{
 			name:   "regen globs are excluded",
-			issues: []deps.Issue{ticket(1, "g/a.golden"), ticket(2, "g/a.golden"), ticket(3, "g/a.golden")},
+			issues: []gh.Issue{ticket(1, "g/a.golden"), ticket(2, "g/a.golden"), ticket(3, "g/a.golden")},
 			regen:  []string{"g/**"},
 			want:   "none\n",
 		},
 		{
 			name:   "tickets naming no paths",
-			issues: []deps.Issue{{Number: 1, Body: "no sections"}, {Number: 2}, {Number: 3, Body: "## Files to touch\nTBD\n"}},
+			issues: []gh.Issue{{Number: 1, Body: "no sections"}, {Number: 2}, {Number: 3, Body: "## Files to touch\nTBD\n"}},
 			want:   "none\n",
 		},
 		{
 			name:   "identifiers are not paths",
-			issues: []deps.Issue{ticket(1, "cfg.RegenGlobs"), ticket(2, "cfg.RegenGlobs"), ticket(3, "cfg.RegenGlobs")},
+			issues: []gh.Issue{ticket(1, "cfg.RegenGlobs"), ticket(2, "cfg.RegenGlobs"), ticket(3, "cfg.RegenGlobs")},
 			want:   "none\n",
 		},
 		{
 			name:   "directory path matches regen glob",
-			issues: []deps.Issue{ticket(1, "t/golden/"), ticket(2, "t/golden/"), ticket(3, "t/golden/")},
+			issues: []gh.Issue{ticket(1, "t/golden/"), ticket(2, "t/golden/"), ticket(3, "t/golden/")},
 			regen:  []string{"t/golden/**"},
 			want:   "none\n",
 		},
 		{
 			name:   "duplicate mention in one ticket counts once",
-			issues: []deps.Issue{ticket(1, "a.go", "a.go"), ticket(2, "a.go")},
+			issues: []gh.Issue{ticket(1, "a.go", "a.go"), ticket(2, "a.go")},
 			want:   "none\n",
 		},
 	}

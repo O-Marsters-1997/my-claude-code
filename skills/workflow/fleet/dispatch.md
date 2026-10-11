@@ -142,15 +142,16 @@ per-ticket text too early). Fix the template before the next batch.
 
 Report to the user:
 
-- the merge order as a numbered list in issue order, one PR per line
+- the PRs as a numbered list in issue order, one PR per line
   (`1. #151 issue-142/stuck-scrape-run`);
 - the blocked tickets with their reason, and any held ticket as a ticket bug;
 - each hotspot from `fleet hotspots`, with its ticket numbers and a suggested refactor ticket
   that would split the shared file (omit the section when the output was `none`).
 
-Tell them to merge in issue order. A PR GitHub shows as conflicting needs the feature branch tip
-merged into its branch by hand. Once the wave has merged, tell them to run
-`/fleet reconcile <label>` with the label filled in.
+End the report by telling them to review each PR, mark the good ones "Ready for review", and run
+`/fleet land <label>` with the label filled in. Land squash-merges the ready PRs in order and
+leaves drafts alone; a PR that conflicts with the feature branch is handed back for the tip to
+be merged into it by hand.
 
 ## 6. CI follow-up
 

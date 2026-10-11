@@ -27,7 +27,7 @@ var (
 )
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
-	issues, err := d.GH.ReadyIssues(ctx, in.Label)
+	issues, err := d.GH.OpenIssues(ctx, in.Label, "status:ready")
 	if err != nil {
 		return fmt.Errorf("list ready issues for %q: %w", in.Label, err)
 	}
