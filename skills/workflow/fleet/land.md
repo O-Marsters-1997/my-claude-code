@@ -19,7 +19,11 @@ Progress goes to stderr and is for the user. Read only the one line on stdout:
   listed paths, and every later PR is still unlanded. Hand it to the user: name the PR, branch and
   paths, ask them to merge the feature branch into it and push, then re-run `/fleet land <label>`.
   Do not reconcile.
-- `suite-red`: the suite failed on the feature branch after landing. Report it to the user and
-  stop. Do not reconcile.
+- `suite-red #<n>`: the suite failed on the feature branch after landing, and bisecting the
+  squash commits this run landed names PR `#<n>` as the culprit. Spawn a resolver subagent, giving
+  it the culprit PR, the label and `feat/<slug>`, to fix the culprit in a follow-up PR into
+  `feat/<slug>`; never open that PR by hand. Do not reconcile. Once the user has marked the
+  follow-up PR "Ready for review", re-run `/fleet land <label>`: it lands the follow-up and
+  re-runs the suite, and reconcile waits for `done`.
 
 A non-zero exit is an error, not an outcome: show its stderr to the user and stop.

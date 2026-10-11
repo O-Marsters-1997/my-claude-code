@@ -188,14 +188,37 @@ func TestRunDoneWithoutDrafts(t *testing.T) {
 	}
 }
 
-func TestRunSuiteRed(t *testing.T) {
+func TestRunSuiteRedSingleLandedPR(t *testing.T) {
 	w := newWave(t)
 	w.addPR(10, false, "a.txt", "a\n")
 	got, err := w.run("exit 1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != "suite-red" {
-		t.Errorf("Run() = %q, want %q", got, "suite-red")
+	if want := "suite-red #10"; got != want {
+		t.Errorf("Run() = %q, want %q", got, want)
+	}
+}
+
+func TestRunSuiteRedNamesCulpritPR(t *testing.T) {
+	for _, culprit := range []int{10, 12, 14} {
+		t.Run(fmt.Sprintf("culprit %d", culprit), func(t *testing.T) {
+			w := newWave(t)
+			for n := 10; n <= 14; n++ {
+				content := "ok\n"
+				if n == culprit {
+					content = "bad\n"
+				}
+				w.addPR(n, false, fmt.Sprintf("f%d.txt", n), content)
+			}
+
+			got, err := w.run("! grep -q bad f*.txt")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if want := fmt.Sprintf("suite-red #%d", culprit); got != want {
+				t.Errorf("Run() = %q, want %q", got, want)
+			}
+		})
 	}
 }
