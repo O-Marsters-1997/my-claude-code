@@ -4,6 +4,7 @@ include = [
   ".claude/settings.local.json",
   ".agents/skills/",
   "docs/plans/",
+  "docs/prds/",
 ]
 # Symlink to the main worktree's copy instead of copying, so every worktree
 # shares one file. Never list node_modules. See docs/configuration.md.
