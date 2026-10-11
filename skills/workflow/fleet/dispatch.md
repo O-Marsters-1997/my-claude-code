@@ -25,19 +25,9 @@ beyond one case.
 - **Bundle.** Two or more tiny tickets go to one subagent in one worktree, worked in sequence
   with one commit each, on the bundle branch (see Shared conventions in SKILL.md). One spawn
   and one review instead of one per ticket.
-- **Everything else.** Dispatch every ready ticket off `feat/<slug>`, stacking the ones that
-  overlap (below). Real dependencies live in `## Blocked by`, so a ready ticket is never
-  waiting on another.
-
-**Overlap.** Tickets that touch the same files conflict, and fixing that after the work costs
-a rebase, a resolver and a full check run per PR. Prevent it up front. Collect each ticket's
-paths from its "Where to look" and "Files to touch". Two tickets overlap when they share a path
-or a directory the ticket names as a whole; a ticket that names no paths overlaps everything.
-Group overlapping tickets into **chains** (overlap is transitive) and order each chain by issue
-number, with path-less tickets last. A ticket in no chain is a chain of one.
-
-Chains run in parallel; the tickets inside a chain run one after another (step 3). Write each
-chain, its order and each ticket's parent into the brief.
+- **Everything else.** Dispatch every ready ticket in parallel off `feat/<slug>`. Shared files
+  never chain. Real dependencies live in `## Blocked by`, so a ready ticket is never waiting on
+  another: one that needs another ready ticket's code is held and reported as a ticket bug.
 
 ## 1b. Ensure the feature branch
 
@@ -78,11 +68,8 @@ also syncs the local configs a bare worktree lacks.
 Shared conventions in SKILL.md).
 
 **Create.** One per dispatched ticket, capturing the path (`tp new` cannot cd for you). Fetch first
-so the base is never stale and the subagent has no reason to reset its branch. The first ticket
-of a chain branches from `origin/feat/<slug>`. Each later one is created only after its parent
-returns `done`, with `--base origin/<parent branch>`, so it starts with the parent's work and
-its PR targets the parent's branch. If a parent returns `blocked`, spawn nothing further down
-that chain and report it:
+so the base is never stale and the subagent has no reason to reset its branch. Create every
+worktree up front from `origin/feat/<slug>`:
 
 ```bash
 git fetch origin
@@ -111,7 +98,7 @@ Run /implement for issue #<N> in worktree <path>, branch issue-<N>/<short-title>
 Brief: <scratchpad>/fleet/brief.md (use only the absolute paths in it and here)
 Worked example: <merged PR of the previous wave, if any>
 Files to touch: <exact absolute paths, from the ticket, ADR table or CONTEXT.md>
-Base: <feat/<slug>, or the parent ticket's branch inside a chain>
+Base: feat/<slug>
 Regen: <the repo's `Fleet` section in CLAUDE.md: generated paths and command, or none>
 Size: <xs|s|unsized, from the ticket's size:* label>
 Scratch dir: <scratchpad>/fleet/<N>/ (write every flag, log and temp file here, never /tmp)
@@ -142,47 +129,7 @@ Example: 142 done https://github.com/o/r/pull/151 reviewed=yes /tmp/…/fleet/14
 - Move the ticket `ready → in-progress` when you spawn its subagent, and `→ in-review` when
   it returns `done`. Reconcile relies on these labels to find the wave.
 
-## 5. Integrate
-
-Chains already make overlapping tickets a linear stack, so this step only verifies. Simulate
-the wave merging into `feat/<slug>` in stack order, parent before child and chains by lowest
-issue number, with `git merge-tree`, which needs no worktree and touches no branch:
-
-```bash
-git fetch origin
-TIP=$(git rev-parse "origin/feat/<slug>")
-# for each PR branch B, in order:
-TREE=$(git merge-tree --write-tree "$TIP" "origin/$B") \
-  && TIP=$(git commit-tree "$TREE" -p "$TIP" -p "origin/$B" -m "sim $B")
-```
-
-It exits non-zero on a conflict and prints the conflicting paths. If every step is clean, stop.
-
-A conflict means overlap slipped past step 1. Fix it in one pass, never by chaining a single PR
-onto its collider, because that leaves a partial stack and the re-simulation fails again:
-
-1. Put every PR of the wave in one linear order (the order above, the conflicting PR after the
-   one it collides with).
-2. Rebase each PR onto its predecessor in that order, from the first down:
-   `tp exec <B> -- git rebase origin/<A>`. For a conflict in a Regen path, run the Regen command.
-   Give any other conflict to a resolver subagent, one per PR, with both diffs and both
-   tickets' intent. It keeps both intents or names what it dropped, and invents no behaviour.
-3. After each rebase run the build and the tests scoped to the files that step touched, then
-   `git push --force-with-lease` and `gh pr edit <B-PR> --base <A>`, so its review diff shows
-   only its own ticket.
-4. Re-run the simulation over the final heads. If a PR still conflicts, stop and name it and its
-   conflicting paths for the user to resolve by prompt; leave the rest as they are.
-
-If the repo has `.claude/fleet.toml`, run every command in `[checks] pre_push` after each rebase
-and before pushing, in addition to the scoped tests. Run no command that is not listed.
-
-Run the full suite, e2e included, once on the top PR of each chain, not per step, and note the
-result on that PR. Comment on each rebased PR with the files the resolver touched, so review
-checks them first, and with any trade-off it made. If review changes a PR that others are
-stacked on, restack them with `git rebase --onto origin/<parent> <old-parent> <child>` before
-merging.
-
-## 6. After the batch
+## 5. After the batch
 
 Spot-check two subagent transcripts: compare `cache_read_input_tokens` with
 `cache_creation_input_tokens` in their `usage` fields. A falling read-to-creation ratio
@@ -191,14 +138,15 @@ per-ticket text too early). Fix the template before the next batch.
 
 Report to the user:
 
-- the merge order as a numbered list, one PR per line (`1. #151 issue-142/stuck-scrape-run`),
-  marking each stacked PR with its parent and each PR the integrate fallback rebased and why;
-- the blocked tickets with their reason, and any PR left for a manual conflict prompt.
+- the merge order as a numbered list in issue order, one PR per line
+  (`1. #151 issue-142/stuck-scrape-run`);
+- the blocked tickets with their reason, and any held ticket as a ticket bug.
 
-Tell them to merge in that order, and once the wave has merged, to run
+Tell them to merge in issue order. A PR GitHub shows as conflicting needs the feature branch tip
+merged into its branch by hand. Once the wave has merged, tell them to run
 `/fleet reconcile <label>` with the label filled in.
 
-## 7. CI follow-up
+## 6. CI follow-up
 
 Read the top-level `ci` key from `.claude/fleet.toml` (`pre_push` lives under `[checks]`). With no file or `ci = "off"`, do nothing: never read, watch
 or poll CI.
@@ -206,6 +154,6 @@ or poll CI.
 With `ci = "async"`, after a ticket returns `done` with `reviewed=yes`, watch its PR's checks in the background
 (`gh pr checks <PR> --watch` with `run_in_background`) without blocking the wave. Green costs
 nothing. On the first red run, resume that ticket's subagent once with SendMessage, passing the
-`gh run view <run-id> --log-failed` excerpt, and ask for one fix pushed. A `pre_push` failure after a rebase is fixed by the resolver, or reported to the user if it can't. Don't wait for the
+`gh run view <run-id> --log-failed` excerpt, and ask for one fix pushed. Don't wait for the
 re-run, but keep the background watch on that PR. If the subagent can't be resumed, or a later run on that PR is red again, report the PR and the failing check to the user
 and stop.
