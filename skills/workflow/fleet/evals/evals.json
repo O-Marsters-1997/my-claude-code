@@ -10,6 +10,11 @@
       "id": 2,
       "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10, #11 and #12 all name internal/app.go and the golden directory testdata/golden/. Say how each worktree is based, what runs in parallel, each prompt's Base, and what the final report tells the user about merging.",
       "expected_output": "No chains: all three worktrees are created up front from origin/feat/demo and run in parallel, and every prompt has Base: feat/demo. There is no merge simulation or rebase step. The report lists PRs in issue order, tells the user to merge in that order, and says a PR GitHub shows as conflicting needs the feat/demo tip merged into its branch by hand."
+    },
+    {
+      "id": 3,
+      "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10, #11 and #12 all list internal/app.go under Files to touch. Say what dispatch does about the shared file and what the final report says about it.",
+      "expected_output": "Dispatch runs `fleet hotspots demo` and does no overlap analysis of its own. All three tickets still dispatch in parallel off origin/feat/demo. The report lists internal/app.go as a hotspot with #10, #11 and #12 and suggests a refactor ticket to split it."
     }
   ]
 }
