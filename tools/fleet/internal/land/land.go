@@ -7,8 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/deps"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/gh"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/queue"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/trial"
 )
@@ -18,9 +21,31 @@ type Input struct {
 	Label      string
 	RegenGlobs []string
 	Suite      []string
+	Resolved   []string
+	Started    time.Time
 }
 
-func Run(ctx context.Context, d deps.Deps, in Input) error {
+func Run(ctx context.Context, d deps.Deps, in Input) (err error) {
+	row := metrics.Row{Label: in.Label, Suite: "skipped"}
+	if err := row.ApplyResolved(in.Resolved); err != nil {
+		return err
+	}
+	started := in.Started
+	defer func() {
+		row.TS = time.Now().UTC()
+		if !started.IsZero() {
+			row.WallClockS = int(row.TS.Sub(started).Seconds())
+		}
+		if merr := metrics.Append(in.Dir, row); merr != nil {
+			err = errors.Join(err, fmt.Errorf("record metrics: %w", merr))
+			return
+		}
+		fmt.Fprintln(d.Log, row)
+	}()
+	return run(ctx, d, in, &row, &started)
+}
+
+func run(ctx context.Context, d deps.Deps, in Input, row *metrics.Row, started *time.Time) error {
 	tip := "feat/" + strings.TrimPrefix(in.Label, "project:")
 	if err := fetch(ctx, d, in.Dir); err != nil {
 		return err
@@ -34,6 +59,10 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		return err
 	}
 	ready, drafts := queue.Build(prs, issues)
+	row.DraftsSkipped = len(drafts)
+	if started.IsZero() {
+		*started = earliestCreated(prs)
+	}
 
 	landed := 0
 	for _, e := range ready {
@@ -50,6 +79,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 			return fmt.Errorf("trial #%d: %w", e.PR.Number, err)
 		}
 		if verdict != "clean" {
+			row.TrialConflicts++
 			paths := strings.Join(strings.Fields(verdict)[1:], " ")
 			return line(d, "needs-resolver #%d %s %s", e.PR.Number, e.PR.HeadRefName, paths)
 		}
@@ -58,6 +88,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		}
 		fmt.Fprintf(d.Log, "landed #%d\n", e.PR.Number)
 		landed++
+		row.PRsLanded = landed
 	}
 
 	green := true
@@ -65,6 +96,12 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		green, err = suiteGreen(ctx, d, in, tip)
 		if err != nil {
 			return err
+		}
+		if len(in.Suite) > 0 {
+			row.Suite = "green"
+			if !green {
+				row.Suite = "red"
+			}
 		}
 	}
 	switch {
@@ -78,6 +115,16 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		return line(d, "drafts %s", strings.Join(refs, " "))
 	}
 	return line(d, "done %d", landed)
+}
+
+func earliestCreated(prs []gh.PR) time.Time {
+	var earliest time.Time
+	for _, p := range prs {
+		if !p.CreatedAt.IsZero() && (earliest.IsZero() || p.CreatedAt.Before(earliest)) {
+			earliest = p.CreatedAt
+		}
+	}
+	return earliest
 }
 
 func line(d deps.Deps, format string, args ...any) error {

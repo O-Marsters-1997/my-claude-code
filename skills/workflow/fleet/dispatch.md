@@ -44,6 +44,19 @@ git ls-remote --exit-code --heads origin "feat/<slug>" >/dev/null \
 
 Use `rtk proxy "git push -u origin feat/<slug>"` where rtk is in play.
 
+## 1c. Record the start time
+
+`fleet land` measures the wave's wall clock from here. Add one line under `Label:` in
+`<scratchpad>/fleet/state.md`, creating the file with just the `Label:` line if it doesn't exist,
+and replacing any earlier `Started:` line:
+
+```
+Started: <date -u +%Y-%m-%dT%H:%M:%SZ>
+```
+
+Without it, `fleet land --state <scratchpad>/fleet/state.md` falls back to the earliest wave PR's
+creation time.
+
 ## 2. One shared exploration pass
 
 Before the first wave, if two or more tickets touch the same ground or follow the same

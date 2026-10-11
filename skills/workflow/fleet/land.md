@@ -5,8 +5,12 @@ draft PR means not approved, so landing never touches it. Everything mechanical 
 `fleet` CLI; this file only branches on its last stdout line.
 
 ```bash
-fleet land "<label>"
+fleet land "<label>" --state "<scratchpad>/fleet/state.md"
 ```
+
+Every run, finished or stopped, appends one row to `.claude/fleet-metrics.jsonl` and prints it to
+stderr. Pass each resolver return line as `--resolved "<line>"`. `fleet metrics [--label X]
+[--last N]` shows the rows, a trend and any crossed threshold.
 
 Progress goes to stderr and is for the user. Read only the one line on stdout:
 

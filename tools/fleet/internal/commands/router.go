@@ -9,5 +9,6 @@ func Router() []*cli.Command {
 		hotspotsCommand(),
 		landCommand(),
 		reconcileCommand(),
+		metricsCommand(),
 	}
 }
