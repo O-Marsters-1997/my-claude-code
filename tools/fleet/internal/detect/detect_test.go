@@ -157,6 +157,19 @@ func TestRegenGoldensWithUpdateFlag(t *testing.T) {
 	}
 }
 
+func TestRegenBuildOutputNamedByScriptInSubdirectory(t *testing.T) {
+	res := scan(fstest.MapFS{
+		"justfile":                  file("assets:\n    cd web && bun install && bun run build\n"),
+		"web/package.json":          file(`{"scripts":{"build":"tailwindcss -i ./app.css -o ../internal/web/dist/app.css --minify && vite build"}}`),
+		"internal/web/dist/app.css": file(".a{}"),
+	}, detect.Options{})
+
+	want := map[string]string{"internal/web/dist/app.css": "just assets"}
+	if diff := cmp.Diff(want, res.Config.Regen); diff != "" {
+		t.Errorf("regen (-want +got):\n%s", diff)
+	}
+}
+
 func TestRegenBuildOutputNamedByRecipe(t *testing.T) {
 	res := scan(fstest.MapFS{
 		"justfile":                        file("css:\n    tailwindcss -i in.css -o internal/cc/assets/dist/app.css --minify\n"),

@@ -18,6 +18,7 @@ const headerBytes = 2048
 var (
 	generateRecipe = regexp.MustCompile(`^(generate|gen|codegen|generated)$`)
 	updateFlag     = regexp.MustCompile(`flag\.Bool\(\s*"(update[a-z-]*|golden)"`)
+	scriptRun      = regexp.MustCompile(`cd\s+(\S+)\s*&&.*?(?:bun|npm|pnpm|yarn)\s+run\s+(\S+)`)
 	outputArg      = regexp.MustCompile(`(?:\s-o|--output|--outfile|--out|>)[ =]*(\S+)`)
 	generatorConfs = []struct{ file, cmd string }{
 		{"sqlc.yaml", "sqlc generate"},
@@ -49,7 +50,7 @@ func detectRegen(fsys fs.FS, tracked []string, recipes []recipe) (map[string]str
 		added = append(added, glob)
 	}
 
-	for _, found := range []map[string]string{outputsNamedByRecipes(tracked, recipes), goldens(fsys, tracked)} {
+	for _, found := range []map[string]string{outputsNamedByRecipes(fsys, tracked, recipes), goldens(fsys, tracked)} {
 		for _, glob := range sortedKeys(found) {
 			add(glob, found[glob])
 		}
@@ -119,17 +120,32 @@ func (g generator) commandFor() string {
 	return ""
 }
 
-func outputsNamedByRecipes(tracked []string, recipes []recipe) map[string]string {
+func outputsNamedByRecipes(fsys fs.FS, tracked []string, recipes []recipe) map[string]string {
 	set := make(map[string]bool, len(tracked))
 	for _, f := range tracked {
 		set[f] = true
 	}
 	out := map[string]string{}
-	for _, r := range recipes {
-		for _, m := range outputArg.FindAllStringSubmatch(r.body, -1) {
-			p := path.Clean(strings.Trim(m[1], `"'`))
+	claim := func(body, dir, cmd string) {
+		for _, m := range outputArg.FindAllStringSubmatch(body, -1) {
+			p := path.Join(dir, strings.Trim(m[1], `"'`))
 			if set[p] {
-				out[p] = r.cmd
+				out[p] = cmd
+			}
+		}
+	}
+	for _, r := range recipes {
+		claim(r.body, ".", r.cmd)
+		for _, m := range scriptRun.FindAllStringSubmatch(r.body, -1) {
+			dir := path.Clean(strings.Trim(m[1], `"'`))
+			data, err := fs.ReadFile(fsys, path.Join(dir, "package.json"))
+			if err != nil {
+				continue
+			}
+			for _, s := range parseScripts(data) {
+				if s.name == m[2] {
+					claim(s.body, dir, r.cmd)
+				}
 			}
 		}
 	}
