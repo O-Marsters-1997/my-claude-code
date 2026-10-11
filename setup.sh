@@ -33,6 +33,8 @@ ln -sfn "$REPO/githooks/post-merge" "$(git -C "$REPO" rev-parse --path-format=ab
 mkdir -p "$CLAUDE/bin"
 (cd "$REPO/tools/reflect" && go build -ldflags "-X main.library=$REPO" -o "$CLAUDE/bin/reflect" ./cmd/reflect)
 echo "reflect: built $CLAUDE/bin/reflect"
+(cd "$REPO/tools/fleet" && go build -ldflags "-X main.Version=$(git -C "$REPO" describe --tags --always --dirty) -X main.Commit=$(git -C "$REPO" rev-parse --short HEAD) -X main.Date=$(date -u +%Y-%m-%d)" -o "$CLAUDE/bin/fleet" ./cmd/fleet)
+echo "fleet: built $CLAUDE/bin/fleet"
 
 git config --global core.hooksPath "$REPO/githooks/global"
 
