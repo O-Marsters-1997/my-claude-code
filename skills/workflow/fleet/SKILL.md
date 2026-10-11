@@ -4,6 +4,8 @@ description: >
   Run a batch of tickets through parallel worktrees, wave by wave. Two subcommands:
   `/fleet dispatch <label>` fans /implement out across the ready tickets carrying that feature
   label, one subagent per ticket, all in parallel off the feature branch;
+  `/fleet land <label>` squash-merges the wave's PRs marked ready, one at a time, and reports
+  the drafts it skipped;
   `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, writes the handoff for the next dispatch, and opens
   the feature's PR into main once no tickets are left. A /sweep's `sweep-YYYY-MM-DD` label
@@ -17,9 +19,10 @@ description: >
 Orchestration layer above /implement, split by when it runs:
 
 - `dispatch <label>`: start of a wave. Read [dispatch.md](dispatch.md).
+- `land <label>`: once the user has marked the good PRs ready. Read [land.md](land.md).
 - `reconcile <label>`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
 
-Both subcommands require a **feature label** as the argument after the subcommand (for example
+All subcommands require a **feature label** as the argument after the subcommand (for example
 `/fleet dispatch cv-tailoring`). If it is missing, ask for it; never run across all issues.
 Read the file for the subcommand in the first argument. With no subcommand, use `reconcile` if
 the user says the wave has merged, otherwise `dispatch`. If it is still unclear, ask.

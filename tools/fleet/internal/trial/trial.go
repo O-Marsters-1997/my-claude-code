@@ -22,12 +22,20 @@ type Input struct {
 // Run writes exactly one line to d.Out: clean, regen <path>... or conflict <path>...
 // It returns an error only when git itself fails, never for a conflict.
 func Run(ctx context.Context, d deps.Deps, in Input) error {
-	paths, err := conflicts(ctx, d, in)
+	v, err := Classify(ctx, d, in)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(d.Out, verdict(paths, in.RegenGlobs))
+	_, err = fmt.Fprintln(d.Out, v)
 	return err
+}
+
+func Classify(ctx context.Context, d deps.Deps, in Input) (string, error) {
+	paths, err := conflicts(ctx, d, in)
+	if err != nil {
+		return "", err
+	}
+	return verdict(paths, in.RegenGlobs), nil
 }
 
 func conflicts(ctx context.Context, d deps.Deps, in Input) ([]string, error) {

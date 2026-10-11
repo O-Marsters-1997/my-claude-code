@@ -7,5 +7,6 @@ func Router() []*cli.Command {
 		initCommand(),
 		trialCommand(),
 		hotspotsCommand(),
+		landCommand(),
 	}
 }
