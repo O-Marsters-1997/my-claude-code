@@ -35,7 +35,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 	}
 	ready, drafts := queue.Build(prs, issues)
 
-	landed := 0
+	var landed []landedPR
 	for _, e := range ready {
 		if err := fetch(ctx, d, in.Dir); err != nil {
 			return err
@@ -57,19 +57,30 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 			return fmt.Errorf("merge #%d: %w", e.PR.Number, err)
 		}
 		fmt.Fprintf(d.Log, "landed #%d\n", e.PR.Number)
-		landed++
+		if err := fetch(ctx, d, in.Dir); err != nil {
+			return err
+		}
+		sha, err := d.Git.Run(ctx, in.Dir, nil, "rev-parse", "origin/"+tip)
+		if err != nil {
+			return fmt.Errorf("resolve %s after #%d: %w", tip, e.PR.Number, err)
+		}
+		landed = append(landed, landedPR{number: e.PR.Number, sha: strings.TrimSpace(string(sha))})
 	}
 
 	green := true
-	if landed > 0 {
-		green, err = suiteGreen(ctx, d, in, tip)
+	if len(landed) > 0 {
+		green, err = suiteGreen(ctx, d, in, "origin/"+tip)
 		if err != nil {
 			return err
 		}
 	}
 	switch {
 	case !green:
-		return line(d, "suite-red")
+		culprit, err := bisect(ctx, d, in, landed)
+		if err != nil {
+			return err
+		}
+		return line(d, "suite-red #%d", culprit)
 	case len(drafts) > 0:
 		refs := make([]string, len(drafts))
 		for i, p := range drafts {
@@ -77,7 +88,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		}
 		return line(d, "drafts %s", strings.Join(refs, " "))
 	}
-	return line(d, "done %d", landed)
+	return line(d, "done %d", len(landed))
 }
 
 func line(d deps.Deps, format string, args ...any) error {
@@ -92,20 +103,17 @@ func fetch(ctx context.Context, d deps.Deps, dir string) error {
 	return nil
 }
 
-func suiteGreen(ctx context.Context, d deps.Deps, in Input, tip string) (bool, error) {
+func suiteGreen(ctx context.Context, d deps.Deps, in Input, ref string) (bool, error) {
 	if len(in.Suite) == 0 {
 		return true, nil
-	}
-	if err := fetch(ctx, d, in.Dir); err != nil {
-		return false, err
 	}
 	tmp, err := os.MkdirTemp("", "fleet-suite-")
 	if err != nil {
 		return false, err
 	}
 	defer os.RemoveAll(tmp)
-	if _, err := d.Git.Run(ctx, in.Dir, nil, "worktree", "add", "--detach", tmp, "origin/"+tip); err != nil {
-		return false, fmt.Errorf("check out %s: %w", tip, err)
+	if _, err := d.Git.Run(ctx, in.Dir, nil, "worktree", "add", "--detach", tmp, ref); err != nil {
+		return false, fmt.Errorf("check out %s: %w", ref, err)
 	}
 	defer d.Git.Run(context.WithoutCancel(ctx), in.Dir, nil, "worktree", "remove", "--force", tmp)
 
