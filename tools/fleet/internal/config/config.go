@@ -87,8 +87,6 @@ func matchSegments(pat, name []string) bool {
 	return err == nil && ok && matchSegments(pat[1:], name[1:])
 }
 
-// claudeMDRegen reads list items under a "Fleet" heading, each naming a glob
-// and a command in backticks: - `web/dist/**`: `npm run build`.
 func claudeMDRegen(file string) (map[string]string, error) {
 	f, err := os.Open(file)
 	if errors.Is(err, fs.ErrNotExist) {

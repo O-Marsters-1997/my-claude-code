@@ -54,7 +54,7 @@ func (r *repo) run(globs ...string) string {
 	r.t.Helper()
 	var out bytes.Buffer
 	d := deps.DefaultDeps(&out, &bytes.Buffer{})
-	err := trial.Run(context.Background(), d, trial.Input{Dir: r.dir, Tip: "tip", Branch: "branch", RegenGlob: globs})
+	err := trial.Run(context.Background(), d, trial.Input{Dir: r.dir, Tip: "tip", Branch: "branch", RegenGlobs: globs})
 	if err != nil {
 		r.t.Fatal(err)
 	}

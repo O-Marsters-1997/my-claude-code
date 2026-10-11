@@ -13,10 +13,10 @@ import (
 )
 
 type Input struct {
-	Dir       string
-	Tip       string
-	Branch    string
-	RegenGlob []string
+	Dir        string
+	Tip        string
+	Branch     string
+	RegenGlobs []string
 }
 
 // Run writes exactly one line to d.Out: clean, regen <path>... or conflict <path>...
@@ -26,12 +26,10 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(d.Out, verdict(paths, in.RegenGlob))
+	_, err = fmt.Fprintln(d.Out, verdict(paths, in.RegenGlobs))
 	return err
 }
 
-// conflicts ignores user and system git config so that no custom merge driver
-// runs, matching GitHub's server-side merge.
 func conflicts(ctx context.Context, d deps.Deps, in Input) ([]string, error) {
 	env := []string{"GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1"}
 	out, err := d.Git.Run(ctx, in.Dir, env, "merge-tree", "--write-tree", "--name-only", "-z", in.Tip, in.Branch)

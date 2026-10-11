@@ -38,9 +38,9 @@ func runTrial(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 	return trial.Run(ctx, commandDeps(cmd), trial.Input{
-		Dir:       dir,
-		Tip:       cmd.Args().Get(0),
-		Branch:    cmd.Args().Get(1),
-		RegenGlob: cfg.RegenGlobs(),
+		Dir:        dir,
+		Tip:        cmd.Args().Get(0),
+		Branch:     cmd.Args().Get(1),
+		RegenGlobs: cfg.RegenGlobs(),
 	})
 }
