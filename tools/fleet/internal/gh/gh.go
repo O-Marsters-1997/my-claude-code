@@ -9,9 +9,16 @@ import (
 	"strconv"
 )
 
+type Label struct {
+	Name string `json:"name"`
+}
+
 type Issue struct {
-	Number int    `json:"number"`
-	Body   string `json:"body"`
+	Number int     `json:"number"`
+	Title  string  `json:"title"`
+	Body   string  `json:"body"`
+	State  string  `json:"state"`
+	Labels []Label `json:"labels"`
 }
 
 type PR struct {
@@ -19,12 +26,14 @@ type PR struct {
 	HeadRefName string `json:"headRefName"`
 	IsDraft     bool   `json:"isDraft"`
 	Body        string `json:"body"`
+	State       string `json:"state"`
+	URL         string `json:"url"`
 }
 
 type Client struct{}
 
 func (Client) OpenIssues(ctx context.Context, labels ...string) ([]Issue, error) {
-	args := []string{"issue", "list", "--state", "open", "--limit", "200", "--json", "number,body"}
+	args := []string{"issue", "list", "--state", "open", "--limit", "200", "--json", "number,title,body,state,labels"}
 	for _, l := range labels {
 		args = append(args, "--label", l)
 	}
@@ -43,6 +52,48 @@ func (Client) OpenPRs(ctx context.Context, base string) ([]PR, error) {
 		return nil, fmt.Errorf("list pull requests: %w", err)
 	}
 	return prs, nil
+}
+
+func (Client) Issues(ctx context.Context, label string) ([]Issue, error) {
+	args := []string{"issue", "list", "--state", "all", "--label", label, "--limit", "200",
+		"--json", "number,title,body,state,labels"}
+	var issues []Issue
+	if err := decode(ctx, &issues, args); err != nil {
+		return nil, fmt.Errorf("list issues: %w", err)
+	}
+	return issues, nil
+}
+
+func (Client) PRs(ctx context.Context, base string) ([]PR, error) {
+	args := []string{"pr", "list", "--state", "all", "--base", base, "--limit", "200",
+		"--json", "number,headRefName,isDraft,body,state,url"}
+	var prs []PR
+	if err := decode(ctx, &prs, args); err != nil {
+		return nil, fmt.Errorf("list pull requests: %w", err)
+	}
+	return prs, nil
+}
+
+func (Client) IssueClosed(ctx context.Context, number int) (bool, error) {
+	var issue Issue
+	if err := decode(ctx, &issue, []string{"issue", "view", strconv.Itoa(number), "--json", "state"}); err != nil {
+		return false, fmt.Errorf("view issue #%d: %w", number, err)
+	}
+	return issue.State == "CLOSED", nil
+}
+
+func (Client) MoveStatus(ctx context.Context, number int, from, to string) error {
+	args := []string{"issue", "edit", strconv.Itoa(number), "--add-label", to}
+	if from != "" {
+		args = append(args, "--remove-label", from)
+	}
+	_, err := run(ctx, args...)
+	return err
+}
+
+func (Client) CloseIssue(ctx context.Context, number int) error {
+	_, err := run(ctx, "issue", "close", strconv.Itoa(number))
+	return err
 }
 
 func (Client) MergePR(ctx context.Context, number int) error {

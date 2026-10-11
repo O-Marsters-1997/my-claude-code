@@ -8,5 +8,6 @@ func Router() []*cli.Command {
 		trialCommand(),
 		hotspotsCommand(),
 		landCommand(),
+		reconcileCommand(),
 	}
 }
