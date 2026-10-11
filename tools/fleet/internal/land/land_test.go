@@ -48,6 +48,7 @@ func clone(t *testing.T, origin string) string {
 }
 
 type wave struct {
+	deps.GH
 	t      *testing.T
 	work   string
 	repo   string

@@ -59,6 +59,6 @@ Both halves rely on these, so they are defined once here.
 - **Bundle branch.** `issue-<N>/tiny-bundle`, `<N>` the lowest issue number in the bundle. One
   PR whose body has a `Closes #<N>` line per bundled ticket, which is how reconcile matches it
   to each of them.
-- **`state.md`.** Reconcile writes it, dispatch reads it. It opens with the feature label, then
+- **`state.md`.** `fleet reconcile` writes it, dispatch reads it. It opens with the feature label, then
   has one section per unblocked ticket with its number, base branch, and the merged PR to use as
   the worked example.

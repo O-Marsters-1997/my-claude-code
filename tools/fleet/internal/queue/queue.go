@@ -31,7 +31,7 @@ func Build(prs []gh.PR, issues []gh.Issue) (ready []Entry, drafts []gh.PR) {
 		entries = append(entries, Entry{PR: pr, Tickets: tickets(pr)})
 	}
 	sort.Slice(drafts, func(i, j int) bool { return drafts[i].Number < drafts[j].Number })
-	return order(entries, blockers(issues)), drafts
+	return order(entries, Blockers(issues)), drafts
 }
 
 func tickets(pr gh.PR) []int {
@@ -47,7 +47,7 @@ func tickets(pr gh.PR) []int {
 	return nums
 }
 
-func blockers(issues []gh.Issue) map[int][]int {
+func Blockers(issues []gh.Issue) map[int][]int {
 	out := map[int][]int{}
 	for _, issue := range issues {
 		inSection := false
