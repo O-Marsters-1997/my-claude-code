@@ -8,6 +8,7 @@ import (
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/config"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/land"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/metrics"
 )
 
 func landCommand() *cli.Command {
@@ -18,6 +19,7 @@ func landCommand() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
 			&cli.StringSliceFlag{Name: "resolved", Usage: "a resolver's return line, repeatable"},
+			&cli.StringFlag{Name: "state", Usage: "path to state.md holding dispatch's Started timestamp"},
 		},
 		Action: runLand,
 	}
@@ -32,12 +34,14 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
+	label := cmd.Args().Get(0)
 	return land.Run(ctx, commandDeps(cmd), land.Input{
 		Dir:      dir,
-		Label:    cmd.Args().Get(0),
+		Label:    label,
 		Regen:    cfg.Regen,
 		PrePush:  cfg.Checks.PrePush,
 		Suite:    cfg.Checks.Suite,
 		Resolved: cmd.StringSlice("resolved"),
+		Started:  metrics.StartFromState(cmd.String("state"), label),
 	})
 }

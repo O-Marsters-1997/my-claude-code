@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 type Label struct {
@@ -22,12 +23,13 @@ type Issue struct {
 }
 
 type PR struct {
-	Number      int    `json:"number"`
-	HeadRefName string `json:"headRefName"`
-	IsDraft     bool   `json:"isDraft"`
-	Body        string `json:"body"`
-	State       string `json:"state"`
-	URL         string `json:"url"`
+	Number      int       `json:"number"`
+	HeadRefName string    `json:"headRefName"`
+	IsDraft     bool      `json:"isDraft"`
+	Body        string    `json:"body"`
+	State       string    `json:"state"`
+	URL         string    `json:"url"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type Client struct{}
@@ -46,7 +48,7 @@ func (Client) OpenIssues(ctx context.Context, labels ...string) ([]Issue, error)
 
 func (Client) OpenPRs(ctx context.Context, base string) ([]PR, error) {
 	args := []string{"pr", "list", "--state", "open", "--base", base, "--limit", "200",
-		"--json", "number,headRefName,isDraft,body"}
+		"--json", "number,headRefName,isDraft,body,createdAt"}
 	var prs []PR
 	if err := decode(ctx, &prs, args); err != nil {
 		return nil, fmt.Errorf("list pull requests: %w", err)

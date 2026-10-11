@@ -11,11 +11,12 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/config"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/deps"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/gh"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/metrics"
 )
 
 const commentLimit = 60000
 
-func regenerate(ctx context.Context, d deps.Deps, in Input, tip string, pr gh.PR, paths []string) (bool, error) {
+func regenerate(ctx context.Context, d deps.Deps, in Input, row *metrics.Row, tip string, pr gh.PR, paths []string) (bool, error) {
 	at := func(command string) ([]byte, error) {
 		return d.Sh.Run(ctx, in.Dir, "tp exec "+quote(pr.HeadRefName)+" sh -c "+quote(command))
 	}
@@ -66,6 +67,7 @@ func regenerate(ctx context.Context, d deps.Deps, in Input, tip string, pr gh.PR
 		var exit *exec.ExitError
 		switch {
 		case errors.As(err, &exit):
+			row.GateFailures++
 			return false, line(d, "gate-failed #%d %s", pr.Number, cmd)
 		case err != nil:
 			return false, fmt.Errorf("run pre_push %q for #%d: %w", cmd, pr.Number, err)

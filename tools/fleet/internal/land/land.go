@@ -8,9 +8,12 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/config"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/deps"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/gh"
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/queue"
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/trial"
 )
@@ -22,6 +25,7 @@ type Input struct {
 	PrePush  []string
 	Suite    []string
 	Resolved []string
+	Started  time.Time
 }
 
 type resolution struct {
@@ -47,7 +51,24 @@ func parseResolution(l string) (resolution, error) {
 	return resolution{PR: pr, Failed: f[1] == "failed", Class: f[2], Report: f[3]}, nil
 }
 
-func Run(ctx context.Context, d deps.Deps, in Input) error {
+func Run(ctx context.Context, d deps.Deps, in Input) (err error) {
+	row := metrics.Row{Label: in.Label, Suite: "skipped"}
+	started := in.Started
+	defer func() {
+		row.TS = time.Now().UTC()
+		if !started.IsZero() {
+			row.WallClockS = int(row.TS.Sub(started).Seconds())
+		}
+		if merr := metrics.Append(in.Dir, row); merr != nil {
+			err = errors.Join(err, fmt.Errorf("record metrics: %w", merr))
+			return
+		}
+		fmt.Fprintln(d.Log, row)
+	}()
+	return run(ctx, d, in, &row, &started)
+}
+
+func run(ctx context.Context, d deps.Deps, in Input, row *metrics.Row, started *time.Time) error {
 	var resolutions []resolution
 	for _, l := range in.Resolved {
 		r, err := parseResolution(l)
@@ -55,10 +76,12 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 			return err
 		}
 		fmt.Fprintf(d.Log, "resolver: %s\n", l)
+		row.AddResolution(r.Failed, r.Class)
 		resolutions = append(resolutions, r)
 	}
 	for _, r := range resolutions {
 		if r.Failed {
+			row.GateFailures++
 			return line(d, "gate-failed #%d", r.PR)
 		}
 	}
@@ -75,6 +98,10 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		return err
 	}
 	ready, drafts := queue.Build(prs, issues)
+	row.DraftsSkipped = len(drafts)
+	if started.IsZero() {
+		*started = earliestCreated(prs)
+	}
 
 	var landed []landedPR
 	for _, e := range ready {
@@ -93,17 +120,20 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		kind, paths, _ := strings.Cut(verdict, " ")
 		switch kind {
 		case "conflict":
+			row.TrialConflicts++
 			return line(d, "needs-resolver #%d %s %s", e.PR.Number, e.PR.HeadRefName, paths)
 		case "regen":
-			ok, err := regenerate(ctx, d, in, tip, e.PR, strings.Fields(paths))
+			ok, err := regenerate(ctx, d, in, row, tip, e.PR, strings.Fields(paths))
 			if err != nil || !ok {
 				return err
 			}
+			row.RegenFixes++
 		}
 		if err := d.GH.MergePR(ctx, e.PR.Number); err != nil {
 			return fmt.Errorf("merge #%d: %w", e.PR.Number, err)
 		}
 		fmt.Fprintf(d.Log, "landed #%d\n", e.PR.Number)
+		row.PRsLanded++
 		if err := fetch(ctx, d, in.Dir); err != nil {
 			return err
 		}
@@ -130,9 +160,16 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		if err != nil {
 			return err
 		}
+		if len(in.Suite) > 0 {
+			row.Suite = "green"
+			if !green {
+				row.Suite = "red"
+			}
+		}
 	}
 	switch {
 	case !green:
+		row.Bisects++
 		culprit, err := bisect(ctx, d, in, landed)
 		if err != nil {
 			return err
@@ -146,6 +183,16 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		return line(d, "drafts %s", strings.Join(refs, " "))
 	}
 	return line(d, "done %d", len(landed))
+}
+
+func earliestCreated(prs []gh.PR) time.Time {
+	var earliest time.Time
+	for _, p := range prs {
+		if !p.CreatedAt.IsZero() && (earliest.IsZero() || p.CreatedAt.Before(earliest)) {
+			earliest = p.CreatedAt
+		}
+	}
+	return earliest
 }
 
 func line(d deps.Deps, format string, args ...any) error {
