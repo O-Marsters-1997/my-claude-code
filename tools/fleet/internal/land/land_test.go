@@ -159,6 +159,22 @@ func TestRunStopsAtFirstConflict(t *testing.T) {
 	}
 }
 
+func TestRunNeverMergesDraftOrRunsSuiteWithoutLanding(t *testing.T) {
+	w := newWave(t)
+	w.addPR(11, true, "draft.txt", "d\n")
+
+	got, err := w.run("echo suite >> " + w.log)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "drafts #11" {
+		t.Errorf("Run() = %q, want %q", got, "drafts #11")
+	}
+	if len(w.merged) != 0 || len(w.logged()) != 0 {
+		t.Errorf("merged %v, log %v; want neither a merge nor a suite run", w.merged, w.logged())
+	}
+}
+
 func TestRunDoneWithoutDrafts(t *testing.T) {
 	w := newWave(t)
 	w.addPR(10, false, "a.txt", "a\n")
