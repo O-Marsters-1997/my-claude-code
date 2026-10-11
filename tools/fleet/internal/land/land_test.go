@@ -201,20 +201,24 @@ func TestRunSuiteRedSingleLandedPR(t *testing.T) {
 }
 
 func TestRunSuiteRedNamesCulpritPR(t *testing.T) {
-	w := newWave(t)
-	for n := 10; n <= 14; n++ {
-		content := "ok\n"
-		if n == 12 {
-			content = "bad\n"
-		}
-		w.addPR(n, false, fmt.Sprintf("f%d.txt", n), content)
-	}
+	for _, culprit := range []int{10, 12, 14} {
+		t.Run(fmt.Sprintf("culprit %d", culprit), func(t *testing.T) {
+			w := newWave(t)
+			for n := 10; n <= 14; n++ {
+				content := "ok\n"
+				if n == culprit {
+					content = "bad\n"
+				}
+				w.addPR(n, false, fmt.Sprintf("f%d.txt", n), content)
+			}
 
-	got, err := w.run("! grep -q bad f*.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want := "suite-red #12"; got != want {
-		t.Errorf("Run() = %q, want %q", got, want)
+			got, err := w.run("! grep -q bad f*.txt")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if want := fmt.Sprintf("suite-red #%d", culprit); got != want {
+				t.Errorf("Run() = %q, want %q", got, want)
+			}
+		})
 	}
 }
