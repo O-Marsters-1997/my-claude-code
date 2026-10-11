@@ -3,8 +3,9 @@ name: fleet
 description: >
   Run a batch of tickets through parallel worktrees, wave by wave. Two subcommands:
   `/fleet dispatch <label>` fans /implement out across the ready tickets carrying that feature
-  label, one subagent per ticket, stacking tickets that touch the same files so they merge
-  cleanly in a fixed order;
+  label, one subagent per ticket, all in parallel off the feature branch;
+  `/fleet land <label>` squash-merges the wave's PRs marked ready, one at a time, and reports
+  the drafts it skipped;
   `/fleet reconcile <label>` runs after a wave has merged, closes the done tickets, promotes the
   newly unblocked ones from backlog to ready, writes the handoff for the next dispatch, and opens
   the feature's PR into main once no tickets are left. A /sweep's `sweep-YYYY-MM-DD` label
@@ -18,9 +19,10 @@ description: >
 Orchestration layer above /implement, split by when it runs:
 
 - `dispatch <label>`: start of a wave. Read [dispatch.md](dispatch.md).
+- `land <label>`: once the user has marked the good PRs ready. Read [land.md](land.md).
 - `reconcile <label>`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
 
-Both subcommands require a **feature label** as the argument after the subcommand (for example
+All subcommands require a **feature label** as the argument after the subcommand (for example
 `/fleet dispatch cv-tailoring`). If it is missing, ask for it; never run across all issues.
 Read the file for the subcommand in the first argument. With no subcommand, use `reconcile` if
 the user says the wave has merged, otherwise `dispatch`. If it is still unclear, ask.
@@ -48,9 +50,6 @@ Both halves rely on these, so they are defined once here.
   ref names. Every ticket PR targets it, never `main`, so several features can run in parallel
   without touching each other. When the feature's tickets are all done, reconcile opens one PR
   merging `feat/<slug>` into `main`.
-- **Chain.** Tickets whose declared files overlap. Dispatch runs a chain in issue-number order,
-  each ticket branched from its parent's branch, each PR targeting its parent. GitHub retargets
-  the child to `feat/<slug>` when its parent merges.
 - **Fleet section.** A repo's CLAUDE.md may carry a `Fleet` section listing its generated,
   committed paths (minified CSS, goldens) and the command that rebuilds them. Those files conflict
   by construction, so fleet regenerates them mechanically instead of resolving them.
@@ -60,6 +59,6 @@ Both halves rely on these, so they are defined once here.
 - **Bundle branch.** `issue-<N>/tiny-bundle`, `<N>` the lowest issue number in the bundle. One
   PR whose body has a `Closes #<N>` line per bundled ticket, which is how reconcile matches it
   to each of them.
-- **`state.md`.** Reconcile writes it, dispatch reads it. It opens with the feature label, then
+- **`state.md`.** `fleet reconcile` writes it, dispatch reads it. It opens with the feature label, then
   has one section per unblocked ticket with its number, base branch, and the merged PR to use as
   the worked example.
