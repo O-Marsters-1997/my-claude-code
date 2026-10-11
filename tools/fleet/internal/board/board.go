@@ -29,6 +29,9 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 	if err != nil {
 		return err
 	}
+	if len(issues) == 0 {
+		return fmt.Errorf("no issues carry label %q", in.Label)
+	}
 	prs, err := d.GH.PRs(ctx, tip)
 	if err != nil {
 		return err
@@ -159,13 +162,6 @@ func (b *board) example(blockers []int) string {
 	best := gh.PR{}
 	for _, n := range blockers {
 		for _, pr := range b.prsFor(n) {
-			if pr.State == "MERGED" && pr.Number > best.Number {
-				best = pr
-			}
-		}
-	}
-	if best.Number == 0 {
-		for _, pr := range b.prs {
 			if pr.State == "MERGED" && pr.Number > best.Number {
 				best = pr
 			}

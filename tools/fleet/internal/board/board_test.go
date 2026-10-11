@@ -224,6 +224,15 @@ func TestReadyTicketAppearsInStateWithoutBeingPromoted(t *testing.T) {
 	}
 }
 
+func TestUnknownLabelIsAnErrorNotFinished(t *testing.T) {
+	var out bytes.Buffer
+	d := deps.Deps{GH: &fakeGH{}, Out: &out, Log: &bytes.Buffer{}}
+	err := board.Run(context.Background(), d, board.Input{Label: "project:typo", StatePath: filepath.Join(t.TempDir(), "s.md")})
+	if err == nil {
+		t.Errorf("Run() = nil, want error; stdout %q", out.String())
+	}
+}
+
 type failingGH struct {
 	deps.GH
 }
