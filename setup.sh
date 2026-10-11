@@ -32,6 +32,9 @@ mkdir -p "$CLAUDE/bin"
 echo "reflect: built $CLAUDE/bin/reflect"
 (cd "$REPO/tools/fleet" && go build -ldflags "-X main.Version=$(git -C "$REPO" describe --tags --always --dirty) -X main.Commit=$(git -C "$REPO" rev-parse --short HEAD) -X main.Date=$(date -u +%Y-%m-%d)" -o "$CLAUDE/bin/fleet" ./cmd/fleet)
 echo "fleet: built $CLAUDE/bin/fleet"
+mkdir -p ~/.local/bin
+ln -sfn "$CLAUDE/bin/fleet" ~/.local/bin/fleet
+echo "fleet: linked ~/.local/bin/fleet"
 
 git config --global core.hooksPath "$REPO/githooks/global"
 
