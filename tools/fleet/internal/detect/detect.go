@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -117,10 +118,7 @@ func unmatchedJobs(fsys fs.FS, picked []string) []string {
 	var unmatched []string
 	for _, j := range jobs {
 		stem, _, _ := strings.Cut(strings.ReplaceAll(j, "_", "-"), "-")
-		hit := false
-		for _, p := range picked {
-			hit = hit || strings.Contains(p, stem)
-		}
+		hit := slices.ContainsFunc(picked, func(p string) bool { return strings.Contains(p, stem) })
 		if !hit {
 			unmatched = append(unmatched, j)
 		}

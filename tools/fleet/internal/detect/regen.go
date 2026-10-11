@@ -3,6 +3,7 @@ package detect
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"io/fs"
 	"path"
 	"regexp"
@@ -33,28 +34,25 @@ type generator struct {
 	goGenerate bool
 }
 
-// detectRegen returns glob -> command for generated files, and the paths it
-// found to be generated but could not map to a command.
 func detectRegen(fsys fs.FS, tracked []string, recipes []recipe) (map[string]string, []string) {
 	gen := findGenerator(fsys, tracked, recipes)
 	regen := map[string]string{}
+	var added []string
 	var unmapped []string
 
+	covered := func(glob string) bool { return config.MatchAny(added, glob) }
 	add := func(glob, cmd string) {
-		if config.MatchAny(sortedKeys(regen), glob) {
+		if covered(glob) {
 			return
 		}
 		regen[glob] = cmd
-	}
-	covered := func(file string) bool {
-		return config.MatchAny(sortedKeys(regen), file)
+		added = append(added, glob)
 	}
 
-	for glob, cmd := range outputsNamedByRecipes(tracked, recipes) {
-		add(glob, cmd)
-	}
-	for glob, cmd := range goldens(fsys, tracked) {
-		add(glob, cmd)
+	for _, found := range []map[string]string{outputsNamedByRecipes(tracked, recipes), goldens(fsys, tracked)} {
+		for _, glob := range sortedKeys(found) {
+			add(glob, found[glob])
+		}
 	}
 
 	globs := append(generatedGlobs(fsys, tracked), attributeGlobs(fsys, tracked)...)
@@ -216,7 +214,7 @@ func hasGeneratedHeader(fsys fs.FS, name string) bool {
 	}
 	defer f.Close()
 	buf := make([]byte, headerBytes)
-	n, _ := f.Read(buf)
+	n, _ := io.ReadFull(f, buf)
 	buf = buf[:n]
 	if bytes.IndexByte(buf, 0) >= 0 {
 		return false
