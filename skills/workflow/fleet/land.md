@@ -19,6 +19,12 @@ Progress goes to stderr and is for the user. Read only the one line on stdout:
   listed paths, and every later PR is still unlanded. Hand it to the user: name the PR, branch and
   paths, ask them to merge the feature branch into it and push, then re-run `/fleet land <label>`.
   Do not reconcile.
+- `gate-failed <PR> <cmd>`: that PR conflicted only in generated files, land regenerated them in
+  its worktree, and the `pre_push` command failed before anything was pushed. Report the PR and
+  command to the user and stop. Do not reconcile.
+- `regen-stale <path>...`: after the last landing, rerunning the `[regen]` commands on the feature
+  branch changed these generated files, so they are out of date. Report the paths to the user and
+  stop. Do not reconcile.
 - `suite-red`: the suite failed on the feature branch after landing. Report it to the user and
   stop. Do not reconcile.
 

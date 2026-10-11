@@ -55,6 +55,10 @@ type wave struct {
 	prs    []gh.PR
 	merged []int
 	log    string
+
+	origin    string
+	worktrees string
+	comments  []string
 }
 
 func newWave(t *testing.T) *wave {
@@ -67,7 +71,10 @@ func newWave(t *testing.T) *wave {
 	git(t, work, "commit", "-q", "-m", "base")
 	git(t, work, "push", "-q", "origin", "main")
 	git(t, work, "push", "-q", "origin", "main:feat/demo")
-	return &wave{t: t, work: work, repo: clone(t, origin), log: filepath.Join(t.TempDir(), "log")}
+	return &wave{
+		t: t, work: work, repo: clone(t, origin), log: filepath.Join(t.TempDir(), "log"),
+		origin: origin, worktrees: t.TempDir(),
+	}
 }
 
 func (w *wave) addPR(number int, draft bool, file, content string) {
@@ -197,5 +204,145 @@ func TestRunSuiteRed(t *testing.T) {
 	}
 	if got != "suite-red" {
 		t.Errorf("Run() = %q, want %q", got, "suite-red")
+	}
+}
+
+func (w *wave) CommentPR(_ context.Context, number int, body string) error {
+	w.comments = append(w.comments, fmt.Sprintf("#%d %s", number, body))
+	return nil
+}
+
+func (w *wave) Run(ctx context.Context, dir, command string) ([]byte, error) {
+	tp := `tp() { shift; b=$1; shift; d="$WT/$(echo "$b" | tr / _)"
+if [ ! -d "$d" ]; then git clone -q "$ORIGIN" "$d" && git -C "$d" checkout -q "$b" &&
+git -C "$d" config user.email t@example.com && git -C "$d" config user.name t &&
+git -C "$d" config commit.gpgsign false; fi
+cd "$d" && "$@"; }
+`
+	cmd := exec.CommandContext(ctx, "sh", "-c", tp+command)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "WT="+w.worktrees, "ORIGIN="+w.origin)
+	out, err := cmd.Output()
+	if err != nil {
+		return out, fmt.Errorf("sh %q: %w", command, err)
+	}
+	return out, nil
+}
+
+func (w *wave) runWith(in land.Input) (string, error) {
+	var out bytes.Buffer
+	d := deps.DefaultDeps(&out, &bytes.Buffer{})
+	d.GH = w
+	d.Sh = w
+	in.Dir, in.Label = w.repo, "project:demo"
+	err := land.Run(context.Background(), d, in)
+	return strings.TrimSpace(out.String()), err
+}
+
+const regenAll = "cat src/*.txt > golden/out.txt"
+
+func (w *wave) withGolden() {
+	w.t.Helper()
+	write(w.t, w.work, "src/base.txt", "base\n")
+	write(w.t, w.work, "golden/out.txt", "base\n")
+	git(w.t, w.work, "checkout", "-q", "main")
+	git(w.t, w.work, "add", "-A")
+	git(w.t, w.work, "commit", "-q", "-m", "golden")
+	git(w.t, w.work, "push", "-q", "origin", "main", "main:feat/demo")
+}
+
+func (w *wave) addGoldenPR(number int, src string, regenerated bool) {
+	w.t.Helper()
+	branch := fmt.Sprintf("issue-%d/pr", number)
+	git(w.t, w.work, "fetch", "-q", "origin")
+	git(w.t, w.work, "checkout", "-q", "-B", branch, "origin/feat/demo")
+	write(w.t, w.work, "src/"+src+".txt", src+"\n")
+	if regenerated {
+		git(w.t, w.work, "add", "-A")
+		cmd := exec.Command("sh", "-c", regenAll)
+		cmd.Dir = w.work
+		if out, err := cmd.CombinedOutput(); err != nil {
+			w.t.Fatalf("regen: %v\n%s", err, out)
+		}
+	}
+	git(w.t, w.work, "add", "-A")
+	git(w.t, w.work, "commit", "-q", "-m", "pr "+src)
+	git(w.t, w.work, "push", "-q", "origin", branch)
+	w.prs = append(w.prs, gh.PR{Number: number, HeadRefName: branch, Body: fmt.Sprintf("Closes #%d\n", number)})
+}
+
+func TestRunRegeneratesGeneratedOnlyConflict(t *testing.T) {
+	w := newWave(t)
+	w.withGolden()
+	w.addGoldenPR(10, "a", true)
+	w.addGoldenPR(11, "b", true)
+	regen := map[string]string{"golden/**": regenAll}
+
+	got, err := w.runWith(land.Input{Regen: regen, PrePush: []string{"echo gate >> " + w.log}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "done 2" {
+		t.Fatalf("Run() = %q, want %q", got, "done 2")
+	}
+	if diff := cmp.Diff([]int{10, 11}, w.merged); diff != "" {
+		t.Errorf("merged (-want +got):\n%s", diff)
+	}
+	if diff := cmp.Diff([]string{"merge", "10", "gate", "merge", "11"}, w.logged()); diff != "" {
+		t.Errorf("order of merges and pre_push (-want +got):\n%s", diff)
+	}
+	if len(w.comments) != 1 || !strings.HasPrefix(w.comments[0], "#11 ") || !strings.Contains(w.comments[0], "+b") {
+		t.Errorf("comments = %q, want one on #11 showing the regenerated diff", w.comments)
+	}
+
+	git(t, w.work, "fetch", "-q", "origin")
+	tipOut, err := exec.Command("git", "-C", w.work, "show", "origin/feat/demo:golden/out.txt").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "a\nb\nbase\n"; string(tipOut) != want {
+		t.Errorf("tip golden/out.txt = %q, want %q", tipOut, want)
+	}
+	merges, err := exec.Command("git", "-C", w.work, "log", "--merges", "--format=%s", "origin/issue-11/pr").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(merges), "origin/feat/demo") {
+		t.Errorf("issue-11/pr merge commits = %q, want a merge from origin/feat/demo", merges)
+	}
+}
+
+func TestRunGateFailedStopsBeforePush(t *testing.T) {
+	w := newWave(t)
+	w.withGolden()
+	w.addGoldenPR(10, "a", true)
+	w.addGoldenPR(11, "b", true)
+
+	got, err := w.runWith(land.Input{Regen: map[string]string{"golden/**": regenAll}, PrePush: []string{"exit 1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "gate-failed #11 exit 1"; got != want {
+		t.Errorf("Run() = %q, want %q", got, want)
+	}
+	if diff := cmp.Diff([]int{10}, w.merged); diff != "" {
+		t.Errorf("merged (-want +got):\n%s", diff)
+	}
+	if len(w.comments) != 0 {
+		t.Errorf("comments = %q, want none", w.comments)
+	}
+}
+
+func TestRunReportsStaleGeneratedFiles(t *testing.T) {
+	w := newWave(t)
+	w.withGolden()
+	w.addGoldenPR(10, "a", false)
+
+	got, err := w.runWith(land.Input{Regen: map[string]string{"golden/**": regenAll}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "regen-stale golden/out.txt"; got != want {
+		t.Errorf("Run() = %q, want %q", got, want)
 	}
 }

@@ -25,6 +25,16 @@
       "id": 5,
       "prompt": "Follow reconcile.md for label `demo`. `fleet reconcile demo --state <scratchpad>/fleet/state.md` prints `unfinished issue-20/add-retry issue-22/add-cache` on stdout and `closed-unmerged #21` on stderr. Say what you run, what you tell the user, and whether you raise the feature PR.",
       "expected_output": "Runs `fleet reconcile` once, with no gh label moves or blocker parsing of its own. Runs `tp remove issue-20/add-retry --merged` and `tp remove issue-22/add-cache --merged` and no other removals. Does not raise the feature PR because the line says unfinished. Reports #21 as needing the user's decision and ends by telling them to /clear and run `/fleet dispatch demo`."
+    },
+    {
+      "id": 6,
+      "prompt": "Follow land.md for label `demo`. Two ready PRs into feat/demo, #30 and #31, both regenerate the same testdata/golden/ directory, so #31 conflicts with the feature branch only in generated files. `fleet land demo` logs `regen #31: <command>` on stderr and prints `done 2` on stdout. Say what you run, whether you spawn a resolver or merge anything by hand, and what happens next.",
+      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. Spawns no resolver and merges nothing by hand: #31 was regenerated and landed through the Regen tier by the CLI. Treats `done 2` as every PR landed with a green suite and runs reconcile for the label."
+    },
+    {
+      "id": 7,
+      "prompt": "Follow land.md for label `demo`. `fleet land demo` prints `gate-failed #31 just lint` on stdout. A second run prints `regen-stale testdata/golden/out.txt`. For each, say what you tell the user, what you run next, and whether you reconcile.",
+      "expected_output": "For both lines it reports to the user and stops: gate-failed names PR #31 and the failing `just lint` command, regen-stale names testdata/golden/out.txt as out of date. It spawns no resolver, edits no files itself and does not reconcile."
     }
   ]
 }

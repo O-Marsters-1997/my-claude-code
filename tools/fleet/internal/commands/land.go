@@ -13,7 +13,7 @@ import (
 func landCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "land",
-		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver or suite-red",
+		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver, gate-failed, regen-stale or suite-red",
 		ArgsUsage: "<label>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
@@ -32,9 +32,10 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 	return land.Run(ctx, commandDeps(cmd), land.Input{
-		Dir:        dir,
-		Label:      cmd.Args().Get(0),
-		RegenGlobs: cfg.RegenGlobs(),
-		Suite:      cfg.Checks.Suite,
+		Dir:     dir,
+		Label:   cmd.Args().Get(0),
+		Regen:   cfg.Regen,
+		PrePush: cfg.Checks.PrePush,
+		Suite:   cfg.Checks.Suite,
 	})
 }
