@@ -2,63 +2,33 @@
 
 Run after a wave's PRs have merged. It brings the board in line with GitHub, finds what is now
 unblocked, and hands off. It never dispatches: the gap between waves is the user's review gate.
+Everything mechanical lives in the `fleet` CLI; this file only calls it and branches on its output.
 
-GitHub is the source of truth, so derive everything from issue and PR state, not from
-`state.md`. That keeps it correct when PRs were merged by hand or the last dispatch was
-abandoned partway.
-
-## 1. Close what is done
-
-List every open issue carrying the feature label and `status:in-progress` or `status:in-review`,
-and find each one's PR:
+## 1. Run the board
 
 ```bash
-gh issue list --state open --label "<label>" --label "status:in-review" --json number,title
-gh pr list --state all --search "<N> in:body" --json number,state,mergedAt,headRefName,url
+fleet reconcile "<label>" --state "<scratchpad>/fleet/state.md"
 ```
 
-Match a PR to its issue by `Closes #<N>` or the branch name. Then, per ticket:
+It closes merged tickets, promotes the unblocked ones, and writes `state.md`. Progress goes to
+stderr, one line per ticket: `closed #N`, `promoted #N`, `closed-unmerged #N` and `no-pr #N`
+(the last two need the user's decision; their dependents stay held). Read only the one line on
+stdout: `finished` or `unfinished`, followed by the merged branches.
 
-- **PR merged.** Move to `done` and close the issue (see Shared conventions in SKILL.md).
-- **PR open.** Leave it.
-- **PR closed unmerged.** Leave the ticket's label as it is, list it in the report, and don't
-  promote its dependents. Whether to retry or rethink is the user's call.
-- **No PR found.** Leave it and list it; the subagent may have blocked or the PR was never opened.
+A non-zero exit is an error, not an outcome: show its stderr to the user and stop.
 
-## 2. Promote the unblocked
+## 2. Clean up
 
-For every open backlog ticket with the feature label (no `status:*` label, or `status:backlog`), read its
-`## Blocked by` section. If every listed blocker is now closed, and none is a closed-unmerged
-ticket from step 1, move it `backlog → ready`. A ticket with "None" that was already ready is
-left alone. Promote per ticket: one stuck PR holds back only its own dependents.
+Run `tp remove <branch> --merged` for each branch on that line, and for no others. Skip any
+worktree that is dirty. `tp remove` is the only teardown reconcile runs. Whatever a worktree
+started beyond its checkout (services, caches, data) is the repo's to clean up in its treepad
+remove hook, so fleet never names a technology.
 
-## 3. Clean up
+## 3. Raise the feature PR
 
-Remove the worktree and local branch of every ticket whose PR merged with
-`tp remove <branch> --merged` (squash merges are not ancestors, so plain `tp remove` refuses;
-branches are named `issue-<N>/<short-title>`; find them with `tp status --json`). Use `--merged`
-only for tickets step 1 saw as merged. Never use `git worktree remove` or `git branch -d`. Skip any worktree that
-is dirty or whose PR is not merged. Do it after step 1 so nothing is removed on a guess.
-
-`tp remove` is the only teardown reconcile runs. Whatever a worktree started beyond its checkout
-(services, caches, data) is the repo's to clean up in its treepad remove hook, so fleet never
-names a technology.
-
-## 4. Write the handoff
-
-Write `<scratchpad>/fleet/state.md`. Open it with `Label: <label>`, then a section per ticket
-promoted in step 2 and any other `ready` ticket with that label, each with:
-
-- the issue number and title,
-- `Base: feat/<slug>` (its blockers are merged into it),
-- the merged PR of its most relevant blocker, as the worked example.
-
-## 5. Raise the feature PR
-
-Skip this step unless the feature is finished: no open issue carries the label.
+Skip this step unless the line starts with `finished`.
 
 ```bash
-gh issue list --state open --label "<label>" --json number --jq length   # must be 0
 gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
 ```
 
@@ -72,11 +42,11 @@ gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 
 It is not a draft: every ticket in it already passed review on its own PR.
 
-## 6. Report
+## 4. Report
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
-(closed-unmerged, no PR), worktrees removed, and the feature PR's URL if step 5 raised or
+(`closed-unmerged`, `no-pr`), worktrees removed, and the feature PR's URL if step 3 raised or
 found one.
 
-If the feature is finished, stop there. Otherwise end by telling them to `/clear` and run
+If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
 `/fleet dispatch <label>`, with the label filled in; you cannot clear your own session.

@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+
+	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/gh"
 )
 
 type Git interface {
@@ -14,18 +16,30 @@ type Git interface {
 }
 
 type GH interface {
-	Run(ctx context.Context, args ...string) ([]byte, error)
+	OpenIssues(ctx context.Context, labels ...string) ([]gh.Issue, error)
+	OpenPRs(ctx context.Context, base string) ([]gh.PR, error)
+	MergePR(ctx context.Context, number int) error
+	Issues(ctx context.Context, label string) ([]gh.Issue, error)
+	PRs(ctx context.Context, base string) ([]gh.PR, error)
+	IssueClosed(ctx context.Context, number int) (bool, error)
+	MoveStatus(ctx context.Context, number int, from, to string) error
+	CloseIssue(ctx context.Context, number int) error
+}
+
+type Shell interface {
+	Run(ctx context.Context, dir, command string) ([]byte, error)
 }
 
 type Deps struct {
 	Git Git
 	GH  GH
+	Sh  Shell
 	Out io.Writer
 	Log io.Writer
 }
 
 func DefaultDeps(out, errw io.Writer) Deps {
-	return Deps{Git: execGit{}, GH: execGH{}, Out: out, Log: errw}
+	return Deps{Git: execGit{}, GH: gh.Client{}, Sh: execShell{}, Out: out, Log: errw}
 }
 
 type execGit struct{}
@@ -37,10 +51,12 @@ func (execGit) Run(ctx context.Context, dir string, env []string, args ...string
 	return runCapture(cmd, "git", args)
 }
 
-type execGH struct{}
+type execShell struct{}
 
-func (execGH) Run(ctx context.Context, args ...string) ([]byte, error) {
-	return runCapture(exec.CommandContext(ctx, "gh", args...), "gh", args)
+func (execShell) Run(ctx context.Context, dir, command string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, "sh", "-c", command)
+	cmd.Dir = dir
+	return runCapture(cmd, "sh", []string{"-c", command})
 }
 
 func runCapture(cmd *exec.Cmd, name string, args []string) ([]byte, error) {

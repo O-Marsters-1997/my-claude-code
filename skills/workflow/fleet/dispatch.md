@@ -29,6 +29,10 @@ beyond one case.
   never chain. Real dependencies live in `## Blocked by`, so a ready ticket is never waiting on
   another: one that needs another ready ticket's code is held and reported as a ticket bug.
 
+Then run `fleet hotspots "<label>"` and keep its output for the report. Each line is a path
+named by three or more ready tickets and their numbers (`none` when there are no hotspots). It
+changes no scheduling: every ticket still dispatches in parallel.
+
 ## 1b. Ensure the feature branch
 
 Every PR in this wave targets `feat/<slug>`. Create it from `main` if it doesn't exist yet:
@@ -138,13 +142,16 @@ per-ticket text too early). Fix the template before the next batch.
 
 Report to the user:
 
-- the merge order as a numbered list in issue order, one PR per line
+- the PRs as a numbered list in issue order, one PR per line
   (`1. #151 issue-142/stuck-scrape-run`);
-- the blocked tickets with their reason, and any held ticket as a ticket bug.
+- the blocked tickets with their reason, and any held ticket as a ticket bug;
+- each hotspot from `fleet hotspots`, with its ticket numbers and a suggested refactor ticket
+  that would split the shared file (omit the section when the output was `none`).
 
-Tell them to merge in issue order. A PR GitHub shows as conflicting needs the feature branch tip
-merged into its branch by hand. Once the wave has merged, tell them to run
-`/fleet reconcile <label>` with the label filled in.
+End the report by telling them to review each PR, mark the good ones "Ready for review", and run
+`/fleet land <label>` with the label filled in. Land squash-merges the ready PRs in order and
+leaves drafts alone; a PR that conflicts with the feature branch is handed back for the tip to
+be merged into it by hand.
 
 ## 6. CI follow-up
 

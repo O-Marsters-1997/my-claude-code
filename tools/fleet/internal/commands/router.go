@@ -6,5 +6,8 @@ func Router() []*cli.Command {
 	return []*cli.Command{
 		initCommand(),
 		trialCommand(),
+		hotspotsCommand(),
+		landCommand(),
+		reconcileCommand(),
 	}
 }

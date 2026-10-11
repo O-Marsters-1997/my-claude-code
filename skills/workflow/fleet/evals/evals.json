@@ -9,7 +9,22 @@
     {
       "id": 2,
       "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10, #11 and #12 all name internal/app.go and the golden directory testdata/golden/. Say how each worktree is based, what runs in parallel, each prompt's Base, and what the final report tells the user about merging.",
-      "expected_output": "No chains: all three worktrees are created up front from origin/feat/demo and run in parallel, and every prompt has Base: feat/demo. There is no merge simulation or rebase step. The report lists PRs in issue order, tells the user to merge in that order, and says a PR GitHub shows as conflicting needs the feat/demo tip merged into its branch by hand."
+      "expected_output": "No chains: all three worktrees are created up front from origin/feat/demo and run in parallel, and every prompt has Base: feat/demo. There is no merge simulation or rebase step. The report lists PRs in issue order and ends by telling the user to review each PR, mark the good ones Ready for review, and run `/fleet land demo`."
+    },
+    {
+      "id": 3,
+      "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10, #11 and #12 all list internal/app.go under Files to touch. Say what dispatch does about the shared file and what the final report says about it.",
+      "expected_output": "Dispatch runs `fleet hotspots demo` and does no overlap analysis of its own. All three tickets still dispatch in parallel off origin/feat/demo. The report lists internal/app.go as a hotspot with #10, #11 and #12 and suggests a refactor ticket to split it."
+    },
+    {
+      "id": 4,
+      "prompt": "Follow land.md for label `demo`. The wave has three PRs into feat/demo: #20 and #22 are marked ready, #21 is still a draft. `fleet land demo` prints `drafts #21` on stdout after landing. Say what you run, what you tell the user, and whether you reconcile.",
+      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. #20 and #22 landed in that order; the report says #21 is still a draft needing review and Ready for review, then to re-run `/fleet land demo`. It does not run reconcile."
+    },
+    {
+      "id": 5,
+      "prompt": "Follow reconcile.md for label `demo`. `fleet reconcile demo --state <scratchpad>/fleet/state.md` prints `unfinished issue-20/add-retry issue-22/add-cache` on stdout and `closed-unmerged #21` on stderr. Say what you run, what you tell the user, and whether you raise the feature PR.",
+      "expected_output": "Runs `fleet reconcile` once, with no gh label moves or blocker parsing of its own. Runs `tp remove issue-20/add-retry --merged` and `tp remove issue-22/add-cache --merged` and no other removals. Does not raise the feature PR because the line says unfinished. Reports #21 as needing the user's decision and ends by telling them to /clear and run `/fleet dispatch demo`."
     }
   ]
 }
