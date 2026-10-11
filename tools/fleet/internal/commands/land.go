@@ -17,6 +17,7 @@ func landCommand() *cli.Command {
 		ArgsUsage: "<label>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
+			&cli.StringSliceFlag{Name: "resolved", Usage: "a resolver's return line, repeatable"},
 		},
 		Action: runLand,
 	}
@@ -36,5 +37,6 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 		Label:      cmd.Args().Get(0),
 		RegenGlobs: cfg.RegenGlobs(),
 		Suite:      cfg.Checks.Suite,
+		Resolved:   cmd.StringSlice("resolved"),
 	})
 }

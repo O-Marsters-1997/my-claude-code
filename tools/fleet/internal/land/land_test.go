@@ -199,3 +199,35 @@ func TestRunSuiteRed(t *testing.T) {
 		t.Errorf("Run() = %q, want %q", got, "suite-red")
 	}
 }
+
+func TestRunRejectsMalformedResolvedLine(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	d := deps.DefaultDeps(&bytes.Buffer{}, &bytes.Buffer{})
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#10 maybe append r.md"}}
+	if err := land.Run(context.Background(), d, in); err == nil {
+		t.Fatal("Run() = nil, want error for malformed --resolved line")
+	}
+	if len(w.merged) != 0 {
+		t.Errorf("merged %v, want none", w.merged)
+	}
+}
+
+func TestRunAcceptsResolvedLineAndContinues(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	var out, log bytes.Buffer
+	d := deps.DefaultDeps(&out, &log)
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#10 resolved append /r/10.md"}}
+	if err := land.Run(context.Background(), d, in); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "done 1" {
+		t.Errorf("Run() = %q, want %q", got, "done 1")
+	}
+	if !strings.Contains(log.String(), "resolver: #10 resolved append /r/10.md") {
+		t.Errorf("log %q missing the resolver line", log.String())
+	}
+}

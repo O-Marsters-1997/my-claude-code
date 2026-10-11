@@ -18,9 +18,26 @@ type Input struct {
 	Label      string
 	RegenGlobs []string
 	Suite      []string
+	Resolved   []string
+}
+
+func parseResolved(l string) error {
+	f := strings.Fields(l)
+	if len(f) != 4 || !strings.HasPrefix(f[0], "#") ||
+		(f[1] != "resolved" && f[1] != "failed") ||
+		(f[2] != "append" && f[2] != "rewrite") {
+		return fmt.Errorf("bad --resolved line %q: want \"#<PR> resolved|failed append|rewrite <report path>\"", l)
+	}
+	return nil
 }
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
+	for _, l := range in.Resolved {
+		if err := parseResolved(l); err != nil {
+			return err
+		}
+		fmt.Fprintf(d.Log, "resolver: %s\n", l)
+	}
 	tip := "feat/" + strings.TrimPrefix(in.Label, "project:")
 	if err := fetch(ctx, d, in.Dir); err != nil {
 		return err
