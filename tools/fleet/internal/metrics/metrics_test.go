@@ -41,24 +41,14 @@ func TestReadMissingFile(t *testing.T) {
 	}
 }
 
-func TestApplyResolved(t *testing.T) {
+func TestAddResolution(t *testing.T) {
 	var r metrics.Row
-	err := r.ApplyResolved([]string{"11 resolved append /r/1.md", "12 failed rewrite /r/2.md", "13 resolved rewrite /r/3.md"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	r.AddResolution(false, "append")
+	r.AddResolution(true, "rewrite")
+	r.AddResolution(false, "rewrite")
 	want := metrics.Row{ResolverSpawns: 3, ResolverFailures: 1, ConflictClasses: metrics.Classes{Append: 1, Rewrite: 2}}
 	if diff := cmp.Diff(want, r); diff != "" {
-		t.Errorf("ApplyResolved (-want +got):\n%s", diff)
-	}
-}
-
-func TestApplyResolvedRejectsMalformed(t *testing.T) {
-	for _, l := range []string{"11 resolved", "11 maybe append x", "11 resolved merge x"} {
-		var r metrics.Row
-		if err := r.ApplyResolved([]string{l}); err == nil {
-			t.Errorf("ApplyResolved(%q) succeeded, want error", l)
-		}
+		t.Errorf("AddResolution (-want +got):\n%s", diff)
 	}
 }
 

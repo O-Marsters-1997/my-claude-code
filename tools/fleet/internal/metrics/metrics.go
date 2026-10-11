@@ -43,32 +43,17 @@ func Path(repo string) string {
 	return filepath.Join(repo, ".claude", "fleet-metrics.jsonl")
 }
 
-// ApplyResolved folds resolver return lines of the form
-// "<PR> resolved|failed append|rewrite <report path>" into the row.
-func (r *Row) ApplyResolved(lines []string) error {
-	for _, l := range lines {
-		f := strings.Fields(l)
-		if len(f) < 3 {
-			return fmt.Errorf("resolver line %q: want \"<PR> resolved|failed append|rewrite <report>\"", l)
-		}
-		switch f[1] {
-		case "resolved":
-		case "failed":
-			r.ResolverFailures++
-		default:
-			return fmt.Errorf("resolver line %q: outcome %q is not resolved or failed", l, f[1])
-		}
-		switch f[2] {
-		case "append":
-			r.ConflictClasses.Append++
-		case "rewrite":
-			r.ConflictClasses.Rewrite++
-		default:
-			return fmt.Errorf("resolver line %q: class %q is not append or rewrite", l, f[2])
-		}
-		r.ResolverSpawns++
+func (r *Row) AddResolution(failed bool, class string) {
+	r.ResolverSpawns++
+	if failed {
+		r.ResolverFailures++
 	}
-	return nil
+	switch class {
+	case "append":
+		r.ConflictClasses.Append++
+	case "rewrite":
+		r.ConflictClasses.Rewrite++
+	}
 }
 
 func Append(repo string, row Row) error {

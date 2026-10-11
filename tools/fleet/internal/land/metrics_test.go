@@ -23,7 +23,7 @@ func TestRunAppendsOneMetricsRowPerRun(t *testing.T) {
 	d.GH = w
 	in := land.Input{
 		Dir: w.repo, Label: "project:demo", Suite: []string{"true"}, Started: time.Now().Add(-time.Hour),
-		Resolved: []string{"9 resolved append /r/9.md", "8 failed rewrite /r/8.md"},
+		Resolved: []string{"#9 resolved append /r/9.md", "#8 resolved rewrite /r/8.md"},
 	}
 	if err := land.Run(context.Background(), d, in); err != nil {
 		t.Fatal(err)
@@ -43,9 +43,37 @@ func TestRunAppendsOneMetricsRowPerRun(t *testing.T) {
 	got.TS, got.WallClockS = time.Time{}, 0
 	want := metrics.Row{
 		Label: "project:demo", PRsLanded: 1, DraftsSkipped: 1, Suite: "green",
-		ResolverSpawns: 2, ResolverFailures: 1, ConflictClasses: metrics.Classes{Append: 1, Rewrite: 1},
+		ResolverSpawns: 2, ConflictClasses: metrics.Classes{Append: 1, Rewrite: 1},
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("row (-want +got):\n%s", diff)
+	}
+}
+
+func TestRunRecordsRowOnGateFailure(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+
+	d := deps.DefaultDeps(&bytes.Buffer{}, &bytes.Buffer{})
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#8 failed rewrite /r/8.md"}}
+	if err := land.Run(context.Background(), d, in); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := metrics.Read(w.repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("metrics rows = %d, want 1", len(rows))
+	}
+	row := rows[0]
+	row.TS = time.Time{}
+	want := metrics.Row{
+		Label: "project:demo", Suite: "skipped", ResolverSpawns: 1, ResolverFailures: 1,
+		GateFailures: 1, ConflictClasses: metrics.Classes{Rewrite: 1},
+	}
+	if diff := cmp.Diff(want, row); diff != "" {
 		t.Errorf("row (-want +got):\n%s", diff)
 	}
 }
