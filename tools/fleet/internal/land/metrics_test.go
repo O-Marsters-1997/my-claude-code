@@ -66,7 +66,13 @@ func TestRunRecordsRowWhenStoppedEarly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != 1 || rows[0].PRsLanded != 1 || rows[0].TrialConflicts != 1 || rows[0].Suite != "skipped" {
-		t.Errorf("rows = %+v, want one row with 1 landed, 1 trial conflict, suite skipped", rows)
+	if len(rows) != 1 {
+		t.Fatalf("metrics rows = %d, want 1", len(rows))
+	}
+	row := rows[0]
+	row.TS = time.Time{}
+	want := metrics.Row{Label: "project:demo", PRsLanded: 1, TrialConflicts: 1, Suite: "skipped"}
+	if diff := cmp.Diff(want, row); diff != "" {
+		t.Errorf("row (-want +got):\n%s", diff)
 	}
 }

@@ -27,9 +27,6 @@ type Input struct {
 
 func Run(ctx context.Context, d deps.Deps, in Input) (err error) {
 	row := metrics.Row{Label: in.Label, Suite: "skipped"}
-	if err := row.ApplyResolved(in.Resolved); err != nil {
-		return err
-	}
 	started := in.Started
 	defer func() {
 		row.TS = time.Now().UTC()
@@ -42,6 +39,9 @@ func Run(ctx context.Context, d deps.Deps, in Input) (err error) {
 		}
 		fmt.Fprintln(d.Log, row)
 	}()
+	if rerr := row.ApplyResolved(in.Resolved); rerr != nil {
+		return rerr
+	}
 	return run(ctx, d, in, &row, &started)
 }
 
