@@ -25,17 +25,29 @@ func regenerate(ctx context.Context, d deps.Deps, in Input, tip string, pr gh.PR
 	if _, err := at("git merge --no-commit --no-ff " + quote(origin) + " || true"); err != nil {
 		return false, fmt.Errorf("merge %s into #%d: %w", tip, pr.Number, err)
 	}
-	committed := false
+	committed, pushed := false, false
 	defer func() {
-		if !committed {
-			at("git merge --abort")
+		if pushed {
+			return
 		}
+		undo := "git merge --abort"
+		if committed {
+			undo = "git reset -q --hard HEAD^"
+		}
+		d.Sh.Run(context.WithoutCancel(ctx), in.Dir, "tp exec "+quote(pr.HeadRefName)+" sh -c "+quote(undo))
 	}()
 
 	for _, p := range paths {
 		if _, err := at("git checkout --theirs -- " + quote(p) + " && git add -- " + quote(p)); err != nil {
 			return false, fmt.Errorf("take %s's %s for #%d: %w", tip, p, pr.Number, err)
 		}
+	}
+	left, err := at("git diff --name-only --diff-filter=U")
+	if err != nil {
+		return false, fmt.Errorf("list unresolved paths for #%d: %w", pr.Number, err)
+	}
+	if rest := strings.TrimSpace(string(left)); rest != "" {
+		return false, fmt.Errorf("#%d still conflicts after taking %s's generated files: %s", pr.Number, tip, strings.Fields(rest))
 	}
 	for _, cmd := range regenCommands(in.Regen, paths) {
 		fmt.Fprintf(d.Log, "regen #%d: %s\n", pr.Number, cmd)
@@ -61,9 +73,10 @@ func regenerate(ctx context.Context, d deps.Deps, in Input, tip string, pr gh.PR
 		}
 	}
 
-	if _, err := at("git push origin HEAD:refs/heads/" + quote(pr.HeadRefName)); err != nil {
+	if _, err := at("git push origin " + quote("HEAD:refs/heads/"+pr.HeadRefName)); err != nil {
 		return false, fmt.Errorf("push #%d: %w", pr.Number, err)
 	}
+	pushed = true
 	diff, err := at("git diff " + quote(origin) + " HEAD -- " + quoteAll(paths))
 	if err != nil {
 		return false, fmt.Errorf("diff regen for #%d: %w", pr.Number, err)
@@ -101,8 +114,13 @@ func regenComment(tip string, paths []string, diff string) string {
 func regenStale(ctx context.Context, d deps.Deps, in Input, tip string) ([]string, error) {
 	var stale []string
 	err := onTip(ctx, d, in, tip, func(dir string) error {
+		var ran []string
 		for _, glob := range sortedKeys(in.Regen) {
 			cmd := in.Regen[glob]
+			if slices.Contains(ran, cmd) {
+				continue
+			}
+			ran = append(ran, cmd)
 			fmt.Fprintf(d.Log, "regen check: %s\n", cmd)
 			if _, err := d.Sh.Run(ctx, dir, cmd); err != nil {
 				return fmt.Errorf("run regen %q: %w", cmd, err)
@@ -112,9 +130,15 @@ func regenStale(ctx context.Context, d deps.Deps, in Input, tip string) ([]strin
 		if err != nil {
 			return err
 		}
-		for _, entry := range strings.Split(string(out), "\x00") {
-			if len(entry) > 3 {
-				stale = append(stale, entry[3:])
+		entries := strings.Split(string(out), "\x00")
+		for i := 0; i < len(entries); i++ {
+			entry := entries[i]
+			if len(entry) <= 3 {
+				continue
+			}
+			stale = append(stale, entry[3:])
+			if entry[0] == 'R' || entry[0] == 'C' {
+				i++
 			}
 		}
 		return nil
