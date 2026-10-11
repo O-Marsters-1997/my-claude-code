@@ -23,7 +23,7 @@ var (
 	sectionHead = regexp.MustCompile(`(?i)^\s*#+\s*.*(where to look|files to touch)`)
 	anyHead     = regexp.MustCompile(`^\s*#+\s`)
 	fileExt     = regexp.MustCompile(`\.[a-z0-9]+$`)
-	codeSpan    =regexp.MustCompile("`([^`\\s]+)`")
+	codeSpan    = regexp.MustCompile("`([^`\\s]+)`")
 )
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
