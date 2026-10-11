@@ -28,11 +28,16 @@
     },
     {
       "id": 6,
+      "prompt": "Follow land.md for label `demo`. #20 and #21 both edit the body of `Parse` in internal/app.go and are marked ready. `fleet land demo` landed #20 and prints `needs-resolver #21 issue-21/add-cache internal/app.go` on stdout. Say what you do next, and what happens when the resolver returns `#21 resolved rewrite <report>` versus `#21 failed rewrite <report>`.",
+      "expected_output": "Spawns exactly one fresh resolver for #21, never the ticket's own subagent, briefed with both PRs' diffs, both tickets' intent, internal/app.go, the worktree via `tp` and `[checks] pre_push` as the gate. It does not hand the conflict to the user first and does not reconcile. On `resolved` it re-runs `fleet land demo --resolved \"#21 resolved rewrite <report>\"`. On `failed` (for example a red pre_push gate) it stops, names #21, says later PRs are still unlanded, hands #21 to the user, and does not spawn a second resolver or reconcile. Its only further land call records the line with `fleet land demo --resolved \"#21 failed rewrite <report>\"`, which prints `gate-failed #21` and lands nothing."
+    },
+    {
+      "id": 7,
       "prompt": "Follow land.md for label `demo`. Two ready PRs into feat/demo, #30 and #31, both regenerate the same testdata/golden/ directory, so #31 conflicts with the feature branch only in generated files. `fleet land demo` logs `regen #31: <command>` on stderr and prints `done 2` on stdout. Say what you run, whether you spawn a resolver or merge anything by hand, and what happens next.",
       "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. Spawns no resolver and merges nothing by hand: #31 was regenerated and landed through the Regen tier by the CLI. Treats `done 2` as every PR landed with a green suite and runs reconcile for the label."
     },
     {
-      "id": 7,
+      "id": 8,
       "prompt": "Follow land.md for label `demo`. `fleet land demo` prints `gate-failed #31 just lint` on stdout. A second run prints `regen-stale testdata/golden/out.txt`. For each, say what you tell the user, what you run next, and whether you reconcile.",
       "expected_output": "For both lines it reports to the user and stops: gate-failed names PR #31 and the failing `just lint` command, regen-stale names testdata/golden/out.txt as out of date. It spawns no resolver, edits no files itself and does not reconcile."
     }

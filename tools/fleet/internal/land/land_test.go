@@ -195,15 +195,88 @@ func TestRunDoneWithoutDrafts(t *testing.T) {
 	}
 }
 
-func TestRunSuiteRed(t *testing.T) {
+func TestRunSuiteRedSingleLandedPR(t *testing.T) {
 	w := newWave(t)
 	w.addPR(10, false, "a.txt", "a\n")
 	got, err := w.run("exit 1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != "suite-red" {
-		t.Errorf("Run() = %q, want %q", got, "suite-red")
+	if want := "suite-red #10"; got != want {
+		t.Errorf("Run() = %q, want %q", got, want)
+	}
+}
+
+func TestRunSuiteRedNamesCulpritPR(t *testing.T) {
+	for _, culprit := range []int{10, 12, 14} {
+		t.Run(fmt.Sprintf("culprit %d", culprit), func(t *testing.T) {
+			w := newWave(t)
+			for n := 10; n <= 14; n++ {
+				content := "ok\n"
+				if n == culprit {
+					content = "bad\n"
+				}
+				w.addPR(n, false, fmt.Sprintf("f%d.txt", n), content)
+			}
+
+			got, err := w.run("! grep -q bad f*.txt")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if want := fmt.Sprintf("suite-red #%d", culprit); got != want {
+				t.Errorf("Run() = %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestRunRejectsMalformedResolvedLine(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	d := deps.DefaultDeps(&bytes.Buffer{}, &bytes.Buffer{})
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#10 maybe append r.md"}}
+	if err := land.Run(context.Background(), d, in); err == nil {
+		t.Fatal("Run() = nil, want error for malformed --resolved line")
+	}
+	if len(w.merged) != 0 {
+		t.Errorf("merged %v, want none", w.merged)
+	}
+}
+
+func TestRunAcceptsResolvedLineAndContinues(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	var out, log bytes.Buffer
+	d := deps.DefaultDeps(&out, &log)
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#10 resolved append /r/10.md"}}
+	if err := land.Run(context.Background(), d, in); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "done 1" {
+		t.Errorf("Run() = %q, want %q", got, "done 1")
+	}
+	if !strings.Contains(log.String(), "resolver: #10 resolved append /r/10.md") {
+		t.Errorf("log %q missing the resolver line", log.String())
+	}
+}
+
+func TestRunFailedResolutionStopsBeforeLanding(t *testing.T) {
+	w := newWave(t)
+	w.addPR(10, false, "a.txt", "a\n")
+	var out bytes.Buffer
+	d := deps.DefaultDeps(&out, &bytes.Buffer{})
+	d.GH = w
+	in := land.Input{Dir: w.repo, Label: "project:demo", Resolved: []string{"#21 failed rewrite /r/my report.md"}}
+	if err := land.Run(context.Background(), d, in); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "gate-failed #21" {
+		t.Errorf("Run() = %q, want %q", got, "gate-failed #21")
+	}
+	if len(w.merged) != 0 {
+		t.Errorf("merged %v, want none", w.merged)
 	}
 }
 

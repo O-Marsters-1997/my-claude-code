@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/fleet/internal/config"
@@ -14,14 +16,52 @@ import (
 )
 
 type Input struct {
-	Dir     string
-	Label   string
-	Regen   map[string]string
-	PrePush []string
-	Suite   []string
+	Dir      string
+	Label    string
+	Regen    map[string]string
+	PrePush  []string
+	Suite    []string
+	Resolved []string
+}
+
+type resolution struct {
+	PR     int
+	Failed bool
+	Class  string
+	Report string
+}
+
+func parseResolution(l string) (resolution, error) {
+	bad := fmt.Errorf("bad --resolved line %q: want \"#<PR> resolved|failed append|rewrite <report path>\"", l)
+	f := strings.SplitN(l, " ", 4)
+	if len(f) != 4 || f[3] == "" {
+		return resolution{}, bad
+	}
+	pr, err := strconv.Atoi(strings.TrimPrefix(f[0], "#"))
+	if err != nil || !strings.HasPrefix(f[0], "#") || pr <= 0 {
+		return resolution{}, bad
+	}
+	if (f[1] != "resolved" && f[1] != "failed") || (f[2] != "append" && f[2] != "rewrite") {
+		return resolution{}, bad
+	}
+	return resolution{PR: pr, Failed: f[1] == "failed", Class: f[2], Report: f[3]}, nil
 }
 
 func Run(ctx context.Context, d deps.Deps, in Input) error {
+	var resolutions []resolution
+	for _, l := range in.Resolved {
+		r, err := parseResolution(l)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(d.Log, "resolver: %s\n", l)
+		resolutions = append(resolutions, r)
+	}
+	for _, r := range resolutions {
+		if r.Failed {
+			return line(d, "gate-failed #%d", r.PR)
+		}
+	}
 	tip := "feat/" + strings.TrimPrefix(in.Label, "project:")
 	if err := fetch(ctx, d, in.Dir); err != nil {
 		return err
@@ -36,7 +76,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 	}
 	ready, drafts := queue.Build(prs, issues)
 
-	landed := 0
+	var landed []landedPR
 	for _, e := range ready {
 		if err := fetch(ctx, d, in.Dir); err != nil {
 			return err
@@ -64,11 +104,18 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 			return fmt.Errorf("merge #%d: %w", e.PR.Number, err)
 		}
 		fmt.Fprintf(d.Log, "landed #%d\n", e.PR.Number)
-		landed++
+		if err := fetch(ctx, d, in.Dir); err != nil {
+			return err
+		}
+		sha, err := d.Git.Run(ctx, in.Dir, nil, "rev-parse", "origin/"+tip)
+		if err != nil {
+			return fmt.Errorf("resolve %s after #%d: %w", tip, e.PR.Number, err)
+		}
+		landed = append(landed, landedPR{number: e.PR.Number, sha: strings.TrimSpace(string(sha))})
 	}
 
-	if landed > 0 && len(in.Regen) > 0 {
-		stale, err := regenStale(ctx, d, in, tip)
+	if len(landed) > 0 && len(in.Regen) > 0 {
+		stale, err := regenStale(ctx, d, in, "origin/"+tip)
 		if err != nil {
 			return err
 		}
@@ -78,15 +125,19 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 	}
 
 	green := true
-	if landed > 0 {
-		green, err = suiteGreen(ctx, d, in, tip)
+	if len(landed) > 0 {
+		green, err = suiteGreen(ctx, d, in, "origin/"+tip)
 		if err != nil {
 			return err
 		}
 	}
 	switch {
 	case !green:
-		return line(d, "suite-red")
+		culprit, err := bisect(ctx, d, in, landed)
+		if err != nil {
+			return err
+		}
+		return line(d, "suite-red #%d", culprit)
 	case len(drafts) > 0:
 		refs := make([]string, len(drafts))
 		for i, p := range drafts {
@@ -94,7 +145,7 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 		}
 		return line(d, "drafts %s", strings.Join(refs, " "))
 	}
-	return line(d, "done %d", landed)
+	return line(d, "done %d", len(landed))
 }
 
 func line(d deps.Deps, format string, args ...any) error {
@@ -109,12 +160,12 @@ func fetch(ctx context.Context, d deps.Deps, dir string) error {
 	return nil
 }
 
-func suiteGreen(ctx context.Context, d deps.Deps, in Input, tip string) (bool, error) {
+func suiteGreen(ctx context.Context, d deps.Deps, in Input, ref string) (bool, error) {
 	if len(in.Suite) == 0 {
 		return true, nil
 	}
 	green := true
-	err := onTip(ctx, d, in, tip, func(dir string) error {
+	err := onRef(ctx, d, in, ref, func(dir string) error {
 		for _, cmd := range in.Suite {
 			fmt.Fprintf(d.Log, "suite: %s\n", cmd)
 			_, err := d.Sh.Run(ctx, dir, cmd)
@@ -130,4 +181,17 @@ func suiteGreen(ctx context.Context, d deps.Deps, in Input, tip string) (bool, e
 		return nil
 	})
 	return green, err
+}
+
+func onRef(ctx context.Context, d deps.Deps, in Input, ref string, fn func(dir string) error) error {
+	tmp, err := os.MkdirTemp("", "fleet-ref-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmp)
+	if _, err := d.Git.Run(ctx, in.Dir, nil, "worktree", "add", "--detach", tmp, ref); err != nil {
+		return fmt.Errorf("check out %s: %w", ref, err)
+	}
+	defer d.Git.Run(context.WithoutCancel(ctx), in.Dir, nil, "worktree", "remove", "--force", tmp)
+	return fn(tmp)
 }

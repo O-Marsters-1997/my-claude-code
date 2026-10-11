@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"slices"
 	"strings"
@@ -111,9 +110,9 @@ func regenComment(tip string, paths []string, diff string) string {
 	return fmt.Sprintf("Merged `%s` into this branch and regenerated %s:\n\n```diff\n%s\n```", tip, strings.Join(paths, ", "), diff)
 }
 
-func regenStale(ctx context.Context, d deps.Deps, in Input, tip string) ([]string, error) {
+func regenStale(ctx context.Context, d deps.Deps, in Input, ref string) ([]string, error) {
 	var stale []string
-	err := onTip(ctx, d, in, tip, func(dir string) error {
+	err := onRef(ctx, d, in, ref, func(dir string) error {
 		var ran []string
 		for _, glob := range sortedKeys(in.Regen) {
 			cmd := in.Regen[glob]
@@ -144,22 +143,6 @@ func regenStale(ctx context.Context, d deps.Deps, in Input, tip string) ([]strin
 		return nil
 	})
 	return stale, err
-}
-
-func onTip(ctx context.Context, d deps.Deps, in Input, tip string, fn func(dir string) error) error {
-	if err := fetch(ctx, d, in.Dir); err != nil {
-		return err
-	}
-	tmp, err := os.MkdirTemp("", "fleet-tip-")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tmp)
-	if _, err := d.Git.Run(ctx, in.Dir, nil, "worktree", "add", "--detach", tmp, "origin/"+tip); err != nil {
-		return fmt.Errorf("check out %s: %w", tip, err)
-	}
-	defer d.Git.Run(context.WithoutCancel(ctx), in.Dir, nil, "worktree", "remove", "--force", tmp)
-	return fn(tmp)
 }
 
 func sortedKeys(m map[string]string) []string {

@@ -17,6 +17,7 @@ func landCommand() *cli.Command {
 		ArgsUsage: "<label>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
+			&cli.StringSliceFlag{Name: "resolved", Usage: "a resolver's return line, repeatable"},
 		},
 		Action: runLand,
 	}
@@ -32,10 +33,11 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 	return land.Run(ctx, commandDeps(cmd), land.Input{
-		Dir:     dir,
-		Label:   cmd.Args().Get(0),
-		Regen:   cfg.Regen,
-		PrePush: cfg.Checks.PrePush,
-		Suite:   cfg.Checks.Suite,
+		Dir:      dir,
+		Label:    cmd.Args().Get(0),
+		Regen:    cfg.Regen,
+		PrePush:  cfg.Checks.PrePush,
+		Suite:    cfg.Checks.Suite,
+		Resolved: cmd.StringSlice("resolved"),
 	})
 }
