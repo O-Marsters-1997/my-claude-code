@@ -20,10 +20,18 @@ Progress goes to stderr and is for the user. Read only the one line on stdout:
   that they need review and "Ready for review", and to re-run `/fleet land <label>` afterwards.
   Do not reconcile.
 - `needs-resolver <PR> <branch> <path>...`: that PR conflicts with the feature branch in the
-  listed paths, and every later PR is still unlanded. Spawn exactly one fresh resolver for that PR
-  (see Resolver below), never the ticket's own subagent. Do not reconcile yet.
-- `gate-failed <PR>`: the resolver's `pre_push` gate failed for that PR. Handle it as `failed`
-  under Resolver below.
+  listed paths beyond what `[regen]` covers, and every later PR is still unlanded. Spawn exactly
+  one fresh resolver for that PR (see Resolver below), never the ticket's own subagent. Do not
+  reconcile yet. A PR that conflicts only in `[regen]` files never reaches you: land regenerates
+  them itself.
+- `gate-failed <PR> <cmd>`: that PR conflicted only in generated files, land regenerated them in
+  its worktree, and the `pre_push` command `<cmd>` failed before anything was pushed. Report the
+  PR and command to the user and stop. Do not spawn a resolver. Do not reconcile.
+- `gate-failed <PR>` (no command): the resolver's `pre_push` gate failed for that PR, recorded
+  through `--resolved`. Handle it as `failed` under Resolver below.
+- `regen-stale <path>...`: after the last landing, rerunning the `[regen]` commands on the feature
+  branch changed these generated files, so they are out of date. Report the paths to the user and
+  stop. Do not reconcile.
 - `suite-red #<n>`: the suite failed on the feature branch after landing, and bisecting the
   squash commits this run landed names PR `#<n>` as the culprit. Spawn a resolver subagent, giving
   it the culprit PR, the label and `feat/<slug>`, to fix the culprit in a follow-up PR into

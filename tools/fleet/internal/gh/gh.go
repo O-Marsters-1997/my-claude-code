@@ -103,6 +103,11 @@ func (Client) MergePR(ctx context.Context, number int) error {
 	return err
 }
 
+func (Client) CommentPR(ctx context.Context, number int, body string) error {
+	_, err := run(ctx, "pr", "comment", strconv.Itoa(number), "--body", body)
+	return err
+}
+
 func decode(ctx context.Context, v any, args []string) error {
 	out, err := run(ctx, args...)
 	if err != nil {

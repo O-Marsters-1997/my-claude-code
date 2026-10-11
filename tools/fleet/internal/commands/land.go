@@ -14,7 +14,7 @@ import (
 func landCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "land",
-		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver, gate-failed or suite-red",
+		Usage:     "squash-merge the wave's ready PRs one at a time; prints done, drafts, needs-resolver, gate-failed, regen-stale or suite-red",
 		ArgsUsage: "<label>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "repo", Value: ".", Usage: "repository to run in"},
@@ -36,11 +36,12 @@ func runLand(ctx context.Context, cmd *cli.Command) error {
 	}
 	label := cmd.Args().Get(0)
 	return land.Run(ctx, commandDeps(cmd), land.Input{
-		Dir:        dir,
-		Label:      label,
-		RegenGlobs: cfg.RegenGlobs(),
-		Suite:      cfg.Checks.Suite,
-		Resolved:   cmd.StringSlice("resolved"),
-		Started:    metrics.StartFromState(cmd.String("state"), label),
+		Dir:      dir,
+		Label:    label,
+		Regen:    cfg.Regen,
+		PrePush:  cfg.Checks.PrePush,
+		Suite:    cfg.Checks.Suite,
+		Resolved: cmd.StringSlice("resolved"),
+		Started:  metrics.StartFromState(cmd.String("state"), label),
 	})
 }
