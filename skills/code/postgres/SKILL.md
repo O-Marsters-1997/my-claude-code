@@ -11,17 +11,13 @@ description: >
 # Postgres
 
 Rules for schema and queries on Postgres. They are language-agnostic; the Go half lives in the
-`go-idiomatic` skill (`references/database.md`, `references/enums.md`). Each rule exists because
-a real schema got it wrong.
-
+`go-idiomatic` skill (`references/database.md`, `references/enums.md`).
 ## Where to Look
 
 | If you're working on…                                   | Load this                                        |
 | ------------------------------------------------------- | ------------------------------------------------ |
 | Go code that runs these queries (`database/sql`, pgx)   | `go-idiomatic` `references/database.md`          |
 | A closed value set mirrored as a Go type                | `go-idiomatic` `references/enums.md`             |
-
-Later slices add `references/*` rows here.
 
 ## Schema
 
