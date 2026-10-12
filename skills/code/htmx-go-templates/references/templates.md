@@ -129,5 +129,5 @@ error rather than a missing branch.
 ## Nothing inline
 
 No `<script>` blocks, `onclick=`, `onchange=`, `hx-on:*`, or `style=` that carries behaviour.
-If a template seems to need one, the behaviour belongs in `client.md`'s module, keyed off a
-`data-*` attribute the template emits.
+If a template seems to need one, work down the ladder in `client.md`: a server round trip or a
+native element first, an island only when the widget holds real client state.

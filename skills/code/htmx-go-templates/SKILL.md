@@ -28,7 +28,7 @@ swap-target ids, the names of its shared partials, and the htmx version it vendo
 |---|---|
 | A handler: choosing page / fragment / redirect, htmx headers, `Vary`, 303, error responses | `references/responses.md` |
 | A template: partials, repeated attribute bundles, forms, live regions, conditionals | `references/templates.md` |
-| Client behaviour: the TS module, `htmx.onLoad`, history events, polling guards, `aria-busy` | `references/client.md` |
+| Any client JS: whether you need it at all, islands, htmx glue, polling guards, `aria-busy` | `references/client.md` |
 
 ## The rules
 
@@ -58,11 +58,13 @@ swap-target ids, the names of its shared partials, and the htmx version it vendo
    error lands in a known region. That region is a persistent `aria-live` container.
 8. **In-flight state is visible.** `hx-disabled-elt` on submit controls so a double-click cannot
    double-submit; `hx-indicator` or `aria-busy` on the region being replaced.
-9. **No inline script in templates — no `<script>` blocks, no `onclick`, no `hx-on`.** Behaviour
-   lives in a TypeScript module that registers through `htmx.onLoad` and returns a disposer. Inline
-   handlers are untestable, duplicate across fragments, and re-run unpredictably on swaps. htmx
-   config goes in `<meta name="htmx-config">`, so the layout needs only `<script src>` tags; set
-   `"allowEval": false` there and htmx itself refuses `hx-on` and `js:` values.
+9. **Client JS is the exception, and it is never inline.** Before writing any, ask whether the
+   server can own it (a preference, a re-rendered region) or HTML can (`<details>`, `<dialog>`,
+   `popover`). A widget with real client state becomes an island in the repo's frontend framework,
+   mounted through `htmx.onLoad` and unmounted on swap. The only other JS is a fixed set of htmx
+   glue listeners. No `<script>` blocks, `onclick` or `hx-on` in templates: inline handlers are
+   untestable and re-run unpredictably on swaps. htmx config goes in `<meta name="htmx-config">`
+   with `"allowEval": false`, so htmx itself refuses `hx-on` and `js:` values.
 10. **Templates branch on presentation only.** `{{if eq .Status "failed"}}` chains are domain
     logic in the wrong layer. Compute a view-model field in Go (`.Badge`, `.CanRetry`) and let the
     template read it.
