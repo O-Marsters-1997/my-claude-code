@@ -195,21 +195,26 @@ failure message loses the `Func(in) = got, want want` context.
 `t.TempDir()` gives a directory that is removed after the test. `t.Setenv` and `t.Chdir` restore
 their state afterwards and make the test non-parallel.
 
-`TestMain` is for expensive setup the whole package shares, such as starting one database
-container. Don't use it for per-test setup:
+`TestMain` is rarely needed, and never for a database container. A per-package `TestMain` starts
+the container before every test, including ones that never touch the database, and every package
+that needs one has to copy the wiring. Start the container lazily instead, in one shared
+test-support package, behind a `sync.Once` that the helper giving each test its database calls:
 
 ```go
-func TestMain(m *testing.M) {
-    stop, err := startDatabase()
-    if err != nil {
-        fmt.Fprintln(os.Stderr, err)
-        os.Exit(1)
-    }
-    code := m.Run()
-    stop()
-    os.Exit(code)
+var (
+    once sync.Once
+    dsn  string
+    err  error
+)
+
+func server() (string, error) {
+    once.Do(func() { dsn, err = startPostgres(context.Background()) })
+    return dsn, err
 }
 ```
+
+Testcontainers' Ryuk removes that container when the test binary exits, so nothing stops it by
+hand.
 
 ---
 
