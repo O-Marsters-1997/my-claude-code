@@ -17,6 +17,11 @@ stdout: `finished` or `unfinished`, followed by the merged branches.
 
 A non-zero exit is an error, not an outcome: show its stderr to the user and stop.
 
+A `contract-change` issue closes when its stub PR merges into the feature branch, like any
+labelled ticket. Each ticket that listed it under `## Blocked by` then drops that line; if no
+other open blocker remains, it moves from `status:backlog` back to `status:ready`. A ticket
+with another open blocker stays in backlog.
+
 ## 2. Clean up
 
 Run `tp remove <branch> --merged` for each branch on that line, and for no others. Skip any

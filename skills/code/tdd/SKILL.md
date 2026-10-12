@@ -58,6 +58,11 @@ RIGHT (vertical):
 
 ### 1. Planning
 
+**When a contract exists** (stubs merged into the feature branch by a scaffold PR), its signatures
+are frozen. Skip interface design and the interface items below: write tests through the stub
+interfaces as they stand. If a test cannot be written without changing a signature, take the
+contract-change path in `implement` instead of editing it.
+
 Before writing any code:
 
 - [ ] Confirm with user what interface changes are needed
@@ -85,7 +90,7 @@ do not invent scope. Substitute the written sources instead:
 
 If a question survives all three, the ticket has a real gap. Take the reading that keeps the slice
 narrowest, write the assumption into the PR body under a heading the reviewer will actually see, then
-carry on. An executor that stops to ask blocks the fleet behind it; one that quietly widens scope
+carry on. This never covers a frozen signature: that is a contract change, not an assumption. An executor that stops to ask blocks the fleet behind it; one that quietly widens scope
 ships a diff nobody asked for. Recording the assumption is what makes the third option safe.
 
 Never tick an acceptance criterion you could not verify. Name it in the PR body and say what stopped
@@ -133,6 +138,7 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - [ ] Apply SOLID principles where natural
 - [ ] Consider what new code reveals about existing code
 - [ ] Run tests after each refactor step
+- [ ] Leave frozen contract signatures unchanged
 
 ## Checklist Per Cycle
 
