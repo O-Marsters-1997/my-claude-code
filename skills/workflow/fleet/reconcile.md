@@ -72,12 +72,39 @@ gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 
 It is not a draft: every ticket in it already passed review on its own PR.
 
-## 5. Report
+## 5. Record metrics
+
+Runs only when step 4 raised or found the feature PR; otherwise skip it. Counts come from GitHub, so
+a re-run, or a feature finished before this step existed, gets its row too. `<label>` and `<slug>`
+are the ones used in steps 1 and 4. Each count is a number: add `--limit 500 --json number --jq length`
+to the `gh issue list` calls.
+
+| Column | Derivation |
+|---|---|
+| contract changes | `gh issue list --label "<label>" --label contract-change --state all` |
+| backlog-held | `gh issue list --label "<label>" --state all` with a `Blocked by` section naming at least one issue (not `None`): each sat in `status:backlog` while an earlier wave ran |
+| journey failures | `gh issue list --label "<label>" --label journey-fail --state all` |
+| scaffold comments | take `Scaffold PR: #<n>` from `docs/contracts/<slug>.md`, then `gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate --jq length` from inside the repo; `n/a` when there is no contract or no such line |
+| read scaffold | ask the user "Did you read the scaffold?" (yes/no) and record the answer; `unanswered` if they cannot be asked now; when the row already exists with a yes/no answer, keep it and do not ask again |
+
+The metrics file is `docs/plans/metrics.md`, gitignored with the rest of `docs/plans/`. Create it
+with this header if absent:
+
+```
+| feature | date | contract changes | backlog-held | journey failures | scaffold comments | read scaffold |
+|---|---|---|---|---|---|---|
+```
+
+The first column is the feature label and the key; `date` is today as `YYYY-MM-DD`. If a row with
+that label exists, rewrite that line with the new values; otherwise append one. Never leave two rows
+for a label.
+
+## 6. Report
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
 (`closed-unmerged`, `no-pr`), slices checked with each journey's result, `journey-fail` tickets
-filed, journeys needing human eyes, worktrees removed, and the feature PR's URL if step 4 raised or
-found one.
+filed, journeys needing human eyes, worktrees removed, and the feature PR's URL and the metrics row
+written, if step 4 raised or found a PR.
 
 If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
 `/fleet dispatch <label>`, with the label filled in; you cannot clear your own session.
