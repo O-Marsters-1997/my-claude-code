@@ -370,8 +370,8 @@ Test SQL against a real database of the same engine and version as production. N
 `database/sql` or the driver: a mocked driver proves the query string was sent, not that it works.
 The real store is what the contract suite above runs against.
 
-For the mechanics (containers, template databases, per-test isolation), use the repo's
-DB-testing skill if it has one.
+For the mechanics (shared server, template databases, per-test isolation), see
+[database.md](database.md#testing).
 
 ---
 

@@ -54,6 +54,12 @@
       "prompt": "In a Go service, an Order has a status (placed, shipped, delivered) read from a JSON API and from a database column. Show the type, how input is parsed, and a function branching on status.",
       "expected_output": "One string-backed Status type with named constants, defined once. Zero value is unknown. A Parse function (also used by UnmarshalText and the DB scan) returns an error on an unknown value, never a silent default or bare cast. Per-value data comes from a lookup map, not a long switch. The branching switch has a case for every constant and no default.",
       "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "In a Go service with a store package over a SQL database, add Store.Rename(ctx, id, newName) that reads the current name, rejects a rename to the same name, writes the new one inside a transaction, and maps a unique violation on the name to a domain error. The nickname column is nullable. Show the store code and how you would test it.",
+      "expected_output": "The read and the write share one transaction via an inTx-style helper that rolls back on every non-commit path with context.WithoutCancel and wraps the commit error once. The unique violation is matched by constraint name and returned as an exported domain error; no driver or generated type, no-rows error or transaction handle appears in an exported signature. The nullable nickname is Option[T] in the domain type, never read without checking Valid. No time.Now() in the store. Tests run against real Postgres (one shared server per test binary, a migrated template database cloned per test, an env var to use an existing server) with no mocked driver and no TRUNCATE between tests.",
+      "files": []
     }
   ]
 }
