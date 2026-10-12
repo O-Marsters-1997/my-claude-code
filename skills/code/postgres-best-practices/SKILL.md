@@ -18,6 +18,8 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 | ------------------------------------------------------- | ------------------------------------------------ |
 | Go code that runs these queries (`database/sql`, pgx)   | `go-idiomatic` `references/database.md`          |
 | A closed value set mirrored as a Go type                | `go-idiomatic` `references/enums.md`             |
+| Writing or changing a migration, any tool               | `references/migrations.md`                       |
+| Migrations in a repo that uses goose                    | `references/goose.md` (only when the repo uses goose) |
 
 ## Schema
 
