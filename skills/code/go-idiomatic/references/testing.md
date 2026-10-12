@@ -18,7 +18,6 @@ For the TDD workflow (red-green-refactor, when to write the test first), use the
 - [Golden Files](#golden-files)
 - [Fuzzing](#fuzzing)
 - [Benchmarks](#benchmarks)
-- [Lint Enforcement](#lint-enforcement)
 - [Testing Commands](#testing-commands)
 
 ---
@@ -554,42 +553,6 @@ func BenchmarkSort(b *testing.B) {
 ```
 
 Run with `go test -bench=BenchmarkSort -benchmem`, and compare runs with `benchstat`, not by eye.
-
----
-
-## Lint Enforcement
-
-The mechanical rules are cheaper to enforce with golangci-lint (v2 config) than to remember:
-
-```yaml
-linters:
-  enable:
-    - thelper
-    - tparallel
-    - errorlint
-    - usetesting
-    - forbidigo
-  settings:
-    forbidigo:
-      forbid:
-        - pattern: ^reflect\.DeepEqual$
-          msg: use cmp.Diff from github.com/google/go-cmp
-      analyze-types: true
-  exclusions:
-    rules:
-      - path-except: _test\.go
-        linters:
-          - forbidigo
-```
-
-- `thelper`: helpers call `t.Helper()` and take `t` as the first argument.
-- `tparallel`: `t.Parallel()` is used consistently between a test and its subtests.
-- `errorlint`: errors are compared with `errors.Is`/`errors.As`, not `==` or type assertions.
-- `usetesting`: `t.TempDir`, `t.Setenv`, `t.Context` instead of `os` equivalents.
-- `forbidigo`: bans `reflect.DeepEqual` in tests.
-
-`paralleltest` is left out on purpose: it demands `t.Parallel()` everywhere, and parallelism here is
-opt-in.
 
 ---
 

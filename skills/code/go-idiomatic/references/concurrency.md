@@ -252,7 +252,7 @@ Use `signal.NotifyContext` (Go 1.16+) — it wires OS signals to a context and c
 automatically on cancel:
 
 ```go
-func run() error {
+func run(logger *slog.Logger, handler http.Handler) error {
     ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
     defer stop()
 
@@ -266,7 +266,7 @@ func run() error {
         defer cancel()
 
         if err := srv.Shutdown(shutCtx); err != nil {
-            log.Printf("shutdown error: %v", err)
+            logger.Error("shutdown", "err", err)
         }
     }()
 
@@ -355,7 +355,7 @@ for {
     case msg := <-in:
         handle(msg)
     case <-time.After(5 * time.Second):
-        log.Println("idle")
+        onIdle()
     }
 }
 
@@ -371,7 +371,7 @@ for {
         timer.Reset(5 * time.Second)
         handle(msg)
     case <-timer.C:
-        log.Println("idle")
+        onIdle()
         timer.Reset(5 * time.Second)
     }
 }
