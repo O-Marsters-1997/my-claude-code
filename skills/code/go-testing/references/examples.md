@@ -1,9 +1,8 @@
-# Go Testing Patterns Reference
+# Go Testing Examples
 
-Worked examples for the core rules in `SKILL.md` § Testing. The rules are the authority; this file
-shows them applied. Which tests a change needs is the repo's policy, not this file's.
-
-For the TDD workflow (red-green-refactor, when to write the test first), use the `tdd` skill.
+Worked examples for the rules in `SKILL.md`. The rules are the authority; this file shows them
+applied. Which tests a change needs is the repo's `testing-policy`, not this file's. Database
+mechanics are in `integration-db.md`.
 
 ## Contents
 
@@ -53,11 +52,16 @@ func TestParse(t *testing.T) {
 `t.Fatalf` on the error because nothing after it can run; `t.Errorf` on the comparison so every
 failure in a test is reported.
 
-Without go-cmp, compare scalars directly and structs field by field, using the same message shape:
+If `go.mod` lacks go-cmp, `go get github.com/google/go-cmp` before writing the test. Only when the
+user or repo has ruled out new dependencies, compare scalars directly, slices with `slices.Equal`
+and structs field by field, using the same message shape:
 
 ```go
 if got.Port != 8080 {
     t.Errorf("Parse().Port = %d, want %d", got.Port, 8080)
+}
+if !slices.Equal(got.Tags, want.Tags) {
+    t.Errorf("Parse().Tags = %v, want %v", got.Tags, want.Tags)
 }
 ```
 
@@ -195,26 +199,9 @@ failure message loses the `Func(in) = got, want want` context.
 `t.TempDir()` gives a directory that is removed after the test. `t.Setenv` and `t.Chdir` restore
 their state afterwards and make the test non-parallel.
 
-`TestMain` is rarely needed, and never for a database container. A per-package `TestMain` starts
+`TestMain` is rarely needed, and never for a database container: a per-package `TestMain` starts
 the container before every test, including ones that never touch the database, and every package
-that needs one has to copy the wiring. Start the container lazily instead, in one shared
-test-support package, behind a `sync.Once` that the helper giving each test its database calls:
-
-```go
-var (
-    once sync.Once
-    dsn  string
-    err  error
-)
-
-func server() (string, error) {
-    once.Do(func() { dsn, err = startPostgres(context.Background()) })
-    return dsn, err
-}
-```
-
-Testcontainers' Ryuk removes that container when the test binary exits, so nothing stops it by
-hand.
+copies the wiring. `pgtest.New(t)` starts the shared container lazily on first use.
 
 ---
 
@@ -375,8 +362,20 @@ Test SQL against a real database of the same engine and version as production. N
 `database/sql` or the driver: a mocked driver proves the query string was sent, not that it works.
 The real store is what the contract suite above runs against.
 
-For the mechanics (shared server, template databases, per-test isolation), see
-[database.md](database.md#testing).
+Each test gets its own migrated database from `pgtest.New(t)`; the mechanics are in
+`integration-db.md`. The real half of the contract suite above is:
+
+```go
+func newTestDB(t *testing.T) *pgxpool.Pool {
+    t.Helper()
+    pool, err := pgxpool.New(t.Context(), pgtest.New(t))
+    if err != nil {
+        t.Fatalf("connect: %v", err)
+    }
+    t.Cleanup(pool.Close)
+    return pool
+}
+```
 
 ---
 
@@ -453,6 +452,26 @@ func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
     }
 }
 ```
+
+When the code under test uses timers or tickers, run the test in a `synctest` bubble (Go 1.25+).
+Time is fake inside it, and `synctest.Wait` returns once every goroutine in the bubble is blocked:
+
+```go
+func TestRetryBacksOff(t *testing.T) {
+    synctest.Test(t, func(t *testing.T) {
+        calls := &counter{}
+        go retry.Do(t.Context(), calls.fail)
+
+        time.Sleep(3 * time.Second)
+        synctest.Wait()
+        if got := calls.n(); got != 3 {
+            t.Errorf("attempts after 3s = %d, want 3", got)
+        }
+    })
+}
+```
+
+The `time.Sleep` there advances the fake clock instantly; outside a bubble it is still banned.
 
 `t.Fatal` and `t.FailNow` must run on the test's own goroutine. From a goroutine the test starts,
 send the error back on a channel, or use `t.Error`, and let the test goroutine decide whether to

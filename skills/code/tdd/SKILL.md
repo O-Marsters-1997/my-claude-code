@@ -14,12 +14,13 @@ the other, and being mid-task is not a reason to skip it.
 | Files you are about to touch | Also load |
 |---|---|
 | `*.go` | `go-idiomatic` |
+| `*_test.go` | `go-testing` |
 | `*.tsx` `*.jsx` `*.vue` `*.svelte` | `frontend-best-practices` |
 | `class=` / `className=` / `components/ui/` | `tailwind-shadcn` |
 
 ## Philosophy
 
-> Examples in this skill use TypeScript. The principles are language-agnostic. For Go, test style (assertions, tables, doubles, helpers) comes from `go-idiomatic` § Testing, not from these examples.
+> Examples in this skill use TypeScript. The principles are language-agnostic. For Go, test style (assertions, tables, doubles, helpers) comes from the `go-testing` skill, not from these examples.
 
 **Core principle**: Tests should verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't.
 

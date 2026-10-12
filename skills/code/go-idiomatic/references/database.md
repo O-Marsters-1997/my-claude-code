@@ -133,17 +133,7 @@ Configure the pool and prove the database is reachable before serving traffic:
 
 ## Testing
 
-Test the store against real Postgres, never a mocked driver (see
-[testing.md](testing.md#databases)). The shape that stays fast and isolated:
-
-1. One shared server per test binary, started once on first use and stopped at exit. Tests that
-   don't touch the database don't pay for it.
-2. An environment variable that points the tests at an already running server instead, for CI
-   services and a warm local container. When it is set, start nothing.
-3. Migrate one template database once, then create a fresh database per test by cloning the
-   template. Cloning takes milliseconds and every test starts from a known schema.
-4. Drop the cloned database in `t.Cleanup`. Do not `TRUNCATE` between tests: it serialises the
-   suite on one database, leaks rows when a test forgets, and blocks `t.Parallel()`.
-
-Run the contract suite from [testing.md](testing.md#test-doubles-fakes-and-contract-suites)
-against the real store built this way, and against the in-memory fake.
+Test the store against real Postgres, never a mocked driver, with a fresh database per test from
+`internal/pgtest`. The `go-testing` skill owns the mechanics and ships the helper
+(`references/integration-db.md`). Run the store's contract suite against the real store and the
+in-memory fake.
