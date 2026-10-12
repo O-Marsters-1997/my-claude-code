@@ -25,12 +25,16 @@ T_NONE="$TMP/none.jsonl"
 T_MENTION="$TMP/mention.jsonl"
 T_GO="$TMP/go.jsonl"
 T_SLASH="$TMP/slash.jsonl"
-T_BOTH="$TMP/both.jsonl"
+T_GOTEST="$TMP/gotest.jsonl"
+T_ALL="$TMP/all.jsonl"
+T_NO_GOTEST="$TMP/no-gotest.jsonl"
 : >"$T_NONE"
 mention >"$T_MENTION"
 skill_call go-idiomatic >"$T_GO"
 slash_cmd go-idiomatic >"$T_SLASH"
-{ skill_call go-idiomatic; skill_call testing-policy; } >"$T_BOTH"
+{ skill_call go-idiomatic; skill_call go-testing; } >"$T_GOTEST"
+{ skill_call go-idiomatic; skill_call go-testing; skill_call testing-policy; } >"$T_ALL"
+{ skill_call go-idiomatic; skill_call testing-policy; } >"$T_NO_GOTEST"
 
 payload() {
 	jq -nc --arg f "$1" --arg t "$2" --arg tool "${3:-Edit}" \
@@ -66,9 +70,12 @@ check "mentioning the skill by name does not count" 2 "$(payload "$TMP/mod/a.go"
 check "Skill tool call unblocks" 0 "$(payload "$TMP/mod/a.go" "$T_GO")" X=1
 check "slash command unblocks" 0 "$(payload "$TMP/mod/a.go" "$T_SLASH")" X=1
 check "Write is gated like Edit" 2 "$(payload "$TMP/mod/a.go" "$T_NONE" Write)" X=1
-check "test file needs testing-policy when the project ships it" 2 "$(payload "$TMP/mod/a_test.go" "$T_GO")" X=1
-check "both skills loaded unblocks a test file" 0 "$(payload "$TMP/mod/a_test.go" "$T_BOTH")" X=1
-check "test file needs only go-idiomatic without a project testing-policy" 0 "$(payload "$TMP/plain/a_test.go" "$T_GO")" X=1
+check "test file needs go-testing" 2 "$(payload "$TMP/plain/a_test.go" "$T_GO")" X=1
+check "test file needs go-testing even with testing-policy loaded" 2 "$(payload "$TMP/mod/a_test.go" "$T_NO_GOTEST")" X=1
+check "test file needs testing-policy when the project ships it" 2 "$(payload "$TMP/mod/a_test.go" "$T_GOTEST")" X=1
+check "all three skills loaded unblocks a test file" 0 "$(payload "$TMP/mod/a_test.go" "$T_ALL")" X=1
+check "test file needs no testing-policy when the project lacks one" 0 "$(payload "$TMP/plain/a_test.go" "$T_GOTEST")" X=1
+check "non-test Go file does not need go-testing" 0 "$(payload "$TMP/mod/a.go" "$T_GO")" X=1
 check "generated file is skipped" 0 "$(payload "$TMP/mod/gen.go" "$T_NONE")" X=1
 check "vendor is skipped" 0 "$(payload "$TMP/mod/vendor/x/x.go" "$T_NONE")" X=1
 check "no go.mod is skipped" 0 "$(payload "$TMP/nomod/a.go" "$T_NONE")" X=1

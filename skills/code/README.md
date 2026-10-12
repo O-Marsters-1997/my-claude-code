@@ -55,7 +55,9 @@ Boundaries that keep them from colliding:
 - **Go language vs Go web rendering.** `go-idiomatic` owns style, errors and concurrency;
   it routes `html/template` + htmx work to `htmx-go-templates` from its reference table.
 - **Go code vs Go tests.** `go-testing` owns how tests are written, including test databases
-  through its `pgtest` helper; a repo's `testing-policy` decides which tests each layer needs.
+  through its `pgtest` helper, and always applies to a `_test.go`. A repo's `testing-policy`
+  decides what to test: the kinds of test, what each is worth, and reusable patterns. It never
+  restates how a test is written.
 - **Tokens vs usage.** `tailwind-design-system` owns the theme file; `tailwind-shadcn` owns
   day-to-day classes inside an existing token set.
 
