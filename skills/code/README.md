@@ -42,10 +42,10 @@ plain feature requests ("add an endpoint", "style this") and stay out of each ot
 | `frontend-best-practices` | `.tsx`/`.jsx`/`.vue`/`.svelte`, components, hooks | `tailwind-shadcn` |
 | `tailwind-shadcn` | `class=`/`className=` edits, `components/ui/` | `frontend-best-practices` |
 | `tailwind-design-system` | `@theme`, design tokens, Tailwind v4 config | `tailwind-shadcn` |
-| `postgres` | `.sql` files, migrations, schema, index, constraint or query changes on Postgres | `go-idiomatic` |
+| `postgres-best-practices` | `.sql` files, migrations, schema, index, constraint or query changes on Postgres | `go-idiomatic` |
 | `tdd` | any implementation or bug fix | everything |
 
-Install `postgres` with `npx skills add O-Marsters-1997/my-claude-code --skill postgres -g -y`.
+Install `postgres-best-practices` with `npx skills add O-Marsters-1997/my-claude-code --skill postgres-best-practices -g -y`.
 
 Boundaries that keep them from colliding:
 

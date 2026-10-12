@@ -1,5 +1,5 @@
 ---
-name: postgres
+name: postgres-best-practices
 description: >
   Postgres schema and query rules, independent of the calling language. TRIGGER — load BEFORE
   writing or editing a .sql file, a migration, or any schema, index, constraint or query change
