@@ -51,12 +51,30 @@
     },
     {
       "id": 8,
+      "prompt": "Create a Go module (example.com/notes) whose only dependencies are github.com/jackc/pgx/v5 and github.com/testcontainers/testcontainers-go/modules/postgres. Package internal/notestore: a Postgres-backed Store with Create(ctx, Note) (int64, error), Get(ctx, id) (Note, error) returning a not-found error for a missing id, and ListByTag(ctx, tag string) ([]Note, error); a Note has ID, Title, Tags []string and CreatedAt. Put the schema in an embedded migrations/001_init.sql that Open(ctx, dsn) applies. Write the tests for the store; there will be several more store packages in this module later that need a database in their tests too.",
+      "expected_output": "Tests run against a real Postgres from testcontainers, never a mocked driver. The container is started once per test binary through a shared test-support package (sync.Once or equivalent), not a per-package TestMain that every future store package would copy. Each test gets its own database (unique name, e.g. pid plus counter), ideally cloned from a migrated TEMPLATE database rather than re-migrating per test, and dropped in t.Cleanup (WITH (FORCE) or after closing connections). No TRUNCATE or shared rows between tests, so t.Parallel() is safe. An env var such as NOTES_TEST_DATABASE_URL lets CI point at an existing server and skips the container. Container startup has a timeout and its error names the env var. Image is pinned to a version, not latest. Comparisons follow the module's dependencies: no go-cmp or testify added, no reflect.DeepEqual; slices.Equal or == for comparable values, errors.Is for not-found. Helpers call t.Helper(); no time.Sleep.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Create a Go module (example.com/semver, stdlib only, Go 1.24). Package semver: Parse(s string) (Version, error) for strings like \"1.2.3\", \"v1.2.3\" and \"1.2.3-rc.1\", where Version is struct{ Major, Minor, Patch int; Pre []string }, plus Compare(a, b Version) int following semver precedence. Invalid input returns errors the caller can tell apart: empty input, a non-numeric part, and a leading zero. Write thorough tests.",
+      "expected_output": "Black-box package semver_test. No new dependencies: no go-cmp, no testify. No reflect.DeepEqual; Version contains a slice so it is not comparable with ==, so the test compares fields with == and Pre with slices.Equal (or a small helper that calls t.Helper and does the same). Success and error cases are separate tests: no wantErr bool or `if tt.wantErr` branch in a table. Errors are exported sentinels matched with errors.Is, never err.Error() strings. Failure messages read Func(in) = got, want want. Tables are slices of structs with a name field run through t.Run. A FuzzParse target exists with seeds and a property such as no panic or a round trip.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "Create a Go module (example.com/signup, stdlib only). Package internal/signup: a Service with Register(ctx, email string) error that rejects a malformed or already-registered email, saves the user through a UserStore interface (Get(ctx, email) (User, error), Save(ctx, User) error), and sends a welcome email through a Mailer interface (Send(ctx, to, subject, body string) error). If sending fails the user stays registered and Register returns an error wrapping the mailer's. Also a Notifier that, when Start(ctx) runs, drains a channel of registered emails in a goroutine and sends each a follow-up through the Mailer. Write the tests.",
+      "expected_output": "UserStore is doubled with a stateful in-memory fake (map plus the same not-found sentinel), not a mock asserting Get/Save were called; tests assert on stored state and returned errors. The Mailer is the one system boundary where a recording stub that captures sent messages is acceptable. The send-failure path uses a one-method stub that returns an error, not a failure flag on the fake, and is matched with errors.Is. No mocking library or generated mocks, no testify. The Notifier test has no time.Sleep: it waits on a channel, polls a condition with a deadline, or uses testing/synctest; t.Fatal is never called from a goroutine the test did not start on. Black-box package signup_test, helpers call t.Helper, and Service-level tests do not inspect unexported fields.",
+      "files": []
+    },
+    {
+      "id": 11,
       "prompt": "In a Go service, an Order has a status (placed, shipped, delivered) read from a JSON API and from a database column. Show the type, how input is parsed, and a function branching on status.",
       "expected_output": "One string-backed Status type with named constants, defined once. Zero value is unknown. A Parse function (also used by UnmarshalText and the DB scan) returns an error on an unknown value, never a silent default or bare cast. Per-value data comes from a lookup map, not a long switch. The branching switch has a case for every constant and no default.",
       "files": []
     },
     {
-      "id": 9,
+      "id": 12,
       "prompt": "In a Go service with a store package over a SQL database, add Store.Rename(ctx, id, newName) that reads the current name, rejects a rename to the same name, writes the new one inside a transaction, and maps a unique violation on the name to a domain error. The nickname column is nullable. Show the store code and how you would test it.",
       "expected_output": "The read and the write share one transaction via an inTx-style helper that rolls back on every non-commit path with context.WithoutCancel and wraps the commit error once. The unique violation is matched by constraint name and returned as an exported domain error; no driver or generated type, no-rows error or transaction handle appears in an exported signature. The nullable nickname is Option[T] in the domain type, never read without checking Valid. No time.Now() in the store. Tests run against real Postgres (one shared server per test binary, a migrated template database cloned per test, an env var to use an existing server) with no mocked driver and no TRUNCATE between tests.",
       "files": []

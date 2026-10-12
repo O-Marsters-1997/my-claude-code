@@ -87,7 +87,8 @@ skill.
 9. `t.Error` to keep going, `t.Fatal` when the rest of the test can't run. Never call `t.Fatal`
    from a goroutine the test didn't start on.
 10. Helpers take `t`, call `t.Helper()`, fail on setup errors and register `t.Cleanup`. They set
-    up; they don't assert. `TestMain` only for expensive setup shared by the whole package.
+    up; they don't assert. No `TestMain` for a database container: start it lazily behind a
+    `sync.Once` in a shared test-support package.
 11. No `time.Sleep`. Poll a condition with a deadline or wait on a channel.
 12. `t.Parallel()` only for tests that share no state: no globals, env, working dir or shared rows.
 13. Compare JSON by decoding it, never as bytes. Normalise golden output before comparing, and a
