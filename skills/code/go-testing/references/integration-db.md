@@ -1,8 +1,7 @@
 # Integration tests against Postgres
 
 Every database test gets its own database from `internal/pgtest`. This file covers installing the
-helper in a repo that lacks it, using it, CI, and what to do when it misbehaves. The design record
-is ADR 0001 in the skills repo (`docs/adr/0001-go-testing-skill-and-pgtest.md`).
+helper in a repo that lacks it, using it, CI, and what to do when it misbehaves.
 
 ## Contents
 
