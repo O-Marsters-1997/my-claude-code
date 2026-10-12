@@ -1,6 +1,6 @@
 {
   "skill_name": "to-prd",
-  "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout so the codebase-exploration step (2) has code to ground against. The skip-if-answered precondition treats three sources as priors: the conversation, the upstream Linear project brief, and on-disk artifacts (./docs/approach.md, ./ideas/reports/*-ideate.md). These cases pin that behaviour: when priors exist, questions they answer are skipped; when nothing exists, the full interview runs unchanged. The artifact is the local file ./docs/prd-<feature>.md, written FIRST, then published as a page in the Notion 'Project Docs' database (Status: WIP). The file must be written even if Notion is unavailable, so the stage survives no network and can be re-run without depending on the page. The GitHub issue path is opt-in only, for repos with no Notion home. House style is drawn from Plain's project docs: opinionated single solution, relevant technical context included, implementation sequencing excluded (that is to-plan), and never 'As a <actor>, I want...' user stories. Docs come in two shapes and the agent must pick one — CONCEPT docs (new noun in the product; read as the product's own documentation, close with Scenarios in 'You want:' / 'How it works:' form) and CHANGE docs (alter an existing surface; TL;DR, Why, Current state, then a step-by-step Proposed experience, with no Concepts or Scenarios sections). The template is a menu, not a skeleton: the shortest real doc uses three sections. Risks and shipping sequence belong to the upstream Linear brief and must NOT be duplicated into the doc. A goal without a metric is acceptable when the payoff is genuinely indirect.",
+  "notes": "All evals assume the subagent runs with cwd set to a real codebase checkout so the codebase-exploration step (2) has code to ground against. The skip-if-answered precondition treats three sources as priors: the conversation, the upstream Linear project brief, and on-disk artifacts (./docs/approach.md, ./ideas/reports/*-ideate.md). These cases pin that behaviour: when priors exist, questions they answer are skipped; when nothing exists, the full interview runs unchanged. The artifact is the local file ./docs/prd-<feature>.md, written FIRST, then published as a page in the Notion 'Project Docs' database (Status: WIP). The file must be written even if Notion is unavailable, so the stage survives no network and can be re-run without depending on the page. The GitHub issue path is opt-in only, for repos with no Notion home. House style is drawn from Plain's project docs: opinionated single solution, relevant technical context included, implementation sequencing excluded (that is to-scaffold and to-tickets), and never 'As a <actor>, I want...' user stories. Docs come in two shapes and the agent must pick one — CONCEPT docs (new noun in the product; read as the product's own documentation, close with Scenarios in 'You want:' / 'How it works:' form) and CHANGE docs (alter an existing surface; TL;DR, Why, Current state, then a step-by-step Proposed experience, with no Concepts or Scenarios sections). The template is a menu, not a skeleton: the shortest real doc uses three sections. Risks and shipping sequence belong to the upstream Linear brief and must NOT be duplicated into the doc. A goal without a metric is acceptable when the payoff is genuinely indirect.",
   "evals": [
     {
       "id": 1,
@@ -61,7 +61,7 @@
           "text": "The doc includes relevant technical context where it shapes scope (the concepts, the reference map it reuses, the events or data it depends on) — it is NOT stripped to product language only"
         },
         {
-          "text": "The doc does NOT contain implementation sequencing or file-level design — no build order, no tracer-bullet phases, no module boundaries or per-file changes (that is to-plan's job)"
+          "text": "The doc does NOT contain implementation sequencing or file-level design — no build order, no tracer-bullet phases, no module boundaries or per-file changes (that is to-scaffold's and to-tickets' job)"
         },
         {
           "text": "The doc includes a 'What we already have (reuse)' section (or equivalent) grounded in the actual repo exploration, distinct from what is net-new"
@@ -136,7 +136,7 @@
           "text": "The agent does NOT silently substitute a GitHub issue for the Notion page — the gh path is opt-in only"
         },
         {
-          "text": "The agent still hands off to to-plan, pointing at the local file"
+          "text": "The agent still hands off to to-scaffold, pointing at the local file"
         }
       ]
     },

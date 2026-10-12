@@ -5,7 +5,7 @@
 **Flow walked:** {flow name}
 **Driven in:** {playwright-cli | claude-in-chrome against the user's authenticated session — and why}
 **Not exercised:** {steps deliberately not completed, and why — so a reader can tell observed claims from inferred ones}
-**Alignment doc:** {Notion link — the agreed problem space this run designs against}
+**Alignment doc:** {path to alignment.md — the agreed problem space this run designs against}
 
 ## Summary
 

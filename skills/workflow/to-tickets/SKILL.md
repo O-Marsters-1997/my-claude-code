@@ -7,7 +7,7 @@ description: >
   PRD becomes several tickets. The tracker is settled during the run. In a repo that runs
   command-centre, also emits `[[task]]` blocks into its config; in a plain treepad repo, emits a
   Batch Manifest instead so the tickets materialise as stacked worktrees. If the technical design
-  isn't worked out yet, run /to-plan first.
+  isn't worked out yet, /to-scaffold settles it first for code work.
 disable-model-invocation: true
 ---
 
@@ -20,24 +20,26 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
-                                                    ^^^^^^^^^^ you are here
+FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+                                 non-code work: to-prd → to-tickets
+                                                        ^^^^^^^^^^ you are here
 ```
 
 **Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
 built — and this is the stage that turns exactly one of those features into its several tickets.
 Never cut tickets for a whole roadmap or approach doc in one run.
 
-**Nothing gates anything.** A missing plan is not a blocker — cut tickets from whatever exists, and
-say so if the source is thin on technical design.
+**Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
+reason to stop and run another skill first: cut tickets from whatever exists, and say so if the
+source is thin on technical design. The one hard gate is the merged scaffold PR.
 
 Break a source into independently-grabbable tickets using vertical slices (tracer bullets). The source is one of three, in priority order:
 
-1. **A plan file** (DEFAULT) — a local `./docs/plans/*.md` file produced by to-plan.
+1. **A plan file** (DEFAULT) — a local `./docs/plans/*.md` file left by an earlier planning pass.
 2. **A PRD** — a local `./docs/prd-<feature>.md` file, a Notion project doc, or a `[PRD]`-titled GitHub issue. Prefer the file when several exist; they hold the same content.
 3. **A raw conversation** — a pasted or in-context discussion the user wants turned into tickets.
 
-A plan is a technical design document: its architectural decisions (data models, schema shapes, API contracts, module boundaries) are durable constraints and its user stories are source material. A PRD or conversation carries product intent with less technical design — if a source is thin on technical design, note this to the user; it may need a to-plan pass first.
+A plan is a technical design document: its architectural decisions (data models, schema shapes, API contracts, module boundaries) are durable constraints and its user stories are source material. A PRD or conversation carries product intent with less technical design — if a source is thin on technical design, note this to the user; for code work it may need a to-scaffold pass first.
 
 ## Process
 
