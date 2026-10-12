@@ -6,6 +6,42 @@
       "prompt": "Create a Go module (example.com/runner, stdlib only). Package internal/worker: a Worker whose Run(ctx) loops every interval until ctx is cancelled. Each tick it asks a JobStore for pending job IDs (Pending(ctx) ([]int64, error)), claims each one (Claim(ctx, id) error; claiming can fail because another worker already claimed the job, which is normal and should skip it quietly, or because of a real store failure), runs it through a Runner (Run(ctx, id) ([]byte, error)), writes the output to a temp file, uploads it through an Uploader (Upload(ctx, path string) error), then removes the temp file. One job failing must not stop the loop. Add an in-memory JobStore in internal/memstore, cmd/runner/main.go that wires stubs, prints the temp directory for the user and runs until SIGINT, and one worker test.",
       "expected_output": "No log.Print*/log.Fatal* or global slog calls outside main; Worker takes an injected *slog.Logger built once in main, and the test passes slog.New(slog.DiscardHandler). Log calls use constant messages, snake_case key-value attributes with \"err\" for the error, and *Context variants. No `_ =` error discards: the temp-file Remove error is logged at Warn (or joined into a returned error), a claim conflict is a sentinel defined where it is detected and matched with errors.Is, and real failures are logged once at Error at the top of the loop, not logged and returned. The temp directory is printed to an io.Writer, not logged. No panic.",
       "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a Go module (example.com/pricing, stdlib only). Package internal/pricing: type Item struct { SKU string; PriceCents int64; Qty int }, and func Total(items []Item, coupon string) (int64, error). Total sums PriceCents*Qty. Coupon \"\" means none; \"TEN\" takes 10% off, rounded down; \"FIVEOFF\" takes 500 cents off, floored at 0. Any other coupon is an error callers must be able to detect, and so is an item with Qty <= 0. Write the tests for it.",
+      "expected_output": "Tests live in package pricing_test. Success cases are a table of structs with a name field run through t.Run(tt.name, ...); error cases are a separate test, with no wantErr branch inside the success table. The two error conditions are exported sentinels with lowercase messages and no \"failed to\", matched with errors.Is, never by string. Failure messages read Total(...) = got, want want. No reflect.DeepEqual, no time.Sleep.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "This is a small application. Add a FindByEmail lookup to the store, and tidy up the store code while you're in there. No SQL driver is available, so don't add one; the code only has to compile.",
+      "expected_output": "The helpers package is renamed for what it does or folded into its caller; no helpers or common package remains. The global DB and init() are gone and *sql.DB is injected through a constructor. Code moves under internal/. NewUser loses its six positional arguments (the unused createdBy is dropped or the arguments grouped). RoleLabel uses a switch. Get has no else after a return. Not-found is an exported sentinel matched with errors.Is, error strings are lowercase with no \"failed to\" or trailing punctuation, and no error is discarded. FindByEmail takes a context and uses QueryRowContext. No comments that restate the code.",
+      "files": [
+        "evals/files/refactor-store"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Add an optional Nickname to User. API clients may omit it from the JSON. Add a test for decoding with and without it.",
+      "expected_output": "Nickname is never *string. Either Option[T] (from references/optional.md), or a plain string with omitempty when absent and empty need not be told apart. Test is in package user_test, no reflect.DeepEqual.",
+      "files": [
+        "evals/files/optional-field"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "NewServer needs to take a read timeout, a logger and a TLS config, and we expect more settings to be added later. Update it and its caller.",
+      "expected_output": "NewServer(addr, opts ...Option) with WithReadTimeout, WithLogger and WithTLSConfig, or a config struct; never new positional arguments. The logger defaults to slog.New(slog.DiscardHandler); no slog.Default or log.* in the server package.",
+      "files": [
+        "evals/files/server-settings"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create a Go module (example.com/limiter, stdlib only) with package internal/ratelimit: a token-bucket rate limiter, safe for concurrent use, with an Allow() bool method and an unexported refill step driven by an injectable clock so it can be tested without sleeping. Add tests.",
+      "expected_output": "Doc comments only on exported identifiers, three lines or fewer; no comment on the unexported refill or any other unexported identifier; no inline comments restating the code. Tests use an injected clock, never time.Sleep.",
+      "files": []
     }
   ]
 }

@@ -1,5 +1,14 @@
 # Option[T] — Explicit Optionality in Go
 
+## Contents
+
+- [Why not `*T`?](#why-not-t)
+- [When to reach for `Option[T]`](#when-to-reach-for-optiont)
+- [When NOT to use it](#when-not-to-use-it)
+- [Implementation](#implementation)
+- [Usage examples](#usage-examples)
+- [Inspired by](#inspired-by)
+
 ## Why not `*T`?
 
 Using a pointer to signal "this might not be set" is the most common source of accidental nil
