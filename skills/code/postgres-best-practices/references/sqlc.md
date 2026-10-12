@@ -3,7 +3,9 @@
 Load only when the repo has a `sqlc.yaml` (or `sqlc.json`). Rules for writing the queries sqlc
 compiles and for configuring and verifying generation. Keeping generated types inside the store
 is covered in [`go-idiomatic` database.md](../../go-idiomatic/references/database.md); this file
-does not restate it.
+does not restate it. Transactions, `sqlc.embed`, bulk writes and `vet` are in
+[`sqlc-patterns.md`](sqlc-patterns.md). The full docs are <https://docs.sqlc.dev/en/latest/>;
+check them only when something here is unclear.
 
 ## Contents
 
@@ -60,6 +62,9 @@ driver-agnostic seam, an existing `database/sql` codebase) and record it in an A
   nullable forms to pointers, so no `pgtype` value leaks into the store.
 - `rename` fixes initialisms (`id: ID`, `url: URL`) so generated names pass lint.
 - `emit_empty_slices: true` so `:many` returns `[]` rather than `nil`.
+- `query_parameter_limit: 0` so every query takes a params struct; the default (1) switches
+  from positional args to a struct once a query gains a second parameter, changing call sites.
+- `emit_prepared_queries` is for non-pgx drivers; pgx/v5 caches prepared statements itself.
 
 ```yaml
 version: "2"
