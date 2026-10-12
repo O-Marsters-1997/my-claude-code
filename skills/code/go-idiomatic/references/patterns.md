@@ -59,11 +59,10 @@ compiler then rejects a swapped argument. Untyped literals (`Cancel(3, 4)`) and 
 conversions (`RunID(launchID)`) still get through. An identifier with no same-typed sibling
 stays a plain `string` or `int64`.
 
-### Closed Value Sets
+### Typed Value Sets
 
-Go has no enums. Model a closed set as a string-backed type with named constants, defined once in
-the package that owns the concept and imported everywhere else. A second copy drifts the first time
-a value is added.
+A fixed set of values is a string-backed type with named constants, defined once in the owning
+package.
 
 ```go
 type Status string
@@ -89,15 +88,11 @@ func ParseStatus(s string) (Status, error) {
 }
 ```
 
-- The zero value means unknown. Never give `""` a meaning such as "pending".
-- Per-value data (labels, ordering, transitions) lives in a map keyed by the constant, not a long
-  `switch`. The map doubles as the membership set.
-- Every boundary that turns outside input into the type (JSON via `UnmarshalText`, flags, a
-  database scan) goes through `ParseStatus`. A bare cast `Status(s)` skips validation, and a
-  fallback in a `default:` hides corrupt data.
-- A `switch` that branches on the value has a case for every constant and no `default`, so a
-  linter or review catches a new unhandled value. Tail with a `panic` for the unknown zero value,
-  not a `return` that treats it as a known one.
+- The zero value is unknown, never a real member.
+- Per-value data lives in a map keyed by the constant, which doubles as the membership set.
+- Input becomes the type only through `ParseStatus`, which errors on an unknown value. No bare
+  `Status(s)` casts, no fallback `default`.
+- A `switch` on the type covers every constant and has no `default`.
 
 ---
 
