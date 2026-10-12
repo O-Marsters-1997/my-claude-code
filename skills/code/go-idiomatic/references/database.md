@@ -73,7 +73,7 @@ Rules the shape encodes:
 
 1. Roll back on every path that did not commit: an error from `fn` or a failed commit. Return
    from each branch explicitly; a deferred rollback that tests a named `err` return is silently
-   defeated by a shadowed `err`. If `fn` can panic, recover, roll back and re-panic.
+   defeated by a shadowed `err`.
 2. Roll back with `context.WithoutCancel(ctx)`. A cancelled request context makes the rollback
    fail, and the connection returns to the pool with the transaction still open.
 3. Wrap the commit error once, here. `fn` returns its own errors with their own context.
@@ -156,7 +156,7 @@ var ErrEmailTaken = errors.New("store: email taken")
 func (s *Store) CreateUser(ctx context.Context, u User) error {
     err := s.insertUser(ctx, u)
     if isUniqueViolation(err, "users_email_key") {
-        return fmt.Errorf("create user %q: %w", u.Email, ErrEmailTaken)
+        return fmt.Errorf("create user: %w", ErrEmailTaken)
     }
     if err != nil {
         return fmt.Errorf("insert user: %w", err)
@@ -184,8 +184,8 @@ A test then controls time, and every comparison in one request uses one instant.
 
 Configure the pool and prove the database is reachable before serving traffic:
 
-1. Set the pool limits explicitly (max open and idle connections, connection lifetime). The
-   defaults are unlimited open connections, which exhausts the server under load.
+1. Set the pool limits explicitly (max open and idle connections, connection lifetime). An
+   unbounded pool (the `database/sql` default) exhausts the server under load.
 2. Ping with a context deadline at startup and fail `main` if it errors, so a bad DSN is a crash
    at boot and not a 500 on the first request.
 3. Set a statement timeout (per connection, or per query through the context) so one slow query
