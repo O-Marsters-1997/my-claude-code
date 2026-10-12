@@ -75,7 +75,8 @@ across the repo so it can be grepped.
 
 Goose orders by the numeric prefix. Sequential (`00017_add_tasks.sql`) reads cleanly and
 makes a merge collision obvious; timestamps (`20261012093000_add_tasks.sql`) avoid collisions
-between branches but sort out of merge order. Pick one per repo and keep it.
+between branches but sort out of merge order; goose rejects a migration older than the latest
+applied one unless out-of-order is enabled (`WithAllowOutofOrder`). Pick one per repo and keep it.
 
 The part after the version must be unique across the directory. A repo that had two files named
 `wis_region_to_loc` could not tell which one an error came from. Name by what the migration
@@ -89,22 +90,41 @@ Embed the migrations so the binary carries them, and point goose at the embedded
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
-var migrateOnce sync.Once
-
 func Migrate(ctx context.Context, db *sql.DB) error {
-	var err error
-	migrateOnce.Do(func() {
-		goose.SetBaseFS(migrationsFS)
-		if err = goose.SetDialect("postgres"); err != nil {
-			return
-		}
-		err = goose.UpContext(ctx, db, "migrations")
-	})
+	fsys, err := fs.Sub(migrationsFS, "migrations")
+	if err != nil {
+		return err
+	}
+	p, err := goose.NewProvider(goose.DialectPostgres, db, fsys)
+	if err != nil {
+		return err
+	}
+	_, err = p.Up(ctx)
 	return err
 }
 ```
 
-`goose.SetBaseFS` and `SetDialect` set package-level state, so run them once behind a
-`sync.Once`. Apply at startup before the server accepts traffic, and fail startup on error.
-If several replicas start together, serialise with `goose.WithSessionLocker` or run migrations
-as a separate deploy step.
+`NewProvider` (goose v3.16+) takes the filesystem and dialect directly and holds no global
+state; prefer it. Apply at startup before the server accepts traffic, and fail startup on
+error. If several replicas start together, pass `goose.WithSessionLocker` (built with
+`lock.NewPostgresSessionLocker()` from `goose/v3/lock`) or run migrations as a separate deploy
+step.
+
+The older package-level API (`goose.SetBaseFS`, `goose.SetDialect`, `goose.UpContext`) mutates
+process-wide state. If the repo still uses it, do the `SetBaseFS` and `SetDialect` calls once
+behind a `sync.Once` and run `UpContext` outside it, so a failed run is reported to every
+caller and can be retried:
+
+```go
+var gooseSetup sync.Once
+
+func setupGoose() {
+	goose.SetBaseFS(migrationsFS)
+	_ = goose.SetDialect("postgres")
+}
+
+func Migrate(ctx context.Context, db *sql.DB) error {
+	gooseSetup.Do(setupGoose)
+	return goose.UpContext(ctx, db, "migrations")
+}
+```

@@ -29,7 +29,7 @@ neither: it reports success and changes nothing.
 
 - A real Down restores the previous schema. If it cannot restore data (a dropped column), the
   migration is irreversible.
-- An irreversible migration says so in the file, in the form the tool provides, and its Down
+- An irreversible migration says so in the file, in one form used across the repo, and its Down
   fails loudly.
 - Offer a `migrate-down` or `migrate-redo` recipe (Justfile, Makefile, script) only when the
   Downs are real. A recipe over empty Downs reads as a safety net and is not one. One repo had
