@@ -59,6 +59,41 @@ compiler then rejects a swapped argument. Untyped literals (`Cancel(3, 4)`) and 
 conversions (`RunID(launchID)`) still get through. An identifier with no same-typed sibling
 stays a plain `string` or `int64`.
 
+### Typed Value Sets
+
+A fixed set of values is a string-backed type with named constants, defined once in the owning
+package.
+
+```go
+type Status string
+
+const (
+	StatusPlaced    Status = "placed"
+	StatusShipped   Status = "shipped"
+	StatusDelivered Status = "delivered"
+)
+
+var statusLabels = map[Status]string{
+	StatusPlaced:    "Placed",
+	StatusShipped:   "On its way",
+	StatusDelivered: "Delivered",
+}
+
+func ParseStatus(s string) (Status, error) {
+	st := Status(s)
+	if _, ok := statusLabels[st]; !ok {
+		return "", fmt.Errorf("parse status %q: unknown value", s)
+	}
+	return st, nil
+}
+```
+
+- The zero value is unknown, never a real member.
+- Per-value data lives in a map keyed by the constant, which doubles as the membership set.
+- Input becomes the type only through `ParseStatus`, which errors on an unknown value. No bare
+  `Status(s)` casts, no fallback `default`.
+- A `switch` on the type covers every constant and has no `default`.
+
 ---
 
 ## Interface Design
