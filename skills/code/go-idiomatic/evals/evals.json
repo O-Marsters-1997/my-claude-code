@@ -48,6 +48,12 @@
       "prompt": "Make a Go module example.com/prwatch (stdlib only). Package internal/gh: OpenPRs(ctx, repoDir) ([]PR, error) that runs `gh pr list --state open --json ...` and returns number, title and head branch for each open PR. Package internal/git: IsAncestor(ctx, repoDir, a, b string) (bool, error) using `git merge-base --is-ancestor`. Add tests for both. Make `go build ./... && go vet ./... && go test ./...` pass (gh need not be installed; git is).",
       "expected_output": "Commands built as argv slices, never sh -c. Each call wraps ctx in context.WithTimeout with a named timeout constant and sets cmd.WaitDelay; prompts are disabled via GH_PROMPT_DISABLED / GIT_TERMINAL_PROMPT. Stderr is captured separately (no CombinedOutput on parsed stdout) and included in the returned error. IsAncestor maps exit code 1 to false via errors.As(*exec.ExitError) and returns every other failure, including exit 128, as an error. The --json field list is a const directly above the struct it decodes into. OpenPRs passes an explicit --limit and treats a full page as truncation (error or Warn), not as the complete list. gh is faked on PATH in tests (re-executed test binary or a fake script serving fixtures); git is tested against a real repo in t.TempDir().",
       "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "In a Go service, an Order has a status (placed, shipped, delivered) read from a JSON API and from a database column. Show the type, how input is parsed, and a function branching on status.",
+      "expected_output": "One string-backed Status type with named constants, defined once. Zero value is unknown. A Parse function (also used by UnmarshalText and the DB scan) returns an error on an unknown value, never a silent default or bare cast. Per-value data comes from a lookup map, not a long switch. The branching switch has a case for every constant and no default.",
+      "files": []
     }
   ]
 }

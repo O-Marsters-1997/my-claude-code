@@ -25,7 +25,7 @@ Route to the right reference before reading further:
 | Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
 | Adding a sentinel or error type, translating errors between packages, cleanup in `defer`, `panic` | `references/errors.md` |
 | Giving `main` or a component a logger, choosing a level, CLI output vs logs    | `references/logging.md`          |
-| Interface design, zero values, identifier types, anti-patterns                 | `references/patterns.md`         |
+| Interface design, zero values, identifier types, typed value sets, anti-patterns | `references/patterns.md`         |
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
