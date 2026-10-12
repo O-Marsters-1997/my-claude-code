@@ -4,16 +4,17 @@ description: >
   Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to
   "review since X". Reviews changes since a fixed point (commit, branch, tag, or merge-base)
   along two parallel axes — Standards (does this follow the repo's documented coding standards?)
-  and Contract (does this match the ticket and the feature's frozen contract?) — reported side by side. For
+  and Contract (does this match the ticket and the feature's frozen contract?) — reported side by side.
+  Also defines the Journey axis, which /fleet reconcile applies to a completed slice. For
   whole-system design assessment rather than a diff, use architecture-review.
 ---
 
-Review of the diff between `HEAD` and a fixed point the user supplies, along two axes:
+Review of the diff between `HEAD` and a fixed point the user supplies, along two axes (a third, Journey, checks a delivery slice rather than a diff; see _Journey axis_):
 
 - **Standards** — does the code conform to this repo's documented coding standards?
 - **Contract** — does the code meet the ticket's acceptance criteria, implement every stub the ticket lists, and leave the contract's signatures untouched?
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+Both diff axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
 ## Process
 
@@ -78,15 +79,30 @@ If neither a ticket nor a spec is available, skip the Contract sub-agent and not
 
 ### 5. Aggregate
 
-Present the reports under `## Standards` and `## Contract` headings (Contract covers acceptance criteria, stub coverage and the signature diff; without a contract, acceptance criteria only), verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why two axes_).
+Present the reports under `## Standards` and `## Contract` headings (Contract covers acceptance criteria, stub coverage and the signature diff; without a contract, acceptance criteria only), verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why separate axes_).
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
 
-## Why two axes
+## Journey axis
 
-A change can pass one axis and fail the other:
+A third axis, separate from Standards and Contract. It does not review a diff: it runs once per
+delivery slice, on integrated code, when `/fleet reconcile` finds the slice's last ticket merged.
+Run it as its own sub-agent, never inside the two above, so a passing diff cannot mask a broken journey.
+
+Input is one PRD journey (title, surface, steps, final `→ <observable state>`) and the evidence
+gathered for it: the output of running its steps. Missing or empty evidence counts as needs human
+eyes, never pass. Report, per journey:
+
+- **Pass**: the evidence shows the `→` end state. Quote the evidence line that shows it.
+- **Fail**: the evidence contradicts the end state or stops before it. Quote the step where it diverged.
+- **Needs human eyes**: the end state is visual UI, or the evidence cannot show it. List what the user
+  should look at. Never guess pass or fail from output that cannot show the state.
+
+## Why separate axes
+
+A change can pass one axis and fail another:
 
 - Code that follows every standard but implements the wrong thing → **Standards pass, Contract fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Contract pass, Standards fail.**
 
-Reporting them separately stops one axis from masking the other.
+Reporting them separately stops one axis from masking another.
