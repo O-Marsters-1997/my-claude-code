@@ -1,0 +1,11 @@
+{
+  "skill_name": "go-idiomatic",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Go module (example.com/runner, stdlib only). Package internal/worker: a Worker whose Run(ctx) loops every interval until ctx is cancelled. Each tick it asks a JobStore for pending job IDs (Pending(ctx) ([]int64, error)), claims each one (Claim(ctx, id) error; claiming can fail because another worker already claimed the job, which is normal and should skip it quietly, or because of a real store failure), runs it through a Runner (Run(ctx, id) ([]byte, error)), writes the output to a temp file, uploads it through an Uploader (Upload(ctx, path string) error), then removes the temp file. One job failing must not stop the loop. Add an in-memory JobStore in internal/memstore, cmd/runner/main.go that wires stubs, prints the temp directory for the user and runs until SIGINT, and one worker test.",
+      "expected_output": "No log.Print*/log.Fatal* or global slog calls outside main; Worker takes an injected *slog.Logger built once in main, and the test passes slog.New(slog.DiscardHandler). Log calls use constant messages, snake_case key-value attributes with \"err\" for the error, and *Context variants. No `_ =` error discards: the temp-file Remove error is logged at Warn (or joined into a returned error), a claim conflict is a sentinel defined where it is detected and matched with errors.Is, and real failures are logged once at Error at the top of the loop, not logged and returned. The temp directory is printed to an io.Writer, not logged. No panic.",
+      "files": []
+    }
+  ]
+}

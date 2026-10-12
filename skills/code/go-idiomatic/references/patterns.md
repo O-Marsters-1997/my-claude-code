@@ -1,11 +1,11 @@
 # Go Patterns Reference
 
-Design patterns, error handling, concurrency, and interface conventions for idiomatic Go.
+Design patterns and interface conventions for idiomatic Go.
 
 ## Contents
 
 - [Core Principles](#core-principles)
-- [Error Handling](#error-handling-patterns)
+- [Error Handling](#error-handling)
 - [Interface Design](#interface-design)
 - [Memory and Performance](#memory-and-performance)
 - [Go Tooling](#go-tooling-integration)
@@ -83,83 +83,10 @@ func ProcessData(r io.Reader) (*Result, error) {
 
 ---
 
-## Error Handling Patterns
+## Error Handling
 
-### Wrap Errors with Context
-
-Each layer of the call stack adds the context it knows about. Use `%w` to preserve the original
-error for `errors.Is` / `errors.As` checks:
-
-```go
-func LoadConfig(path string) (*Config, error) {
-    data, err := os.ReadFile(path)
-    if err != nil {
-        return nil, fmt.Errorf("load config %s: %w", path, err)
-    }
-
-    var cfg Config
-    if err := json.Unmarshal(data, &cfg); err != nil {
-        return nil, fmt.Errorf("parse config %s: %w", path, err)
-    }
-
-    return &cfg, nil
-}
-```
-
-### Custom Error Types and Sentinels
-
-```go
-// Sentinel errors for common cases
-var (
-    ErrNotFound     = errors.New("resource not found")
-    ErrUnauthorized = errors.New("unauthorized")
-)
-
-// Structured error with context
-type ValidationError struct {
-    Field   string
-    Message string
-}
-
-func (e *ValidationError) Error() string {
-    return fmt.Sprintf("validation failed on %s: %s", e.Field, e.Message)
-}
-```
-
-### Check Errors with `errors.Is` and `errors.As`
-
-```go
-func HandleError(err error) {
-    if errors.Is(err, sql.ErrNoRows) {
-        log.Println("no records found")
-        return
-    }
-
-    var validationErr *ValidationError
-    if errors.As(err, &validationErr) {
-        log.Printf("validation error on %s: %s", validationErr.Field, validationErr.Message)
-        return
-    }
-
-    log.Printf("unexpected error: %v", err)
-}
-```
-
-### Never Ignore Errors
-
-```go
-// Bad
-result, _ := doSomething()
-
-// Good
-result, err := doSomething()
-if err != nil {
-    return err
-}
-
-// Acceptable: when error truly doesn't matter (rare — document why)
-_ = writer.Close() // best-effort cleanup
-```
+Creating, wrapping, matching and cleaning up errors, and when `panic` is allowed, are covered in
+`references/errors.md`.
 
 ---
 
@@ -347,15 +274,6 @@ goimports -w .
 func process() (result int, err error) {
     // ... 50 lines ...
     return
-}
-
-// Bad: panic for control flow — only panic for truly unrecoverable programmer errors
-func GetUser(id string) *User {
-    user, err := db.Find(id)
-    if err != nil {
-        panic(err)
-    }
-    return user
 }
 
 // Bad: context stored in a struct — context is per-request, not per-object

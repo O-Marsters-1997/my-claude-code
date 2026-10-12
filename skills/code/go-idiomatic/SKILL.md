@@ -2,7 +2,7 @@
 name: go-idiomatic
 description: >
   Go engineering standards for this repo — idiomatic style, package layout, error handling,
-  concurrency, testing and design patterns.
+  logging, concurrency, testing and design patterns.
   TRIGGER — load BEFORE writing or editing Go, not after: any .go file or go.mod/go.sum/go.work
   is being created or edited; the prompt names Go, Golang, goroutine, channel, interface, struct,
   `go test`, `go build`, golangci-lint, gofmt, table-driven test, or benchmark; or the working
@@ -28,7 +28,9 @@ Route to the right reference before reading further:
 | If you're working on…                                                          | Load this                        |
 | ------------------------------------------------------------------------------ | -------------------------------- |
 | Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
-| Error handling, interface design, anti-patterns                                | `references/patterns.md`         |
+| Returning, wrapping, matching or discarding an error; sentinels; `panic`      | `references/errors.md`           |
+| Any `slog` or `log` call, passing a logger, or printing output for a CLI user  | `references/logging.md`          |
+| Interface design, zero values, performance idioms, anti-patterns               | `references/patterns.md`         |
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
@@ -150,7 +152,7 @@ func NewServer(addr string, opts ...Option) *Server {
     s := &Server{
         addr:    addr,
         timeout: 30 * time.Second,
-        logger:  slog.Default(),
+        logger:  slog.New(slog.DiscardHandler),
     }
     for _, opt := range opts {
         opt(s)
@@ -252,6 +254,31 @@ for _, item := range items {
     process(item)
 }
 ```
+
+---
+
+## Errors and Logging
+
+Nearly every change returns an error or reports one, so these rules apply to all Go work, not only
+to a task described as error handling:
+
+1. Wrap with `fmt.Errorf("<verb> <noun>: %w", err)`. Error strings are lowercase, with no
+   punctuation and no "failed to".
+2. Handle an error once: return it with context, or log it at the top of the chain. Never both.
+3. Export a sentinel only when a caller in another package branches on it. Define it where the
+   condition is detected, and translate a dependency's errors into your own at the package seam.
+4. Never discard an error with `_ =`. Join a cleanup error into the returned error, or log it at
+   `Warn` when there is nothing to return to.
+5. `panic` only for programmer errors: `Must` helpers on constant input, impossible cases.
+6. Library code takes an injected `*slog.Logger`. Only `main` builds one; nothing else calls
+   `log.*`, `slog.Info` or `slog.Default()`.
+7. Log messages are constant; variable data goes in snake_case key-value attributes, with `err`
+   for the error. Never log secrets or personal data.
+8. Output the user asked for goes to an injected `io.Writer`, not to the logger.
+
+Load `references/errors.md` for sentinel layering, cleanup and panic examples, and
+`references/logging.md` for levels, keys, tests and CLI output. Each ends with the golangci-lint
+settings that enforce its rules.
 
 ---
 

@@ -73,7 +73,7 @@ req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 Not this — `req` is context-free between lines and `WithContext` is easy to omit:
 
 ```go
-req, _ = http.NewRequest(http.MethodGet, url, nil)
+req, err := http.NewRequest(http.MethodGet, url, nil)
 req = req.WithContext(ctx)
 ```
 
