@@ -17,8 +17,8 @@ stdout: `finished` or `unfinished`, followed by the merged branches.
 
 A non-zero exit is an error, not an outcome: show its stderr to the user and stop.
 
-A `contract-change` issue is a ticket like any other: its stub PR carries `Closes #N`, and when
-that merges into the feature branch the command above closes it. Tickets whose only open blocker
+A `contract-change` issue has no PR: the user closes it once the plan and the affected tickets'
+`## Signatures` are updated. Tickets whose only open blocker
 it was show up as `promoted #N`; a ticket with another open blocker stays in backlog.
 
 ## 2. Clean up
@@ -84,15 +84,14 @@ to the `gh issue list` calls.
 | contract changes | `gh issue list --label "<label>" --label contract-change --state all` |
 | backlog-held | `gh issue list --label "<label>" --state all` with a `Blocked by` section naming at least one issue (not `None`): each sat in `status:backlog` while an earlier wave ran |
 | journey failures | `gh issue list --label "<label>" --label journey-fail --state all` |
-| scaffold comments | take `Scaffold PR: #<n>` from `docs/contracts/<slug>.md`, then `gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate --jq length` from inside the repo; `n/a` when there is no contract or no such line |
-| read scaffold | ask the user "Did you read the scaffold?" (yes/no) and record the answer; `unanswered` if they cannot be asked now; when the row already exists with a yes/no answer, keep it and do not ask again |
+| read plan | ask the user "Did you read the plan?" (yes/no) and record the answer; `unanswered` if they cannot be asked now; when the row already exists with a yes/no answer, keep it and do not ask again |
 
 The metrics file is `docs/plans/metrics.md`, gitignored with the rest of `docs/plans/`. Create it
 with this header if absent:
 
 ```
-| feature | date | contract changes | backlog-held | journey failures | scaffold comments | read scaffold |
-|---|---|---|---|---|---|---|
+| feature | date | contract changes | backlog-held | journey failures | read plan |
+|---|---|---|---|---|---|
 ```
 
 The first column is the feature label and the key; `date` is today as `YYYY-MM-DD`. If a row with

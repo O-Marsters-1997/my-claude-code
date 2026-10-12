@@ -6,7 +6,7 @@ description: >
   the codebase, and saves to docs/prds/<feature>.md. Covers exactly one feature: given a
   multi-feature source, ask which one. Reads any approach doc or ideate report as priors so it
   doesn't re-ask what's settled, but needs none. Starts the per-feature spine
-  (/to-prd -> /to-scaffold -> /to-tickets).
+  (/to-prd -> /to-plan -> /to-tickets).
 disable-model-invocation: true
 ---
 
@@ -17,7 +17,7 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                  ^^^^^^ you are here
                                  non-code work: to-prd → to-tickets
 ```
@@ -34,7 +34,7 @@ core and nothing else. Journeys and slices are defined in
 [references/project-doc.md](references/project-doc.md); read it before writing.
 
 Build order, tracer bullets, module boundaries and per-file design stay out: they are
-`to-scaffold`'s and `to-tickets`' job.
+`to-plan`'s and `to-tickets`' job.
 
 ## Priors
 
@@ -88,7 +88,7 @@ answer; do not choose for them.
 
 1. Create `docs/prds/` if missing. Write the PRD to `docs/prds/<feature>.md`, kebab-cased.
 2. Show it to the user and confirm.
-3. Print the file path. `to-scaffold` and `to-tickets` read it from there.
+3. Print the file path. `to-plan` and `to-tickets` read it from there.
 
 Filing a GitHub issue is opt-in, only when the user asks, and from the file so the copies don't drift:
 
@@ -96,7 +96,7 @@ Filing a GitHub issue is opt-in, only when the user asks, and from the file so t
 gh issue create --title "[PRD] <Feature Name>" --body-file docs/prds/<feature>.md
 ```
 
-Then hand off: `/to-scaffold` for code work; `/to-tickets` straight from the PRD for non-code work.
+Then hand off: `/to-plan` for code work; `/to-tickets` straight from the PRD for non-code work.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke
 skill-feedback-collector passing this skill's name and path.

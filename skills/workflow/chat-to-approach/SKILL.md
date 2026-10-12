@@ -27,7 +27,7 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                  non-code work: to-prd → to-tickets
 ```
 
@@ -36,7 +36,7 @@ consideration. A roadmap card is one of those features — something to be built
 later breaks into several tickets. Six features here means six independent runs down the spine.
 
 **Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
-reason to stop and run another skill first. The one hard gate is the merged scaffold PR. A user who
+reason to stop and run another skill first. The one hard gate is an approved plan. A user who
 already knows the one feature they want can skip straight to `to-prd`.
 
 **Optional: Background Research section.** `approach.md` may contain a `## Background Research` section at the top, produced by the `source-synthesis` skill, containing a lit-review synthesis of existing documentation and prior art. This skill does not create or modify that section — it is out of scope here. If the section exists, preserve it verbatim when writing or updating the file.

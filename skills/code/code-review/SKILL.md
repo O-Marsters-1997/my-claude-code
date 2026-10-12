@@ -12,7 +12,7 @@ description: >
 Review of the diff between `HEAD` and a fixed point the user supplies, along two axes (a third, Journey, checks a delivery slice rather than a diff; see _Journey axis_):
 
 - **Standards** — does the code conform to this repo's documented coding standards?
-- **Contract** — does the code meet the ticket's acceptance criteria, implement every stub the ticket lists, and leave the contract's signatures untouched?
+- **Contract** — does the code meet the ticket's acceptance criteria, implement every signature the ticket lists, and keep those signatures as written?
 
 Both diff axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
@@ -35,7 +35,7 @@ Look for the originating ticket and contract, in this order:
 3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
 4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Contract** sub-agent will skip and report "no spec available".
 
-Then look for the feature contract: take the ticket's feature label and read `docs/plans/<feature>.md`, which lists the stubs and their signatures. Get the feature branch from `gh pr view --json baseRefName`, falling back to the branch the user named as the fixed point. The ticket's stub list is in its issue body. `docs/plans/` is gitignored, so a fresh checkout may lack the file: say so in the report rather than silently dropping the contract check. If the ticket has no feature label or the file is missing (ad hoc work, sweep, non-code), there is no contract and the Contract axis falls back to plain spec review: acceptance criteria only, as below.
+Then look for the contract: the ticket body's `## Signatures` section, which `to-tickets` copies from the plan (`new:` signatures and `change:` bullets). The ticket carries it because `docs/plans/` is usually gitignored, so a fresh checkout lacks the plan. If the ticket has no `## Signatures` section (ad hoc work, sweep, non-code), there is no contract and the Contract axis falls back to plain spec review: acceptance criteria only, as below.
 
 ### 3. Identify the standards sources
 
@@ -72,14 +72,14 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 **Contract sub-agent prompt** — include:
 
 - The diff command and commit list.
-- The path or fetched contents of the ticket (or other spec), and of the contract file when one exists, plus the feature branch name.
-- The brief: "Report: (a) acceptance criteria or requirements that are missing, partial, or look implemented but wrong; (b) behaviour in the diff that wasn't asked for (scope creep). Quote the ticket line for each finding. With a contract also report: (c) every stub the ticket lists that the diff does not implement (still a stub body, or absent); (d) signature diff: compare each stubbed declaration (name, parameters, return types, visibility) in the diff against the same declaration on the feature branch (`git show <feature-branch>:<path>`), and flag every changed signature that is not tied to a `contract-change` issue (match `gh issue list --label contract-change --state all` against the issue numbers in the commits and PR body, or an issue naming the changed symbol). A signature edit with no such issue is a violation, not a judgement call. Under 400 words."
+- The path or fetched contents of the ticket (or other spec), including its `## Signatures` section when one exists.
+- The brief: "Report: (a) acceptance criteria or requirements that are missing, partial, or look implemented but wrong; (b) behaviour in the diff that wasn't asked for (scope creep). Quote the ticket line for each finding. With a contract also report: (c) every `new:` signature or `change:` bullet in the ticket's `## Signatures` that the diff does not implement; (d) signature diff: compare each declaration the diff adds for a `new:` signature (name, parameters, return types, visibility) against the ticket's block, and flag every mismatch that is not tied to a `contract-change` issue (match `gh issue list --label contract-change --state all` against the issue numbers in the commits and PR body, or an issue naming the changed symbol). A signature edit with no such issue is a violation, not a judgement call. Under 400 words."
 
 If neither a ticket nor a spec is available, skip the Contract sub-agent and note this in the final report.
 
 ### 5. Aggregate
 
-Present the reports under `## Standards` and `## Contract` headings (Contract covers acceptance criteria, stub coverage and the signature diff; without a contract, acceptance criteria only), verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why separate axes_).
+Present the reports under `## Standards` and `## Contract` headings (Contract covers acceptance criteria, signature coverage and the signature diff; without a contract, acceptance criteria only), verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why separate axes_).
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
 

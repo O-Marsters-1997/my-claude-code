@@ -3,7 +3,7 @@ name: to-roadmap
 description: >
   Prioritises settled features into a Now / Next / Later kanban board, rendered as a
   self-contained ./ideas/roadmap.html. Each card is a feature, not a ticket — one card later becomes
-  several tickets via /to-prd -> /to-scaffold -> /to-tickets. Boards the features in
+  several tickets via /to-prd -> /to-plan -> /to-tickets. Boards the features in
   ./docs/approach.md, or the "## Accepted ideas" in ./ideas/CONTEXT.md when there is no approach
   doc. The approach doc is settled truth: this assigns tiers and reasons about ordering, it
   never re-litigates what was decided.
@@ -24,16 +24,16 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                     ^^^^^^^^^^^^ you are here
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                  non-code work: to-prd → to-tickets
 ```
 
 **Portfolio → feature is a fan-out, not a step.** This skill is portfolio-level: it prioritises many
 features at once. Crossing to the spine means picking one card — six cards means six independent
-runs of `to-prd → to-scaffold → to-tickets`, each producing its own several tickets.
+runs of `to-prd → to-plan → to-tickets`, each producing its own several tickets.
 
 **Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
-reason to stop and run another skill first. The one hard gate is the merged scaffold PR.
+reason to stop and run another skill first. The one hard gate is an approved plan.
 
 Board from `./docs/approach.md`, from `## Accepted ideas` in `./ideas/CONTEXT.md`, or from a short
 list the user gives you. The one thing this skill will not do
