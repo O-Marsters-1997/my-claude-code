@@ -26,15 +26,15 @@ Judge every boundary with the `codebase-design` vocabulary.
 
 Read `docs/prds/<feature>.md`. If the user names a feature, use that file. If more than one PRD
 exists and the target is not obvious, ask which one before starting; never scaffold several
-features in one run. If no PRD exists, do not send the user to `/to-prd`: write the core inline (below) and carry on.
+features in one run. If no PRD exists, write the core inline (below) and carry on, rather than sending the user to `/to-prd`.
 
 `<feature>` is the PRD's filename without `.md`; `<slug>` below is the same string.
 
 **No PRD: write the core.** Ask a short interview, one question at a time and skipping what the
 conversation already answers: the problem in one line, the journeys (each with a surface, 2 to 5
 steps and a `→ <observable state>` final line), then the delivery slices. Write it to
-`docs/prds/<feature>.md` (kebab-case, creating `docs/prds/` if missing) in the format of
-`../to-prd/references/project-doc.md`: `### Problem`, numbered `### J1.` journeys, and numbered
+`docs/prds/<feature>.md` (kebab-case, creating `docs/prds/` if missing) in `to-prd`'s core
+format (its `references/project-doc.md`): `### Problem`, numbered `### J1.` journeys, and numbered
 delivery slices each naming what is usable after it and its `Journeys: J…`. Every journey sits in
 exactly one slice. Show it to the user, confirm, then continue with step 2. Skip the optional layer.
 
