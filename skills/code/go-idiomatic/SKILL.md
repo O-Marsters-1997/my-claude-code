@@ -35,6 +35,7 @@ Route to the right reference before reading further:
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
 | Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
+| Shelling out with `os/exec` to `git`, `gh` or another CLI, parsing its `--json` output, faking it in tests | `references/exec.md` |
 | Rendering `html/template` for htmx: page vs fragment vs redirect, `HX-*` headers, `.tmpl` files | the `htmx-go-templates` skill |
 
 ---
