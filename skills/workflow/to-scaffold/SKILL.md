@@ -4,13 +4,13 @@ description: >
   Turns one feature's PRD into compiling stubs and a contract: writes a usage example first,
   derives types and signatures from it, commits module boundaries with `not implemented` bodies,
   opens them as a draft PR into the feature branch, then writes docs/plans/<feature>.md and
-  creates the project:<slug> label. Use for code features after /to-prd and before /to-tickets:
+  creates the project:<slug> label. Use for code features:
   "scaffold this feature", "stub out the modules", "write the contract". Covers exactly one
   feature per run. Slash-only.
 disable-model-invocation: true
 ---
 
-# PRD to Scaffold
+# To Scaffold
 
 ```
 FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → fleet
@@ -30,7 +30,7 @@ every boundary you draw.
 
 Read `docs/prds/<feature>.md`. If the user names a feature, use that file. If more than one PRD
 exists and the target is not obvious, ask which one before starting; never scaffold several
-features in one run. If no PRD exists, stop and point the user to `/to-prd`.
+features in one run. If no PRD exists, say so and offer `/to-prd`; the user decides whether to write one first.
 
 `<feature>` is the PRD's filename without `.md`; `<slug>` below is the same string.
 
