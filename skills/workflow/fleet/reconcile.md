@@ -72,12 +72,38 @@ gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 
 It is not a draft: every ticket in it already passed review on its own PR.
 
-## 5. Report
+Then record the metrics (step 5) for the PR you raised or found.
+
+## 5. Record metrics
+
+Runs whenever step 4 raised or found the feature PR, so a re-run, or a feature finished before this
+step existed, gets its row too. Counts come from GitHub; nothing is carried between runs.
+
+| Column | Derivation |
+|---|---|
+| contract changes | `gh issue list --label "<label>" --label contract-change --state all` |
+| backlog-held | tickets under the label whose body has a non-empty `Blocked by` section: they sat in `status:backlog` while an earlier wave ran |
+| journey failures | `gh issue list --label "<label>" --label journey-fail --state all` |
+| scaffold comments | take `Scaffold PR: #<n>` from `docs/contracts/<slug>.md`, then `gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate --jq length`; `n/a` when there is no contract |
+| read scaffold | ask the user "Did you read the scaffold?" (yes/no) and record the answer; when the row already exists, keep its answer and do not ask again |
+
+The metrics file is `docs/plans/metrics.md`, gitignored with the rest of `docs/plans/`. Create it
+with this header if absent:
+
+```
+| feature | date | contract changes | backlog-held | journey failures | scaffold comments | read scaffold |
+|---|---|---|---|---|---|---|
+```
+
+The row's key is the feature label in the first column. If a row with that label exists, replace it
+in place; otherwise append one. Never leave two rows for a label.
+
+## 6. Report
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
 (`closed-unmerged`, `no-pr`), slices checked with each journey's result, `journey-fail` tickets
 filed, journeys needing human eyes, worktrees removed, and the feature PR's URL if step 4 raised or
-found one.
+found one, and the metrics row written.
 
 If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
 `/fleet dispatch <label>`, with the label filled in; you cannot clear your own session.
