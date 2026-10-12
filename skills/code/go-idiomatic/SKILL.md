@@ -31,6 +31,7 @@ Route to the right reference before reading further:
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
 | Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
 | Shelling out with `os/exec` to `git`, `gh` or another CLI, parsing its `--json` output, faking it in tests | `references/exec.md` |
+| Storing data in SQL: store package boundary, transactions, NULLs, constraint errors, pool setup, testing against Postgres | `references/database.md` |
 | Rendering `html/template` for htmx: page vs fragment vs redirect, `HX-*` headers, `.tmpl` files | the `htmx-go-templates` skill |
 
 ---
@@ -75,8 +76,8 @@ skill.
    calls across a system boundary (sending email, charging a card).
 4. A fake is stateful and honest. One contract suite runs against both the fake and the real
    implementation. Force error paths with a one-method stub, not failure knobs on the fake.
-5. Test SQL against a real database, never a mocked driver. Use the repo's DB-testing skill for
-   the mechanics if it has one.
+5. Test SQL against a real database, never a mocked driver. `references/database.md` has the
+   mechanics: one shared server, a template database cloned per test.
 6. Compare with `cmp.Diff(want, got)` from `github.com/google/go-cmp` and report `(-want +got)`.
    Without go-cmp, compare scalars with `==` and structs field by field. Never `reflect.DeepEqual`.
 7. Failure messages read `Func(in) = got, want want`. Match errors with `errors.Is`/`errors.As`,
