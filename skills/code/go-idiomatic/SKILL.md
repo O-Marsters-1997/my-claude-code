@@ -25,10 +25,9 @@ Route to the right reference before reading further:
 | Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
 | Adding a sentinel or error type, translating errors between packages, cleanup in `defer`, `panic` | `references/errors.md` |
 | Giving `main` or a component a logger, choosing a level, CLI output vs logs    | `references/logging.md`          |
-| Interface design, zero values, identifier types, anti-patterns                 | `references/patterns.md`         |
+| Interface design, zero values, identifier types, closed value sets (enums), anti-patterns | `references/patterns.md`         |
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
-| Closed value sets: status or kind types, parsing them, exhaustive switches, `exhaustive` lint | `references/enums.md` |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
 | Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
 | Shelling out with `os/exec` to `git`, `gh` or another CLI, parsing its `--json` output, faking it in tests | `references/exec.md` |

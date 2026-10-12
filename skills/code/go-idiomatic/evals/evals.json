@@ -51,8 +51,8 @@
     },
     {
       "id": 8,
-      "prompt": "In a Go service, an Order has a status (placed, shipped, delivered) read from a JSON API and from a database column. Show the type, how input is parsed, a function branching on status, and the golangci-lint config you would add.",
-      "expected_output": "One string-backed Status type with named constants, defined once. Zero value is unknown. A Parse function (also used by UnmarshalText and the DB scan) returns an error on an unknown value, never a silent default or bare cast. Per-value data comes from a lookup map, not a long switch. The branching switch has no default, and golangci-lint enables exhaustive with default-signifies-exhaustive: false. The stored column is text with a CHECK, referencing the postgres skill.",
+      "prompt": "In a Go service, an Order has a status (placed, shipped, delivered) read from a JSON API and from a database column. Show the type, how input is parsed, and a function branching on status.",
+      "expected_output": "One string-backed Status type with named constants, defined once. Zero value is unknown. A Parse function (also used by UnmarshalText and the DB scan) returns an error on an unknown value, never a silent default or bare cast. Per-value data comes from a lookup map, not a long switch. The branching switch has a case for every constant and no default.",
       "files": []
     }
   ]
