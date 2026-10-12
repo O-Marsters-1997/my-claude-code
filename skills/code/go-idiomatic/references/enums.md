@@ -118,5 +118,5 @@ silent exactly when a new constant is unhandled. That cancels the check.
 ## Stored values
 
 When the value is persisted, store it as `text` with a `CHECK` constraint listing the same members,
-not a native Postgres enum type. See the `postgres` skill for the SQL side. Read it back through
+not a native Postgres enum type. See the `postgres-best-practices` skill for the SQL side. Read it back through
 `ParseStatus`, so a row the constraint missed surfaces as an error instead of a silent cast.
