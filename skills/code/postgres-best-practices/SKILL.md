@@ -11,7 +11,7 @@ description: >
 # Postgres
 
 Rules for schema and queries on Postgres. They are language-agnostic; the Go half lives in the
-`go-idiomatic` skill (`references/database.md`, and the closed value sets section of `references/patterns.md`).
+`go-idiomatic` skill (`references/database.md`, and the typed value sets section of `references/patterns.md`).
 ## Where to Look
 
 | If you're working on…                                   | Load this                                        |
