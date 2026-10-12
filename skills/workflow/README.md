@@ -9,7 +9,7 @@ Install all nine — the skills hand off to each other, so a partial install lea
 dangling. (`artifact-scan` is the exception: every caller falls back to a one-line `ls`.)
 
 ```
-for s in artifact-scan ideate chat-to-approach capture-idea to-roadmap to-prd to-plan to-tickets ticket-tracker; do
+for s in artifact-scan ideate chat-to-approach capture-idea to-roadmap to-prd to-scaffold to-tickets ticket-tracker; do
   npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
 done
 ```
@@ -61,8 +61,8 @@ flowchart TD
   subgraph SPINE["FEATURE LEVEL · one run per card, several tickets out"]
     prd["to-prd"]
     prddoc[/"docs/prd-FEATURE.md<br/>+ Notion project doc"/]
-    plan["/to-plan"]
-    planfile[/"docs/plans/FEATURE.md<br/>technical design"/]
+    scaffold["/to-scaffold"]
+    scaffoldpr[/"merged scaffold PR<br/>the one hard gate"/]
     tick["/to-tickets"]
     issues[/"Linear or GitHub issues"/]
     track["ticket-tracker"]
@@ -74,22 +74,24 @@ flowchart TD
   capture --> ctx
   board -->|"pick ONE card"| prd
   scoped --> prd
-  prd --> prddoc --> plan --> planfile --> tick --> issues --> track
+  prd --> prddoc --> scaffold --> scaffoldpr --> tick --> issues --> track
+  prddoc -.->|"non-code work"| tick
   appr -.->|"prior"| prd
   ctx -.->|"prior"| prd
   report -.->|"prior"| prd
 ```
 
 Boxes are skills, slanted boxes the artifacts they write. Solid is the path; **dashed is an
-optional prior** — it makes a stage faster and better-informed, never required. `/to-plan` and
-`/to-tickets` are slash-only, so the spine is `to-prd` then whichever of the two you actually want.
+optional prior** — it makes a stage faster and better-informed. `/to-scaffold` and `/to-tickets`
+are slash-only. Code work runs `to-prd → to-scaffold → to-tickets`; non-code work skips the
+scaffold and runs `to-prd → to-tickets`.
 
 ## Two rules that explain everything else
 
 **1. The spine runs per feature. The portfolio artifacts describe many features.**
 
 `approach.md` and `roadmap.html` are portfolio-level: they hold every feature you're considering.
-`to-prd`, `to-plan` and `to-tickets` handle exactly one feature per run.
+`to-prd`, `to-scaffold` and `to-tickets` handle exactly one feature per run.
 
 A **roadmap card is a feature** — something that should be built — *not* a ticket. It is expected to
 break down into several tickets, which happens at `to-tickets`, three stages later. `roadmap.html`
@@ -100,15 +102,16 @@ independent spine runs, each ending in its own handful of tickets. When a spine 
 portfolio artifact as its source, its first job is to establish *which feature* — ask if it isn't
 obvious.
 
-**2. Nothing gates anything.**
+**2. Never send the user backwards.**
 
-Every skill runs standalone. Upstream artifacts make a stage faster and better-informed; they never
-make it required. `to-prd` with an approach doc skips questions it can already answer; `to-prd` with
-nothing runs the full interview. Both are correct uses.
+Every skill runs standalone. Upstream artifacts make a stage faster and better-informed. A missing
+one is written inline or offered, never a reason to stop and run another skill first. `to-prd` with
+an approach doc skips questions it can already answer; `to-prd` with nothing runs the full
+interview. Both are correct uses.
 
-This is deliberate. The suite is a set of loosely-coupled converters, not a pipeline with gates, so
-that each stage can be iterated on alone as well as in sequence. Do **not** send a user backwards to
-create a missing artifact — if they have what the stage needs, run the stage.
+The one hard gate is the merged scaffold PR: code tickets are not cut or dispatched until it has
+merged. Everything else stays loosely coupled so each stage can be iterated on alone as well as in
+sequence.
 
 ## The skills
 
@@ -120,8 +123,8 @@ create a missing artifact — if they have what the stage needs, run the stage.
 | `capture-idea` | portfolio | one ad-hoc idea | a line in `## Accepted ideas` in `./ideas/CONTEXT.md` |
 | `to-roadmap` | portfolio | `./docs/approach.md`, `## Accepted ideas`, or user list | `./ideas/roadmap.html` |
 | `to-prd` | feature | anything above, or an interview | `./docs/prd-<feature>.md` + Notion 📜 Project Docs (or GitHub issue if requested) |
-| `to-plan` | feature | a PRD | `./docs/plans/<feature>.md` |
-| `to-tickets` | feature | a plan | Linear or GitHub issues + optional treepad Batch Manifest |
+| `to-scaffold` | feature | a PRD | a scaffold PR carrying the technical design |
+| `to-tickets` | feature | a PRD, or the merged scaffold PR | Linear or GitHub issues + optional treepad Batch Manifest |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
 ## Orchestrators vs routines
@@ -132,9 +135,9 @@ The suite-wide convention:
 > is not triggered directly by the user — it is delegated to from within another skill's flow.
 
 Every skill in this directory is an orchestrator except `artifact-scan`, which is both (a front door
-when the user asks, a preflight when a skill calls it). `to-plan`, `to-tickets` and
+when the user asks, a preflight when a skill calls it). `to-scaffold`, `to-tickets` and
 `capture-idea` are slash-only
-(`disable-model-invocation: true`) — not every feature warrants both plan and tickets, and while
+(`disable-model-invocation: true`) — not every feature warrants both scaffold and tickets, and while
 those two were model-invocable they collided on prompts like "break this PRD down into work";
 `capture-idea` is gated because it otherwise collides with `ideate` on "give me an idea".
 
@@ -153,5 +156,6 @@ appear in the map above:
 
 ## Not in scope
 
-Implementation. The suite ends when tickets exist. The seam for later is `to-tickets` → `tdd`, with
-the plan's technical design decisions as the constraint to check against.
+Nothing past tickets here: `/fleet`, `/implement` and code review carry them to merged code. v2
+runs through to code review, with the scaffold PR's technical design decisions as the constraint
+the review checks against.

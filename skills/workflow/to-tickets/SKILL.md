@@ -20,12 +20,17 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
 FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+                                 non-code work: to-prd → to-tickets
                                                         ^^^^^^^^^^ you are here
 ```
 
 **Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature*, and this stage turns
 exactly one of them into its several tickets. Never cut tickets for a whole roadmap or approach doc
 in one run.
+
+**Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
+reason to stop and run another skill first: cut tickets from whatever exists, and say so if the
+source is thin on technical design. The one hard gate is the merged scaffold PR.
 
 Break the source into independently-grabbable tickets using vertical slices (tracer bullets). Tickets
 are filed on GitHub only.

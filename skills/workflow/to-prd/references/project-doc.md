@@ -40,7 +40,7 @@ in it throughout.
 flows. The reader is an engineer, and the scope boundary usually *is* technical — you cannot explain
 why test threads skip SLA tracking without naming `is_test` and the subscribers that check it. What
 stays out is *implementation sequencing and file-level design*: build order, tracer bullets, module
-boundaries, per-file changes. That's `to-plan`, and for larger projects Plain's own convention is a
+boundaries, per-file changes. That's `to-scaffold` and `to-tickets`, and for larger projects Plain's own convention is a
 separate technical-proposal doc.
 
 **Show it, don't just describe it.** Five of eight docs open with something you can watch or click: a
