@@ -1,11 +1,11 @@
 ---
 name: to-prd
 description: >
-  Turns one feature idea into a project doc (PRD) — what we're building, how it behaves, and the
-  scope boundary — through interview, codebase exploration and a phased cut-line, saved to
-  ./docs/prd-<feature>.md and published to Notion. Covers exactly one feature: given a
-  multi-feature source, ask which one. Reads any approach doc, ideate report or Linear brief as
-  priors so it doesn't re-ask what's settled, but needs none. Starts the per-feature spine
+  Turns one feature idea into a PRD built on journeys: a one-line problem, journeys (each ending in
+  an observable state) and delivery slices that say what is usable after each. Interviews, explores
+  the codebase, and saves to docs/prds/<feature>.md. Covers exactly one feature: given a
+  multi-feature source, ask which one. Reads any approach doc or ideate report as priors so it
+  doesn't re-ask what's settled, but needs none. Starts the per-feature spine
   (/to-prd -> /to-scaffold -> /to-tickets).
 disable-model-invocation: true
 ---
@@ -22,145 +22,81 @@ FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → tic
                                  non-code work: to-prd → to-tickets
 ```
 
-**Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
-built, which then breaks down into several tickets further down the spine. Six cards means six docs,
-not one; never write a single project doc covering a whole roadmap or approach doc.
+**Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature*. Six cards means six
+PRDs, never one covering a whole roadmap or approach doc.
 
-**Never send the user backwards.** Upstream artifacts make this stage faster and better-informed. A
-missing one is written inline or offered, never a reason to stop and run another skill first. The one
-hard gate is the merged scaffold PR.
+**Never send the user backwards.** A missing upstream artifact is never a reason to stop.
 
-## What this doc is
+## What a PRD is
 
-A project doc describes **what we're building and how it behaves**, opinionated enough that a reader
-knows why the scope is drawn where it is. Written as the shipped product's own documentation:
-present tense, second person, naming the concepts the feature introduces.
+Every PRD has a **core**: a one-line problem, journeys, and delivery slices. A small change is the
+core and nothing else. Journeys and slices are defined in
+[references/project-doc.md](references/project-doc.md); read it before writing.
 
-**One solution, argued** — no option matrices. **Relevant technical context belongs in it** — the
-concepts, columns, events, mutations, flows and diagrams a reader needs, because the scope boundary
-is usually technical. **Implementation sequencing and file-level design stay out** — build order,
-tracer bullets, module boundaries and per-file changes are `to-scaffold`'s and `to-tickets`' job, and for a large project
-the convention is a separate technical-proposal doc alongside this one.
+Build order, tracer bullets, module boundaries and per-file design stay out: they are
+`to-scaffold`'s and `to-tickets`' job.
 
-Voice rules, the Scenarios format, the full template and the Notion mechanics:
-[references/project-doc.md](references/project-doc.md). Read it before writing.
+## Priors
 
-## Skip-if-answered precondition
+Before asking a question, skip it if one of these already answers it:
 
-Before asking any question in the steps below, treat these as priors and skip any question they
-already answer — only ask what is genuinely unknown:
+1. **The conversation.**
+2. **On-disk priors** — `./docs/approach.md` and `./ideas/reports/*-ideate.md` (use `artifact-scan`
+   to locate them if installed, else `ls`). Confirm and grill deltas only.
 
-1. **The conversation** — scan the full conversation for an answer already provided.
-2. **The Linear project brief** — if a Linear project exists for this feature, read its description.
-   It answers problem, why, who (with named customers), risks and shipping sequence. Carry the named
-   customers through as evidence rather than re-asking who wants this.
-3. **On-disk priors** — the approach doc (`./docs/approach.md`) and the ideate report
-   (`./ideas/reports/*-ideate.md`). Use `artifact-scan` as a preflight to locate them if it's installed; otherwise `ls` the two paths. Treat their
-   captured decisions (problem, scope, audience, product decisions) as already-answered; confirm and
-   grill deltas only.
-
-These priors are **accelerants, not prerequisites** — they exist to remove questions, never to gate
-this skill. If none is available, fall back to the full interview unchanged. Do not send the user
-upstream to create one first.
-
-The approach doc and ideate report are portfolio-level: they cover several features, while this doc
-covers exactly one. If a prior holds more than one feature and the target isn't obvious from the
-invocation, ask which feature this doc is for before going further.
+Priors are accelerants, not prerequisites: with none, run the full interview. They are portfolio
+level; if one holds several features and the target isn't obvious, ask which one this PRD is for.
 
 ## Process
 
-You may skip steps if you don't consider them necessary.
+Skip steps that aren't necessary.
 
 ### 1. Get the problem in the user's words
 
-Ask for a long, detailed description of the problem they want to solve and any potential ideas for
-solutions.
+Ask for a long, detailed description of the problem and any ideas for solutions.
 
 ### 2. Explore the repo
 
-Verify their assertions and understand the current state of the codebase. This read has a second job:
-it feeds the doc's **What we already have (reuse)** section — the existing event, the existing
-pipeline, the behaviour that half-exists already. A doc that reads as all-net-new usually hasn't
-looked.
+Verify their assertions and learn the current state. Note what already half-exists, so the journeys
+build on it rather than reading as all-net-new.
 
 ### 3. Grill for scope and behaviour
 
-Run the grilling session using the `grilling` skill — it owns the grilling loop; defer to it
-rather than re-inlining the questioning here. Keep the focus on scope, behaviour and the concepts
-being introduced, not on build order.
+Run the `grilling` skill; it owns the loop. Focus on who does what and what they see, not build order.
 
-### 4. Sketch the capabilities and name the concepts
+### 4. Write the journeys
 
-Sketch out the major user-facing capabilities and behaviour that will be needed. Actively look for
-opportunities to identify deep, independently-valuable capabilities — those that deliver user value
-on their own.
+For each way a user gets value, draft a journey in the reference's format. Check the set with the
+user: does it cover the problem, and does every journey end somewhere you could point at? If a
+prototype would help, the `prototype` skill builds one.
 
-**Decide which shape this doc is** — a *concept doc* introducing a new noun into the product, or a
-*change doc* altering an existing surface. That choice decides most of the structure, and getting it
-wrong is what produces a doc padded with sections that don't apply. Both shapes are set out in
-[references/project-doc.md](references/project-doc.md).
+### 5. Cut delivery slices
 
-If it's a concept doc, name the **concepts** it introduces and what's on each. Trying to write them up
-as though they already exist is what exposes the decisions you hadn't made yet.
+Ask for the smallest release that delivers the core outcome, then what follows. Sequence by user
+value, not technical dependency.
 
-Ask whether a **prototype** exists or would help — five of eight project docs open with a screen
-recording or a prototype link, and it is far cheaper to settle a state model or a layout in a
-prototype than in review. The `prototype` skill builds one; link it near the top of the doc either
-way.
+### 6. Offer the optional layer
 
-Check with the user that these match their expectations.
+For a bigger feature, offer to add why, goal, concepts, out of scope and open questions. Skip it for
+a small change.
 
-### 5. Draw the phase cut-line
+The format of this layer is the user's call and not fixed by this skill. If they want it, ask:
+"How should the optional layer look: prose sections, a table, bullets, or something else?" Use their
+answer; do not choose for them.
 
-With the capabilities agreed, ask which belong in the *first phase* — the smallest release that
-delivers the core outcome — versus what is deliberately deferred. Sequence by user value, not
-technical dependency. Deferred items are staged, not rejected: they go in **Out of scope for Phase
-1** with a one-line reason (a follow-up project link beats a promise), while things genuinely not
-being built go in **Out of scope**.
+### 7. Save it
 
-Keep **Nice to haves** separate from both. Those are the details that would spark joy ✨ if there's
-room — polish, not commitments.
+1. Create `docs/prds/` if missing. Write the PRD to `docs/prds/<feature>.md`, kebab-cased.
+2. Show it to the user and confirm.
+3. Print the file path. `to-scaffold` and `to-tickets` read it from there.
 
-### 6. Write the doc
-
-Use the template in [references/project-doc.md](references/project-doc.md). It is a **menu, not a
-skeleton** — no real project doc uses every section, and the shortest good one uses three. Drop what
-doesn't apply rather than padding it with restated filler, and don't carry risks or a shipping
-sequence into this doc: those belong to the Linear brief, and two copies drift.
-
-### 7. Save it, then publish it
-
-The Markdown file is the offline twin; the Notion page is where the team reads and comments. Write
-the file first so the doc survives no network and this stage can be re-run without depending on the
-page.
-
-1. Create `./docs/` if it doesn't exist. Write the filled-in template to `./docs/prd-<feature>.md`,
-   kebab-cased (e.g. `./docs/prd-saved-views.md`).
-2. Show the rendered doc to the user and confirm before going further.
-3. Create the page in the **📜 Project Docs** database with `Status: WIP`, `Lead` and `Team` — fetch
-   the data source for the current options rather than guessing.
-   Mechanics: [references/project-doc.md](references/project-doc.md).
-4. Print both the file path and the Notion URL. `to-scaffold` and `to-tickets` accept either.
-5. If the Linear project brief has empty `🧩` / `🚨` / `👥` sections, **offer** to fill them from what
-   the interview surfaced. Offer — never write to Linear unprompted.
-
-If Notion is unavailable, keep the file and say the page wasn't created — the doc still stands and
-downstream skills can read the file directly. Do not treat a missing page as a failed run.
-
-**Outside Plain** — a personal repo with no Notion home — the same doc files as a GitHub issue
-instead, but only when the user asks for it:
+Filing a GitHub issue is opt-in, only when the user asks, and from the file so the copies don't drift:
 
 ```bash
-gh issue create --title "[PRD] <Feature Name>" --body-file ./docs/prd-<feature>.md
+gh issue create --title "[PRD] <Feature Name>" --body-file docs/prds/<feature>.md
 ```
 
-File it from the Markdown file, not a re-render, or the two copies drift.
-
-**Picking a doc back up.** Review happens in the Notion page's inline comments. Re-fetch it with
-`include_discussions: true`, read the threads and fold them in — don't re-derive the doc and
-overwrite what reviewers wrote.
-
-Then hand off: `/to-scaffold` turns this doc into the scaffold PR for code work; for non-code work, `/to-tickets` cuts tickets straight from it.
+Then hand off: `/to-scaffold` for code work; `/to-tickets` straight from the PRD for non-code work.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke
 skill-feedback-collector passing this skill's name and path.
