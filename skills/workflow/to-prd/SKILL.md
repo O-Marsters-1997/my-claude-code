@@ -6,7 +6,7 @@ description: >
   ./docs/prd-<feature>.md and published to Notion. Covers exactly one feature: given a
   multi-feature source, ask which one. Reads any approach doc, ideate report or Linear brief as
   priors so it doesn't re-ask what's settled, but needs none. Starts the per-feature spine
-  (/to-prd -> /to-plan -> /to-tickets).
+  (/to-prd -> /to-scaffold -> /to-tickets).
 disable-model-invocation: true
 ---
 
@@ -17,16 +17,18 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
+FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
                                  ^^^^^^ you are here
+                                 non-code work: to-prd → to-tickets
 ```
 
 **Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature* — something to be
 built, which then breaks down into several tickets further down the spine. Six cards means six docs,
 not one; never write a single project doc covering a whole roadmap or approach doc.
 
-**Nothing gates anything.** Upstream artifacts make this stage faster and better-informed; they never
-make it required. Do not send the user backwards to create a missing artifact.
+**Never send the user backwards.** Upstream artifacts make this stage faster and better-informed. A
+missing one is written inline or offered, never a reason to stop and run another skill first. The one
+hard gate is the merged scaffold PR.
 
 ## What this doc is
 
@@ -37,7 +39,7 @@ present tense, second person, naming the concepts the feature introduces.
 **One solution, argued** — no option matrices. **Relevant technical context belongs in it** — the
 concepts, columns, events, mutations, flows and diagrams a reader needs, because the scope boundary
 is usually technical. **Implementation sequencing and file-level design stay out** — build order,
-tracer bullets, module boundaries and per-file changes are `to-plan`'s job, and for a large project
+tracer bullets, module boundaries and per-file changes are `to-scaffold`'s and `to-tickets`' job, and for a large project
 the convention is a separate technical-proposal doc alongside this one.
 
 Voice rules, the Scenarios format, the full template and the Notion mechanics:
@@ -138,12 +140,12 @@ page.
 3. Create the page in the **📜 Project Docs** database with `Status: WIP`, `Lead` and `Team` — fetch
    the data source for the current options rather than guessing.
    Mechanics: [references/project-doc.md](references/project-doc.md).
-4. Print both the file path and the Notion URL. `to-plan` accepts either.
+4. Print both the file path and the Notion URL. `to-scaffold` and `to-tickets` accept either.
 5. If the Linear project brief has empty `🧩` / `🚨` / `👥` sections, **offer** to fill them from what
    the interview surfaced. Offer — never write to Linear unprompted.
 
 If Notion is unavailable, keep the file and say the page wasn't created — the doc still stands and
-`to-plan` can read the file directly. Do not treat a missing page as a failed run.
+downstream skills can read the file directly. Do not treat a missing page as a failed run.
 
 **Outside Plain** — a personal repo with no Notion home — the same doc files as a GitHub issue
 instead, but only when the user asks for it:
@@ -158,7 +160,7 @@ File it from the Markdown file, not a re-render, or the two copies drift.
 `include_discussions: true`, read the threads and fold them in — don't re-derive the doc and
 overwrite what reviewers wrote.
 
-Then hand off: `/to-plan` turns this doc into the implementation plan.
+Then hand off: `/to-scaffold` turns this doc into the scaffold PR for code work; for non-code work, `/to-tickets` cuts tickets straight from it.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke
 skill-feedback-collector passing this skill's name and path.

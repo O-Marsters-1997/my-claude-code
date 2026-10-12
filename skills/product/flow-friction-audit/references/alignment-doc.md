@@ -1,16 +1,12 @@
 # The alignment doc — stage 3b's output, and `shape` mode's input
 
-The artifact the 3b gate produces: a Notion page holding the agreed problem space for one flow. It exists so alignment survives the conversation that produced it — the team reads one statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking, without re-deriving the problems each time.
+The artifact the 3b gate produces: a markdown file, `alignment.md`, holding the agreed problem space for one flow. It exists so alignment survives the conversation that produced it — the team reads one statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking, without re-deriving the problems each time.
 
 ## Where it goes
 
-A **new child page** under the growth team's Notion home:
+`alignment.md` in the run's artifacts directory, next to `findings.md` (stage 4). One file per audited flow.
 
-> **📈 Home** — `https://app.notion.com/p/3b3810036f9d8246bca5011749c51244`
-
-One page per audited flow. Create a child page; never edit Home itself — it's the team's landing page (roadmap, dashboards, Slack and Linear links), not a place to append findings to.
-
-`findings.md` in the audited repo stays the evidence layer. This page is the product layer. Link each to the other once and don't restate one inside the other.
+`findings.md` stays the evidence layer. `alignment.md` is the product layer. Link each to the other once and don't restate one inside the other.
 
 ## The page
 
@@ -45,9 +41,9 @@ Publish the draft, then ask:
 
 Edit the page rather than the conversation, so the agreement and the artifact never diverge. Iterate until the user agrees.
 
-## Goal metrics — fetched here, never carried
+## Goal metrics — asked for here, never carried
 
-The team's current goal metrics live in the **Q3 Roadmap** — `https://app.notion.com/p/team-plain/Q3-Roadmap-3a5810036f9d8027905ce48603a7d09f`. Fetch them at this gate. **Don't copy the definitions into this skill** — they're quarterly and Plain-specific, nothing here would signal they'd gone stale, and a stale metric that reads as authoritative silently reframes an audit; a pointer stays correct, a copy doesn't. And **don't fetch them before the walk** — handed "valuable set-up means two channels connected and a workflow live" at scope, the audit measures the flow against that definition instead of seeing it, and the finding that the definition *is* the problem never happens.
+Ask the user for the team's current goal metrics at this gate. **Don't copy the definitions into this skill** — they change, nothing here would signal they'd gone stale, and a stale metric that reads as authoritative silently reframes an audit; a pointer stays correct, a copy doesn't. And **don't fetch them before the walk** — handed "valuable set-up means two channels connected and a workflow live" at scope, the audit measures the flow against that definition instead of seeing it, and the finding that the definition *is* the problem never happens.
 
 They enter as context, not a rubric: what the business is trying to move says which problems matter, and feeds the budget question above — a problem sitting on the primary goal earns weight one outside it doesn't. **A metric can be wrong, and the evidence may say so.** Where a metric assumes something the walk contradicts, state it plainly in the problem it belongs to: a definition of set-up that counts configuration describes the starting point rather than the goal, and a workspace can satisfy it while being unable to reply to anyone. Surface the contradiction; redesigning the metric belongs to the team.
 
