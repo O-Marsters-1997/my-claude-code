@@ -43,9 +43,11 @@ Use /tdd where possible, at pre-agreed seams.
 Signatures declared by a merged scaffold's stubs are frozen: never edit one to make the work fit.
 If a frozen signature can't be kept, take the contract-change path and stop:
 
-1. Create the `contract-change` label if missing (`gh label create contract-change --force`).
-2. File an issue labelled `contract-change` plus the ticket's feature label, naming the signature,
-   why it can't be kept, and the proposed new one.
+1. Create the `contract-change` label if missing (check `gh label list` first; `--force` would
+   recolour an existing one).
+2. File an issue labelled `contract-change`, `status:backlog` and the ticket's feature
+   label (the user approves it by moving it to ready), naming the signature, why it can't be kept, and the proposed new one. Its stub PR must carry
+   `Closes #<issue>` so reconcile can match it.
 3. Add `- Blocked by #<new issue>` to this ticket's `## Blocked by` section and set it back to
    `status:backlog`.
 4. Open a draft PR with the work so far, leaving the signature untouched, and stop.
