@@ -42,6 +42,12 @@
       "prompt": "Create a Go module (example.com/limiter, stdlib only) with package internal/ratelimit: a token-bucket rate limiter, safe for concurrent use, with an Allow() bool method and an unexported refill step driven by an injectable clock so it can be tested without sleeping. Add tests.",
       "expected_output": "Doc comments only on exported identifiers, three lines or fewer; no comment on the unexported refill or any other unexported identifier; no inline comments restating the code. Tests use an injected clock, never time.Sleep.",
       "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "Make a Go module example.com/prwatch (stdlib only). Package internal/gh: OpenPRs(ctx, repoDir) ([]PR, error) that runs `gh pr list --state open --json ...` and returns number, title and head branch for each open PR. Package internal/git: IsAncestor(ctx, repoDir, a, b string) (bool, error) using `git merge-base --is-ancestor`. Add tests for both. Make `go build ./... && go vet ./... && go test ./...` pass (gh need not be installed; git is).",
+      "expected_output": "Commands built as argv slices, never sh -c. Each call wraps ctx in context.WithTimeout with a named timeout constant and sets cmd.WaitDelay; prompts are disabled via GH_PROMPT_DISABLED / GIT_TERMINAL_PROMPT. Stderr is captured separately (no CombinedOutput on parsed stdout) and included in the returned error. IsAncestor maps exit code 1 to false via errors.As(*exec.ExitError) and returns every other failure, including exit 128, as an error. The --json field list is a const directly above the struct it decodes into. OpenPRs passes an explicit --limit and treats a full page as truncation (error or Warn), not as the complete list. gh is faked on PATH in tests (re-executed test binary or a fake script serving fixtures); git is tested against a real repo in t.TempDir().",
+      "files": []
     }
   ]
 }
