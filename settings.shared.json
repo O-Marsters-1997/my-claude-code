@@ -28,6 +28,10 @@
           },
           {
             "type": "command",
+            "command": "~/.claude/hooks/require-sql-skills.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/check-written-comments.sh",
             "statusMessage": "Checking added comments"
           }
