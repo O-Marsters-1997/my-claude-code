@@ -23,9 +23,13 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
-                                                                 ^^^^^^^^^^^^^^ you are here
+FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+                                 non-code work: to-prd → to-tickets
+                                                                     ^^^^^^^^^^^^^^ you are here
 ```
+
+**Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
+reason to stop and run another skill first. The one hard gate is the merged scaffold PR.
 
 `./ideas/roadmap.html` and this board are **different altitudes, not rival copies**. A roadmap card is a
 *feature* — something to be built — and one card fans out into several tickets, which is what this

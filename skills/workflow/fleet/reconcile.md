@@ -17,6 +17,10 @@ stdout: `finished` or `unfinished`, followed by the merged branches.
 
 A non-zero exit is an error, not an outcome: show its stderr to the user and stop.
 
+A `contract-change` issue is a ticket like any other: its stub PR carries `Closes #N`, and when
+that merges into the feature branch the command above closes it. Tickets whose only open blocker
+it was show up as `promoted #N`; a ticket with another open blocker stays in backlog.
+
 ## 2. Clean up
 
 Run `tp remove <branch> --merged` for each branch on that line, and for no others. Skip any
@@ -24,9 +28,35 @@ worktree that is dirty. `tp remove` is the only teardown reconcile runs. Whateve
 started beyond its checkout (services, caches, data) is the repo's to clean up in its treepad
 remove hook, so fleet never names a technology.
 
-## 3. Raise the feature PR
+## 3. Check completed slices
 
-Skip this step unless the line starts with `finished`.
+Run this before step 4 so a failing journey is filed before the feature PR goes up.
+
+Read the bodies with `gh issue list --label "<label>" --state all --json number,body,state`. A slice is
+complete when every ticket carrying the same `Slice: <n>` line is closed and merged (a
+`closed-unmerged` or `no-pr` ticket keeps it open), and at least one of them merged this run (its
+branch is on the stdout line). That keeps a later reconcile from rerunning a slice. A ticket without
+a `Slice:` line belongs to no slice.
+
+For each such slice, take its `Journeys:` numbers (union across its tickets) and read those journeys
+from `docs/prds/<feature>.md`. Check out the feature branch `feat/<slug>` and run only those journeys
+with the `run` skill. Save each output as evidence in
+`<scratchpad>/fleet/journeys/slice-<n>-journey-<j>.md`.
+
+Apply the Journey axis from `code-review` to each journey and its evidence. For each failure:
+
+```bash
+gh label create journey-fail --force
+gh issue create --label "<label>" --label journey-fail --title "Journey <j> fails: <journey title>" --body "<body>"
+```
+
+The body names the slice and journey, quotes the `→` end state, and pastes the evidence. List the
+journeys marked needs human eyes in the report; file no ticket for them.
+
+## 4. Raise the feature PR
+
+Skip this step unless the line starts with `finished` and no `journey-fail` ticket under the label
+is open. A fix ticket's merge makes the next reconcile see `finished` again and raise the PR.
 
 ```bash
 gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
@@ -42,11 +72,39 @@ gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 
 It is not a draft: every ticket in it already passed review on its own PR.
 
-## 4. Report
+## 5. Record metrics
+
+Runs only when step 4 raised or found the feature PR; otherwise skip it. Counts come from GitHub, so
+a re-run, or a feature finished before this step existed, gets its row too. `<label>` and `<slug>`
+are the ones used in steps 1 and 4. Each count is a number: add `--limit 500 --json number --jq length`
+to the `gh issue list` calls.
+
+| Column | Derivation |
+|---|---|
+| contract changes | `gh issue list --label "<label>" --label contract-change --state all` |
+| backlog-held | `gh issue list --label "<label>" --state all` with a `Blocked by` section naming at least one issue (not `None`): each sat in `status:backlog` while an earlier wave ran |
+| journey failures | `gh issue list --label "<label>" --label journey-fail --state all` |
+| scaffold comments | take `Scaffold PR: #<n>` from `docs/contracts/<slug>.md`, then `gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate --jq length` from inside the repo; `n/a` when there is no contract or no such line |
+| read scaffold | ask the user "Did you read the scaffold?" (yes/no) and record the answer; `unanswered` if they cannot be asked now; when the row already exists with a yes/no answer, keep it and do not ask again |
+
+The metrics file is `docs/plans/metrics.md`, gitignored with the rest of `docs/plans/`. Create it
+with this header if absent:
+
+```
+| feature | date | contract changes | backlog-held | journey failures | scaffold comments | read scaffold |
+|---|---|---|---|---|---|---|
+```
+
+The first column is the feature label and the key; `date` is today as `YYYY-MM-DD`. If a row with
+that label exists, rewrite that line with the new values; otherwise append one. Never leave two rows
+for a label.
+
+## 6. Report
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
-(`closed-unmerged`, `no-pr`), worktrees removed, and the feature PR's URL if step 3 raised or
-found one.
+(`closed-unmerged`, `no-pr`), slices checked with each journey's result, `journey-fail` tickets
+filed, journeys needing human eyes, worktrees removed, and the feature PR's URL and the metrics row
+written, if step 4 raised or found a PR.
 
 If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
 `/fleet dispatch <label>`, with the label filled in; you cannot clear your own session.

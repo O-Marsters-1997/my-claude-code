@@ -16,7 +16,7 @@ description: >
 Produce a **portfolio** of what to build next in this codebase. The whole run is built on an
 inventory of what the code already does, checked against a market matrix, with every claim tied to
 evidence. It is not a single-idea design session. Each shortlisted idea later becomes its own
-`to-prd` run. Nothing gates anything: a user who already knows what they want goes straight to
+`to-prd` run. Never send the user backwards: a user who already knows what they want goes straight to
 `to-prd`.
 
 ## Hard rules

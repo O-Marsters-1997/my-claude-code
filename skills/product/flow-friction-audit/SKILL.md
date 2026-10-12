@@ -24,7 +24,7 @@ Evidence and agreed problems are the load-bearing output; they stand on their ow
 
 The pipeline splits at the 3b alignment gate, and each half is invoked separately. Running all five stages in one pass makes a single audit expensive, and it leaves the agreed problem space living only in that conversation — so the next run re-derives what's wrong instead of designing against it.
 
-- **`audit` — stages 1 to 4.** Walk the flow, score it, agree the problems, publish the alignment doc and `findings.md`. Ends at alignment; no design work.
+- **`audit` — stages 1 to 4.** Walk the flow, score it, agree the problems, write the alignment doc and `findings.md`. Ends at alignment; no design work.
 - **`shape` — stage 5.** Take an already-aligned problem set and produce researched fix directions. Re-runnable: the problem space is settled, so each invocation spends its budget on ideas rather than rediscovering the friction.
 
 **Route on entry:** the user points at or names an aligned-problems doc → `shape`. Otherwise → `audit`, from stage 1. **Never go looking for a doc the user didn't name** — auto-discovery is the same mistake as reading a prior audit ([Fresh runs](#fresh-runs)): it quietly makes someone else's stale problem set the frame for a flow you haven't looked at yet.
@@ -33,7 +33,6 @@ The pipeline splits at the 3b alignment gate, and each half is invoked separatel
 
 - **A browser driver** — required in `audit` mode, irrelevant in `shape`. Default to `playwright-cli`; behind enterprise SSO, drive the user's authenticated Chrome session with `claude-in-chrome` (stage 1b). If neither is available, stop and say so rather than improvising.
 - **the `playwright-cli` skill** — optional. Defer to it for command syntax rather than reinventing flags here.
-- **Notion access** — for the stage-3b alignment doc. Without it, write the doc as markdown alongside `findings.md` and tell the user it needs publishing by hand; the shared artifact matters more than where it lives.
 - **Open Design (`od`/`odo`)** — optional; `shape` mode's wireframe renderer. If it's absent or the renderer is unavailable, fall back to ASCII and say so — never hard-fail an audit for a missing design tool. [references/open-design.md](references/open-design.md).
 
 ## The pipeline
@@ -58,7 +57,7 @@ Confirm the app is authenticated before driving — a walk that starts logged-ou
 
 **Behind enterprise SSO**, a fresh `playwright-cli` profile can't get past at all — no cookies, no device trust, and manual login in a throwaway profile is often blocked outright. Drive the user's already-authenticated browser with `claude-in-chrome` instead; everything downstream is unchanged. Record the driver in `findings.md` — evidence from a live account has different provenance than a clean profile.
 
-Plain's `support-app` default and the logged-out state: [references/auth.md](references/auth.md).
+A logged-out app shows a sign-in page or a stuck loading overlay in the `snapshot`, never the app content; treat either as unauthenticated.
 
 ### 2. Drive
 
@@ -109,21 +108,21 @@ When the audited product's source is available, read the components behind each 
 
 **Stop and get agreement before spending anything downstream.** Stages 2 and 3 run **blind** — a steered walk finds the friction the user already suspected and misses the rest — so this gate is the first point of human input, after the evidence exists and before any design work does.
 
-Align **on a document, not in chat.** Publish the problems as a new child page under the growth team's Notion home, **📈 Home**, and iterate there: a settled problem space is worth more than an agreement one person remembers — the team reads the same statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking.
+Align **on a document, not in chat.** Write the problems to `alignment.md` in the run's artifacts directory (stage 4) and iterate there: a settled problem space is worth more than an agreement one person remembers — the team reads the same statement of what's wrong, and `shape` re-enters from it as many times as the ideas need reworking.
 
 The page carries a descriptive title, the flow's goal with an honest assessment of how well the flow serves it, and a `## problems` list — things to solve outright or areas to mitigate. **No solution ideas on this page.** An idea smuggled in as a problem gets agreed by proxy and quietly becomes the only direction anyone designs.
 
 Template, the questions to ask while aligning, and the bounded re-entry context the page must carry: [references/alignment-doc.md](references/alignment-doc.md).
 
-**Allocate the design budget here too.** The problems are rarely peers — one is often the mechanism behind another — so ask which get design work and which is load-bearing, before any research runs. The user already holds that answer, and stage 5 is far too late to learn it. Weigh it against the team's current goal metrics, fetched at this gate and never before the walk ([references/alignment-doc.md](references/alignment-doc.md)).
+**Allocate the design budget here too.** The problems are rarely peers — one is often the mechanism behind another — so ask which get design work and which is load-bearing, before any research runs. The user already holds that answer, and stage 5 is far too late to learn it. Weigh it against the team's current goal metrics, asked for at this gate and never before the walk ([references/alignment-doc.md](references/alignment-doc.md)).
 
 Revise until the user agrees, then carry the aligned problems into stage 4. Everything after this — critique, research, fix directions, wireframes — is expensive and shaped entirely by this list.
 
 ### 4. Report
 
-One artifacts directory per run: **`<audited-repo>/.claude/friction-audit/<flow>-<YYYYMMDD>/`** — the repo of the product you audited, not wherever you were invoked from. An audit belongs next to its product. It holds `findings.md` and the wireframe HTML; no screenshots, and no throwaway scripts you used to generate them.
+One artifacts directory per run: **`<audited-repo>/.claude/friction-audit/<flow>-<YYYYMMDD>/`** — the repo of the product you audited, not wherever you were invoked from. An audit belongs next to its product. It holds `findings.md`, `alignment.md` and the wireframe HTML; no screenshots, and no throwaway scripts you used to generate them.
 
-**Two homes, one link each.** Notion owns the summary and the problems — the product layer the team aligns on. This directory owns the evidence, and later the critique and fix directions. Link each to the other exactly once rather than restating either inside the other.
+**Two files, one link each.** `alignment.md` owns the summary and the problems — the product layer the team aligns on. `findings.md` owns the evidence, and later the critique and fix directions. Link each to the other exactly once rather than restating either inside the other.
 
 Write `findings.md` with [assets/findings-template.md](assets/findings-template.md), which fixes the section order. Two rules that order enforces: **lead with a summary** (goal, flow, driver, one-paragraph verdict, the problems as bullets, headline counts) so a reader gets the story in thirty seconds; and **problems before findings**, each citing its IDs, with the findings as the layer that proves them and the step log after. State the conclusion, then show the work — and state it **once**, so no restatement drifts out of sync.
 

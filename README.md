@@ -29,7 +29,7 @@ Eight skills that take work from a raw idea through to tickets on a board. See
 once — the skills call each other, so a partial install leaves broken handoffs:
 
 ```
-for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-plan to-tickets ticket-tracker; do
+for s in artifact-scan ideate chat-to-approach to-roadmap to-prd to-scaffold to-tickets ticket-tracker; do
   npx skills add O-Marsters-1997/my-claude-code --skill "$s" -g -y
 done
 ```
@@ -41,8 +41,8 @@ done
 | `chat-to-approach` | portfolio | a pasted conversation | `./docs/approach.md` |
 | `to-roadmap` | portfolio | `./docs/approach.md` | `./ideas/roadmap.html` (cards are features) |
 | `to-prd` | feature | one feature | `./docs/prd-<feature>.md` + a `[PRD]` issue |
-| `to-plan` | feature | a PRD | `./docs/plans/<feature>.md` |
-| `to-tickets` | feature | a plan | GitHub issues |
+| `to-scaffold` | feature | a PRD | a scaffold PR carrying the technical design |
+| `to-tickets` | feature | a PRD, or the merged scaffold PR | GitHub issues |
 | `ticket-tracker` | feature | GitHub issues | `status:*` label moves |
 
 The suite calls three routines that are not stages. These sit at depth 2, so they install normally:
