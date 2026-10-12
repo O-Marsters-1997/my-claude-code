@@ -9,6 +9,42 @@
     },
     {
       "id": 2,
+      "prompt": "Create a Go module (example.com/pricing, stdlib only). Package internal/pricing: type Item struct { SKU string; PriceCents int64; Qty int }, and func Total(items []Item, coupon string) (int64, error). Total sums PriceCents*Qty. Coupon \"\" means none; \"TEN\" takes 10% off, rounded down; \"FIVEOFF\" takes 500 cents off, floored at 0. Any other coupon is an error callers must be able to detect, and so is an item with Qty <= 0. Write the tests for it.",
+      "expected_output": "Tests live in package pricing_test. Success cases are a table of structs with a name field run through t.Run(tt.name, ...); error cases are a separate test, with no wantErr branch inside the success table. The two error conditions are exported sentinels with lowercase messages and no \"failed to\", matched with errors.Is, never by string. Failure messages read Total(...) = got, want want. No reflect.DeepEqual, no time.Sleep.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "This is a small application. Add a FindByEmail lookup to the store, and tidy up the store code while you're in there. No SQL driver is available, so don't add one; the code only has to compile.",
+      "expected_output": "The helpers package is renamed for what it does or folded into its caller; no helpers or common package remains. The global DB and init() are gone and *sql.DB is injected through a constructor. Code moves under internal/. NewUser loses its six positional arguments (the unused createdBy is dropped or the arguments grouped). RoleLabel uses a switch. Get has no else after a return. Not-found is an exported sentinel matched with errors.Is, error strings are lowercase with no \"failed to\" or trailing punctuation, and no error is discarded. FindByEmail takes a context and uses QueryRowContext. No comments that restate the code.",
+      "files": [
+        "evals/files/refactor-store"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Add an optional Nickname to User. API clients may omit it from the JSON. Add a test for decoding with and without it.",
+      "expected_output": "Nickname is never *string. Either Option[T] (from references/optional.md), or a plain string with omitempty when absent and empty need not be told apart. Test is in package user_test, no reflect.DeepEqual.",
+      "files": [
+        "evals/files/optional-field"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "NewServer needs to take a read timeout, a logger and a TLS config, and we expect more settings to be added later. Update it and its caller.",
+      "expected_output": "NewServer(addr, opts ...Option) with WithReadTimeout, WithLogger and WithTLSConfig, or a config struct; never new positional arguments. The logger defaults to slog.New(slog.DiscardHandler); no slog.Default or log.* in the server package.",
+      "files": [
+        "evals/files/server-settings"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create a Go module (example.com/limiter, stdlib only) with package internal/ratelimit: a token-bucket rate limiter, safe for concurrent use, with an Allow() bool method and an unexported refill step driven by an injectable clock so it can be tested without sleeping. Add tests.",
+      "expected_output": "Doc comments only on exported identifiers, three lines or fewer; no comment on the unexported refill or any other unexported identifier; no inline comments restating the code. Tests use an injected clock, never time.Sleep.",
+      "files": []
+    },
+    {
+      "id": 7,
       "prompt": "Make a Go module example.com/prwatch (stdlib only). Package internal/gh: OpenPRs(ctx, repoDir) ([]PR, error) that runs `gh pr list --state open --json ...` and returns number, title and head branch for each open PR. Package internal/git: IsAncestor(ctx, repoDir, a, b string) (bool, error) using `git merge-base --is-ancestor`. Add tests for both. Make `go build ./... && go vet ./... && go test ./...` pass (gh need not be installed; git is).",
       "expected_output": "Commands built as argv slices, never sh -c. Each call wraps ctx in context.WithTimeout with a named timeout constant and sets cmd.WaitDelay; prompts are disabled via GH_PROMPT_DISABLED / GIT_TERMINAL_PROMPT. Stderr is captured separately (no CombinedOutput on parsed stdout) and included in the returned error. IsAncestor maps exit code 1 to false via errors.As(*exec.ExitError) and returns every other failure, including exit 128, as an error. The --json field list is a const directly above the struct it decodes into. OpenPRs passes an explicit --limit and treats a full page as truncation (error or Warn), not as the complete list. gh is faked on PATH in tests (re-executed test binary or a fake script serving fixtures); git is tested against a real repo in t.TempDir().",
       "files": []

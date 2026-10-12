@@ -5,42 +5,12 @@ Design patterns and interface conventions for idiomatic Go.
 ## Contents
 
 - [Core Principles](#core-principles)
-- [Error Handling](#error-handling)
 - [Interface Design](#interface-design)
-- [Memory and Performance](#memory-and-performance)
-- [Go Tooling](#go-tooling-integration)
-- [Quick Reference](#quick-reference-go-idioms)
 - [Anti-Patterns](#anti-patterns-to-avoid)
 
 ---
 
 ## Core Principles
-
-### Simplicity and Clarity
-
-Go favors simplicity over cleverness. Code should be obvious to read.
-
-```go
-// Good: clear and direct
-func GetUser(id string) (*User, error) {
-    user, err := db.FindUser(id)
-    if err != nil {
-        return nil, fmt.Errorf("get user %s: %w", id, err)
-    }
-    return user, nil
-}
-
-// Bad: overly clever
-func GetUser(id string) (*User, error) {
-    return func() (*User, error) {
-        if u, e := db.FindUser(id); e == nil {
-            return u, nil
-        } else {
-            return nil, e
-        }
-    }()
-}
-```
 
 ### Make the Zero Value Useful
 
@@ -88,21 +58,6 @@ sits beside a sibling of the same underlying type, as in `Cancel(launchID, runID
 compiler then rejects a swapped argument. Untyped literals (`Cancel(3, 4)`) and explicit
 conversions (`RunID(launchID)`) still get through. An identifier with no same-typed sibling
 stays a plain `string` or `int64`.
-
----
-
-## Error Handling
-
-Creating, wrapping, matching and cleaning up errors, and when `panic` is allowed, are covered in
-`references/errors.md`.
-
----
-
-## Concurrency
-
-Goroutines, channels, errgroup, worker pools, leak avoidance, and graceful shutdown are covered
-in `references/concurrency.md`. Load that reference whenever the work involves `go`, `chan`,
-`select`, `sync.*`, or `context` cancellation.
 
 ---
 
@@ -158,123 +113,6 @@ func WriteAndFlush(w io.Writer, data []byte) error {
 
 ---
 
-## Memory and Performance
-
-### Preallocate Slices When Size Is Known
-
-```go
-// Bad: multiple reallocations
-func processItems(items []Item) []Result {
-    var results []Result
-    for _, item := range items {
-        results = append(results, process(item))
-    }
-    return results
-}
-
-// Good: single allocation
-func processItems(items []Item) []Result {
-    results := make([]Result, 0, len(items))
-    for _, item := range items {
-        results = append(results, process(item))
-    }
-    return results
-}
-```
-
-### Use `sync.Pool` for Frequent Allocations
-
-```go
-var bufferPool = sync.Pool{
-    New: func() any { return new(bytes.Buffer) },
-}
-
-func ProcessRequest(data []byte) []byte {
-    buf := bufferPool.Get().(*bytes.Buffer)
-    defer func() {
-        buf.Reset()
-        bufferPool.Put(buf)
-    }()
-
-    buf.Write(data)
-    return buf.Bytes()
-}
-```
-
-### Avoid String Concatenation in Loops
-
-```go
-// Bad: creates many short-lived strings
-func join(parts []string) string {
-    var result string
-    for _, p := range parts {
-        result += p + ","
-    }
-    return result
-}
-
-// Best: standard library handles this
-func join(parts []string) string {
-    return strings.Join(parts, ",")
-}
-
-// When you need more control: strings.Builder
-func join(parts []string) string {
-    var sb strings.Builder
-    for i, p := range parts {
-        if i > 0 {
-            sb.WriteByte(',')
-        }
-        sb.WriteString(p)
-    }
-    return sb.String()
-}
-```
-
----
-
-## Go Tooling Integration
-
-```bash
-# Build and run
-go build ./...
-go run ./cmd/myapp
-
-# Testing
-go test ./...
-go test -race ./...
-go test -cover ./...
-
-# Static analysis
-go vet ./...
-staticcheck ./...
-golangci-lint run
-
-# Module management
-go mod tidy
-go mod verify
-
-# Formatting
-gofmt -w .
-goimports -w .
-```
-
----
-
-## Quick Reference: Go Idioms
-
-| Idiom | Description |
-|-------|-------------|
-| Accept interfaces, return structs | Functions accept interfaces, return concrete types |
-| Errors are values | Treat errors as first-class values, not exceptions |
-| Don't communicate by sharing memory | Use channels for coordination between goroutines |
-| Make the zero value useful | Types should work without explicit initialisation |
-| A little copying is better than a little dependency | Avoid unnecessary external dependencies |
-| Clear is better than clever | Prioritise readability over cleverness |
-| Return early | Handle errors first; keep the happy path unindented |
-
----
-
 ## Anti-Patterns to Avoid
 
 ```go
@@ -301,6 +139,3 @@ func (c Counter) Value() int  { return c.n }  // value
 func (c *Counter) Inc()       { c.n++ }       // pointer
 // Pick one and be consistent across all methods on the type
 ```
-
-**Remember**: Go code should be boring in the best way — predictable, consistent, and easy to
-understand. When in doubt, keep it simple.
