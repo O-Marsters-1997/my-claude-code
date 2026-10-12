@@ -28,12 +28,13 @@ Route to the right reference before reading further:
 | If you're working on…                                                          | Load this                        |
 | ------------------------------------------------------------------------------ | -------------------------------- |
 | Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
-| Returning, wrapping, matching or discarding an error; sentinels; `panic`      | `references/errors.md`           |
-| Any `slog` or `log` call, passing a logger, or printing output for a CLI user  | `references/logging.md`          |
+| Adding a sentinel or error type, translating errors between packages, cleanup in `defer`, `panic` | `references/errors.md` |
+| Giving `main` or a component a logger, choosing a level, CLI output vs logs    | `references/logging.md`          |
 | Interface design, zero values, performance idioms, anti-patterns               | `references/patterns.md`         |
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
+| Setting up or changing the repo's golangci-lint config                         | `references/lint.md`             |
 | Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
 
 ---
@@ -51,6 +52,7 @@ golangci-lint run     # aggregated linter suite
 ```
 
 Configure the linter and let it run — don't write rules here for anything it already enforces.
+`references/lint.md` has a config that enforces this skill's mechanical rules.
 
 ---
 
@@ -276,9 +278,9 @@ to a task described as error handling:
    for the error. Never log secrets or personal data.
 8. Output the user asked for goes to an injected `io.Writer`, not to the logger.
 
-Load `references/errors.md` for sentinel layering, cleanup and panic examples, and
-`references/logging.md` for levels, keys, tests and CLI output. Each ends with the golangci-lint
-settings that enforce its rules.
+A routine `return fmt.Errorf(...)` or log line needs only these rules. Load `references/errors.md`
+when adding a sentinel or error type, or handling a cleanup error, and `references/logging.md` when
+wiring a logger, choosing a level or separating CLI output.
 
 ---
 
@@ -353,7 +355,7 @@ Core rules:
 15. Test HTTP handlers through the real router and middleware.
 
 Load `references/testing.md` for worked examples of each kind of test (unit, fake plus contract
-suite, HTTP, golden, fuzz, benchmark) and a golangci-lint snippet that enforces the mechanical rules.
+suite, HTTP, golden, fuzz, benchmark).
 
 ---
 
