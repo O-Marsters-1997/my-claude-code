@@ -64,6 +64,7 @@ Decide whether the feature is code or not:
   its Scaffold PR is not merged, stop and offer `/to-scaffold`. Never cut a code feature from prose.
 - **Non-code feature** (docs, skills, config) — the source is the PRD, `docs/prds/<feature>.md`, or a
   `[PRD]`-titled GitHub issue (`gh issue view <number>`, with comments). Cut from the PRD's slices.
+  A conversation the user pastes stands in for the PRD here.
 
 Record the source path or issue number. Settle the **feature label** every ticket gets: the contract's
 `Label:` line, else ask the user for one before drafting. Never file unlabelled tickets. Feature
@@ -154,7 +155,7 @@ issue number by the time the ticket it blocks is created. Blocking is prose only
 <  PRD:          "## Parent PRD" + `docs/prds/<feature>.md` and/or #<prd-issue-number>>
 
 Slice: <n>
-Journeys: <n, …>
+Journeys: <n, …>   (non-code feature: the PRD's journey numbers, or "none" if it lists none)
 
 ## Stubs
 
