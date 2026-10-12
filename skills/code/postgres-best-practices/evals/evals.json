@@ -18,6 +18,12 @@
       "prompt": "Write an upsert for a users table keyed by email, and a language-agnostic note on how the caller should detect that a different unique constraint (users_handle_key) was violated.",
       "expected_output": "ON CONFLICT names its target (email or the named constraint), not bare. The caller matches SQLSTATE 23505 by constraint name users_handle_key, not by error message text.",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "The repo has a sqlc.yaml. Add a query that lists applications filtered optionally by status and by a set of ids, and write the CI step that checks generated code is current.",
+      "expected_output": "Query name starts with List. Parameters use sqlc.arg/sqlc.narg (optional status via sqlc.narg, not a '' sentinel) and ids via ANY(sqlc.arg(...)::uuid[]) (sqlc.slice is not used on Postgres), never unnamed $n. CI regenerates with a pinned sqlc version and fails on git status --porcelain output so untracked files are caught, not just git diff --exit-code.",
+      "files": []
     }
   ]
 }
