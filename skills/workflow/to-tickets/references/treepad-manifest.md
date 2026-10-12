@@ -18,28 +18,28 @@ Treepad unions every `*.toml` in that directory, so one file per feature is the 
 name = "silent-refresh"
 
 [[chain]]
-tickets = ["ENG-12", "ENG-13", "ENG-14"]
+tickets = ["12", "13", "14"]
 
 [[chain]]
-tickets = ["ENG-20"]
+tickets = ["20"]
 
 [[chain]]
-tickets = ["ENG-21"]
+tickets = ["21"]
 ```
 
-A fan-out, where `ENG-13`, `ENG-14` and `ENG-15` all wait on `ENG-12` and on nothing else:
+A fan-out, where `13`, `14` and `15` all wait on `12` and on nothing else:
 
 ```toml
 [[chain]]
-tickets = ["ENG-12", "ENG-13"]
+tickets = ["12", "13"]
 
 [[chain]]
-base    = "feat/eng-12"
-tickets = ["ENG-14"]
+base    = "feat/12"
+tickets = ["14"]
 
 [[chain]]
-base    = "feat/eng-12"
-tickets = ["ENG-15"]
+base    = "feat/12"
+tickets = ["15"]
 ```
 
 | Field | Default | Set it when |
@@ -50,9 +50,9 @@ tickets = ["ENG-15"]
 | `[[chain]]` | — | One per chain; `tickets` is ordered, bottom first |
 | `[[chain]].base` | `base` | This chain roots on another chain's branch (a fan-out) |
 
-`tickets` holds bare Refs — `ENG-12` on Linear, the issue number on GitHub. Treepad renders them
+`tickets` holds bare Refs — the GitHub issue number. Treepad renders them
 through `[from_spec] ticket_url` in `.treepad.toml` and derives branch names from them
-(`feat/eng-12`). **If `ticket_url` is not configured in the repo, `tp batch sync` errors** — say so
+(`feat/12`). **If `ticket_url` is not configured in the repo, `tp batch sync` errors** — say so
 when you write the file rather than leaving it to fail later. A full URL works in place of a Ref and
 needs no config, but yields worse branch names, so prefer the Ref.
 
@@ -93,7 +93,7 @@ A chain of one ticket is normal and correct — it just never becomes a GitHub S
 One shared parent is modellable now, via the fan-out rule above. What is left is the join: a slice
 blocked by **two or more** others has no faithful placement, because `base` takes one branch.
 Put it at the end of the chain holding its longest blocker path, and tell the user which dependency
-the Manifest drops. Nothing is lost from the record — the Linear `blockedBy` relation still holds
+the Manifest drops. Nothing is lost from the record — the "Blocked by" section on the ticket still lists
 every blocker; only treepad's worktree base is approximate.
 
 If that case is common in a run, the slices are probably too coarse. Say so.
