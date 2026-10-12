@@ -1,0 +1,23 @@
+{
+  "skill_name": "postgres",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a Postgres migration adding a tasks table: id uuid primary key, project_id referencing projects(id) with ON DELETE CASCADE, a status that is one of queued, running, done or failed, a payload holding arbitrary JSON, and created_at and finished_at timestamps. Also add a pending-tasks-per-project lookup query.",
+      "expected_output": "status is text with a named CHECK constraint, not a CREATE TYPE ... AS ENUM and not unchecked text. project_id has its own named index. payload is jsonb. created_at and finished_at are timestamptz. Every constraint and index has an explicit name in one scheme. The query lists columns explicitly with no SELECT *.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Write the SQL for a worker that claims the next queued job from the jobs table (id, status, lease_expires_at, claimed_by) for a lease of 5 minutes, so several workers can run at once and never take the same job.",
+      "expected_output": "Uses FOR UPDATE SKIP LOCKED in a subselect or CTE and updates the claimed row in the same statement, returning an explicit column list (no RETURNING *). The lease expiry and the current time are passed as parameters, not computed with NOW() inside the query. No separate SELECT then UPDATE without locking.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Write an upsert for a users table keyed by email, and a language-agnostic note on how the caller should detect that a different unique constraint (users_handle_key) was violated.",
+      "expected_output": "ON CONFLICT names its target (email or the named constraint), not bare. The caller matches SQLSTATE 23505 by constraint name users_handle_key, not by error message text.",
+      "files": []
+    }
+  ]
+}
