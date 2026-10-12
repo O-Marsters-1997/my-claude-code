@@ -47,29 +47,11 @@ Keep one helper that runs a function inside a transaction, and have every multi-
 go through it:
 
 ```go
-func (s *Store) inTx(ctx context.Context, fn func(q queries) error) error {
-    tx, err := s.db.begin(ctx)
-    if err != nil {
-        return fmt.Errorf("begin tx: %w", err)
-    }
-    if err := fn(tx.queries()); err != nil {
-        return errors.Join(err, rollback(ctx, tx))
-    }
-    if err := tx.commit(ctx); err != nil {
-        return errors.Join(fmt.Errorf("commit tx: %w", err), rollback(ctx, tx))
-    }
-    return nil
-}
-
-func rollback(ctx context.Context, tx transaction) error {
-    if err := tx.rollback(context.WithoutCancel(ctx)); err != nil {
-        return fmt.Errorf("rollback tx: %w", err)
-    }
-    return nil
-}
+func (s *Store) inTx(ctx context.Context, fn func(q Queries) error) error
 ```
 
-Rules the shape encodes:
+`Queries` stands for whatever handle the store's query layer provides, bound to the transaction.
+The rules:
 
 1. Roll back on every path that did not commit: an error from `fn` or a failed commit. Return
    from each branch explicitly; a deferred rollback that tests a named `err` return is silently
@@ -89,25 +71,8 @@ the helper once per store.
 
 A read that decides a write belongs in the same transaction as the write. Reading the old state
 outside the transaction and then writing inside it lets another writer change the row in between,
-so the decision is made on stale data:
-
-```go
-func (s *Store) SetStatus(ctx context.Context, id ApplicationID, to Status) error {
-    return s.inTx(ctx, func(q queries) error {
-        old, err := q.status(ctx, id)
-        if err != nil {
-            return fmt.Errorf("read status of %d: %w", id, err)
-        }
-        if !old.CanMoveTo(to) {
-            return fmt.Errorf("move %d from %s to %s: %w", id, old, to, ErrInvalidTransition)
-        }
-        if err := q.setStatus(ctx, id, to); err != nil {
-            return fmt.Errorf("set status of %d: %w", id, err)
-        }
-        return nil
-    })
-}
-```
+so the decision is made on stale data. Do both inside one `inTx` callback: read the old state,
+validate the transition, write the new one.
 
 When the read must also block concurrent writers, lock the row in the query (`FOR UPDATE`, see the
 `postgres-best-practices` skill) or make the write conditional on the old value.
@@ -117,23 +82,8 @@ When the read must also block concurrent writers, lock the row in the query (`FO
 ## NULL at the Boundary
 
 A nullable column is an optional value: `Option[T]` in the domain type (see
-[optional.md](optional.md)). The store converts in both directions, in one place:
-
-```go
-func toOption[T any](v nullable[T]) option.Option[T] {
-    if !v.Valid {
-        return option.None[T]()
-    }
-    return option.Some(v.Value)
-}
-
-func fromOption[T any](o option.Option[T]) nullable[T] {
-    if o.IsNone() {
-        return nullable[T]{}
-    }
-    return nullable[T]{Value: o.Unwrap(), Valid: true}
-}
-```
+[optional.md](optional.md)). The store converts the driver's null representation to and from
+`Option[T]` in both directions, in one place, and nowhere else.
 
 1. Never read a null wrapper's value field (`.String`, `.Int64`) without checking `.Valid`. An
    invalid wrapper holds the zero value, which is indistinguishable from real data.
@@ -148,25 +98,11 @@ func fromOption[T any](o option.Option[T]) nullable[T] {
 
 A unique violation becomes a domain error. Match it on the constraint name, not only the error
 code: the code says some unique constraint failed, the name says which one, and a table with two
-unique constraints needs two different answers.
+unique constraints needs two different answers. The store returns an exported sentinel such as
+`ErrEmailTaken` wrapped with context, per [errors.md](errors.md#sentinel-layering).
 
-```go
-var ErrEmailTaken = errors.New("store: email taken")
-
-func (s *Store) CreateUser(ctx context.Context, u User) error {
-    err := s.insertUser(ctx, u)
-    if isUniqueViolation(err, "users_email_key") {
-        return fmt.Errorf("create user: %w", ErrEmailTaken)
-    }
-    if err != nil {
-        return fmt.Errorf("insert user: %w", err)
-    }
-    return nil
-}
-```
-
-`isUniqueViolation` is the only function that inspects the driver error type; it checks the code
-and the constraint name and lives in the store. Name constraints explicitly in the migration so
+One helper in the store is the only code that inspects the driver error type; it checks the code
+and the constraint name. Name constraints explicitly in the migration so
 the string in Go is stable. The same applies to foreign-key and check violations.
 
 ---
@@ -208,23 +144,6 @@ Test the store against real Postgres, never a mocked driver (see
    template. Cloning takes milliseconds and every test starts from a known schema.
 4. Drop the cloned database in `t.Cleanup`. Do not `TRUNCATE` between tests: it serialises the
    suite on one database, leaks rows when a test forgets, and blocks `t.Parallel()`.
-
-```go
-func newTestStore(t *testing.T) *Store {
-    t.Helper()
-    dsn := cloneTemplate(t)
-    s, err := Open(t.Context(), dsn)
-    if err != nil {
-        t.Fatalf("Open() error = %v", err)
-    }
-    t.Cleanup(func() {
-        if err := s.Close(); err != nil {
-            t.Errorf("Close() error = %v", err)
-        }
-    })
-    return s
-}
-```
 
 Run the contract suite from [testing.md](testing.md#test-doubles-fakes-and-contract-suites)
 against the real store built this way, and against the in-memory fake.
