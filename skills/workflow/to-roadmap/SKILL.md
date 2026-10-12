@@ -33,8 +33,10 @@ features at once. Crossing to the spine means picking one card — six cards mea
 runs of `to-prd → to-scaffold → to-tickets`, each producing its own several tickets.
 
 **Never send the user backwards.** A missing upstream artifact is written inline or offered, never a
-reason to stop and run another skill first. The one hard gate is the merged scaffold PR. Board from `./docs/approach.md`, from `## Accepted ideas` in
-`./ideas/CONTEXT.md`, or from a short list the user gives you. The one thing this skill will not do
+reason to stop and run another skill first. The one hard gate is the merged scaffold PR.
+
+Board from `./docs/approach.md`, from `## Accepted ideas` in `./ideas/CONTEXT.md`, or from a short
+list the user gives you. The one thing this skill will not do
 is build a roadmap by parsing a raw conversation — `chat-to-approach` owns that (see Phase 0).
 
 Solo/indie-builder scale throughout: no assignees, no story points, no sprints, no stakeholder
