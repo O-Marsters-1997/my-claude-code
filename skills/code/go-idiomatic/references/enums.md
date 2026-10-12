@@ -64,8 +64,22 @@ func (s Status) Valid() bool {
 `ParseStatus("")` is an error, and `Status("")` stays the unknown zero value. Callers that receive
 a `Status` from a trusted source need no check; callers at a boundary call `ParseStatus`.
 
-For JSON, implement `UnmarshalText` by calling `ParseStatus`, so decoding rejects unknown values
-without every handler remembering to.
+`statusLabels` doubles as the membership set, so a constant added without a map entry fails to
+parse. That keeps one place to update.
+
+Route JSON decoding (and `Scan` for a database column) through `ParseStatus`, so decoding rejects
+unknown values without every caller remembering to:
+
+```go
+func (s *Status) UnmarshalText(b []byte) error {
+	st, err := ParseStatus(string(b))
+	if err != nil {
+		return err
+	}
+	*s = st
+	return nil
+}
+```
 
 ## Exhaustive switches
 
@@ -80,11 +94,15 @@ func (s Status) Terminal() bool {
 	case StatusPlaced, StatusShipped:
 		return false
 	}
-	return false
+	panic("order: unhandled status " + string(s))
 }
 ```
 
-Enable the `exhaustive` linter and set `default-signifies-exhaustive: false`:
+The tail `panic` covers the unknown zero value, which parsing keeps out. A tail `return false` would
+silently treat a new value as non-terminal if the linter were off.
+
+Enable the `exhaustive` linter and set `default-signifies-exhaustive: false` explicitly, so a
+config that flips it is visible in review (golangci-lint v2 layout):
 
 ```yaml
 linters:
