@@ -26,9 +26,17 @@ Judge every boundary with the `codebase-design` vocabulary.
 
 Read `docs/prds/<feature>.md`. If the user names a feature, use that file. If more than one PRD
 exists and the target is not obvious, ask which one before starting; never scaffold several
-features in one run. If no PRD exists, say so and offer `/to-prd`; the user decides whether to write one first.
+features in one run. If no PRD exists, write the core inline (below) and carry on, rather than sending the user to `/to-prd`.
 
 `<feature>` is the PRD's filename without `.md`; `<slug>` below is the same string.
+
+**No PRD: write the core.** Ask a short interview, one question at a time and skipping what the
+conversation already answers: the problem in one line, the journeys (each with a surface, 2 to 5
+steps and a `→ <observable state>` final line), then the delivery slices. Write it to
+`docs/prds/<feature>.md` (kebab-case, creating `docs/prds/` if missing) in `to-prd`'s core
+format (its `references/project-doc.md`): `### Problem`, numbered `### J1.` journeys, and numbered
+delivery slices each naming what is usable after it and its `Journeys: J…`. Every journey sits in
+exactly one slice. Show it to the user, confirm, then continue with step 2. Skip the optional layer.
 
 ### 2. Explore the codebase
 
@@ -64,9 +72,11 @@ against them. Fix until it does. Do not implement behaviour.
 ### 5. Quiz the user
 
 Present the module boundaries, the usage example, and the proposed slices as a numbered list.
-For each slice show what is usable after it in product terms, and the PRD journeys it covers.
-Ask whether the granularity and boundaries feel right. Iterate until approved. Slices are
-vertical: each is demoable on its own and cuts through every layer.
+The slices are the PRD's delivery slices, in its order, each named as the PRD names it with its
+journey numbers; split one only if the user agrees, keeping the parts under its name.
+For each slice show what is usable after it in product terms. Ask whether the granularity and
+boundaries feel right. Iterate until approved. Slices are vertical: each is demoable on its own
+and cuts through every layer.
 
 ### 6. Open the scaffold PR
 
@@ -104,7 +114,7 @@ The work is implementing the stubs. Signatures are frozen: changing one is a `co
 
 ## Implementation order
 
-### Slice 1: <what is usable after it, in product terms> (journeys 1, 2)
+### Slice 1: <PRD slice name: what is usable after it, in product terms> (J1, J2)
 - `path/to/file.go:Symbol`: one line on what it does
 
 ## Notes
@@ -114,6 +124,8 @@ Only what code cannot say: rationale, ordering and invariants, gotchas, conventi
 
 Rules:
 
+- Every slice heading matches a PRD delivery slice and lists that slice's journey numbers, in the
+  PRD's order. A PRD slice with no stubs still gets a heading, saying so.
 - Every stub appears under exactly one slice. Check by listing the stubs from the diff against the
   contract; none missing, none invented.
 - One bullet per symbol, one line each. No signatures in the contract: the code is the source.
