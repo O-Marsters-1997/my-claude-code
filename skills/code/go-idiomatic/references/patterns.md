@@ -81,6 +81,14 @@ func ProcessData(r io.Reader) (*Result, error) {
 }
 ```
 
+### Define Types for Swappable Identifiers
+
+Give an identifier its own type (`type RunID int64`) when it crosses a package boundary and
+sits beside a sibling of the same underlying type, as in `Cancel(launchID, runID int64)`. The
+compiler then rejects a swapped argument. Untyped literals (`Cancel(3, 4)`) and explicit
+conversions (`RunID(launchID)`) still get through. An identifier with no same-typed sibling
+stays a plain `string` or `int64`.
+
 ---
 
 ## Error Handling Patterns
