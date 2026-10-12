@@ -4,16 +4,16 @@ command -v jq >/dev/null || exit 0
 
 INPUT=$(cat)
 FILE=$(jq -r '.tool_input.file_path // empty' <<<"$INPUT")
-case "$FILE" in
+case "$(tr '[:upper:]' '[:lower:]' <<<"$FILE")" in
 */vendor/*) exit 0 ;;
 *.sql) ;;
 *) exit 0 ;;
 esac
 
-GENERATED='^-- (Code generated|Generated|@generated).*(DO NOT EDIT|generated)'
+GENERATED='^-- Code generated .* DO NOT EDIT\.$'
 if [ -f "$FILE" ]; then
-	head -n 20 "$FILE" | grep -qiE "$GENERATED" && exit 0
-elif jq -r '.tool_input.content // empty' <<<"$INPUT" | head -n 20 | grep -qiE "$GENERATED"; then
+	head -n 20 "$FILE" | grep -qE "$GENERATED" && exit 0
+elif jq -r '.tool_input.content // empty' <<<"$INPUT" | head -n 20 | grep -qE "$GENERATED"; then
 	exit 0
 fi
 
