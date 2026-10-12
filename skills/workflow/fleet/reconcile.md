@@ -28,9 +28,35 @@ worktree that is dirty. `tp remove` is the only teardown reconcile runs. Whateve
 started beyond its checkout (services, caches, data) is the repo's to clean up in its treepad
 remove hook, so fleet never names a technology.
 
-## 3. Raise the feature PR
+## 3. Check completed slices
 
-Skip this step unless the line starts with `finished`.
+Run this before step 4 so a failing journey is filed before the feature PR goes up.
+
+Read the bodies with `gh issue list --label "<label>" --state all --json number,body,state`. A slice is
+complete when every ticket carrying the same `Slice: <n>` line is closed and merged (a
+`closed-unmerged` or `no-pr` ticket keeps it open), and at least one of them merged this run (its
+branch is on the stdout line). That keeps a later reconcile from rerunning a slice. A ticket without
+a `Slice:` line belongs to no slice.
+
+For each such slice, take its `Journeys:` numbers (union across its tickets) and read those journeys
+from `docs/prds/<feature>.md`. Check out the feature branch `feat/<slug>` and run only those journeys
+with the `run` skill. Save each output as evidence in
+`<scratchpad>/fleet/journeys/slice-<n>-journey-<j>.md`.
+
+Apply the Journey axis from `code-review` to each journey and its evidence. For each failure:
+
+```bash
+gh label create journey-fail --force
+gh issue create --label "<label>" --label journey-fail --title "Journey <j> fails: <journey title>" --body "<body>"
+```
+
+The body names the slice and journey, quotes the `→` end state, and pastes the evidence. List the
+journeys marked needs human eyes in the report; file no ticket for them.
+
+## 4. Raise the feature PR
+
+Skip this step unless the line starts with `finished` and no `journey-fail` ticket under the label
+is open. A fix ticket's merge makes the next reconcile see `finished` again and raise the PR.
 
 ```bash
 gh pr list --base main --head "feat/<slug>" --state open --json url     # reuse if present
@@ -46,10 +72,11 @@ gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 
 It is not a draft: every ticket in it already passed review on its own PR.
 
-## 4. Report
+## 5. Report
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
-(`closed-unmerged`, `no-pr`), worktrees removed, and the feature PR's URL if step 3 raised or
+(`closed-unmerged`, `no-pr`), slices checked with each journey's result, `journey-fail` tickets
+filed, journeys needing human eyes, worktrees removed, and the feature PR's URL if step 4 raised or
 found one.
 
 If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
