@@ -22,7 +22,7 @@
     {
       "id": 4,
       "prompt": "The repo has a sqlc.yaml. Add a query that lists applications filtered optionally by status and by a set of ids, and write the CI step that checks generated code is current.",
-      "expected_output": "Query name starts with List. Parameters use sqlc.arg/sqlc.narg (optional status via sqlc.narg, not a '' sentinel) and ids via ANY(sqlc.arg(...)::uuid[]) or sqlc.slice, never unnamed $n. CI regenerates with a pinned sqlc version and fails on git status --porcelain output so untracked files are caught, not just git diff --exit-code.",
+      "expected_output": "Query name starts with List. Parameters use sqlc.arg/sqlc.narg (optional status via sqlc.narg, not a '' sentinel) and ids via ANY(sqlc.arg(...)::uuid[]) (sqlc.slice is not used on Postgres), never unnamed $n. CI regenerates with a pinned sqlc version and fails on git status --porcelain output so untracked files are caught, not just git diff --exit-code.",
       "files": []
     }
   ]

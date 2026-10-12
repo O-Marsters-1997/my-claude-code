@@ -2,7 +2,8 @@
 
 Load only when the repo has a `sqlc.yaml` (or `sqlc.json`). Rules for writing the queries sqlc
 compiles and for configuring and verifying generation. Keeping generated types inside the store
-is covered in `go-idiomatic` `references/database.md`; this file does not restate it.
+is covered in [`go-idiomatic` database.md](../../go-idiomatic/references/database.md); this file
+does not restate it.
 
 ## Contents
 
@@ -82,7 +83,7 @@ sql:
             go_type: time.Time
           - db_type: timestamptz
             nullable: true
-            go_type: { type: time.Time, pointer: true }
+            go_type: { import: time, type: Time, pointer: true }
         rename:
           id: ID
           url: URL
