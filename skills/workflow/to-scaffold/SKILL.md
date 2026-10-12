@@ -1,12 +1,10 @@
 ---
 name: to-scaffold
 description: >
-  Turns one feature's PRD into compiling stubs and a contract: writes a usage example first,
-  derives types and signatures from it, commits module boundaries with `not implemented` bodies,
-  opens them as a draft PR into the feature branch, then writes docs/plans/<feature>.md and
-  creates the project:<slug> label. Use for code features:
-  "scaffold this feature", "stub out the modules", "write the contract". Covers exactly one
-  feature per run. Slash-only.
+  Turns one feature's PRD into compiling stubs and a contract: usage example, types and
+  signatures, `not implemented` bodies, a draft PR into the feature branch, docs/plans/<feature>.md
+  and the project:<slug> label. Use for "scaffold this feature", "stub out the modules", "write
+  the contract". One feature per run. Slash-only.
 disable-model-invocation: true
 ---
 
@@ -17,12 +15,10 @@ FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → fle
                                           ^^^^^^^^^^^ you are here
 ```
 
-Replaces the prose plan for code features. Anything code can express (types, signatures, routes,
-migrations, integration interfaces) goes in compiling stubs, not in a document. The only document
-is the contract, which orders the work and holds what code cannot say.
+Put everything code can express (types, signatures, routes, migrations, integration interfaces)
+in compiling stubs. The contract orders the work and holds what code cannot say.
 
-Use the `codebase-design` vocabulary (deep modules, seams, interface vs implementation) to judge
-every boundary you draw.
+Judge every boundary with the `codebase-design` vocabulary.
 
 ## Process
 
@@ -86,8 +82,7 @@ Record the PR number. Merging it freezes the signatures.
 
 ### 7. Create the feature label
 
-`to-tickets` files tickets under this label and `/fleet` selects by it. The label is `project:<slug>`
-and is the `Label:` line in the contract header.
+The label is `project:<slug>` and goes on the contract's `Label:` line.
 
 ```bash
 gh label list --search "project:<slug>" --json name -q '.[].name' | grep -qx "project:<slug>" || \
