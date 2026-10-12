@@ -2,7 +2,7 @@
 
 The Go side of a SQL database. It holds for any driver and any query tool (`database/sql`, pgx,
 sqlc, sqlx): the rules are about where types live and how errors, NULLs, time and transactions
-cross a package boundary. For the schema, migrations and SQL itself, use the `postgres` skill.
+cross a package boundary. For the schema, migrations and SQL itself, use the `postgres-best-practices` skill.
 
 ## Contents
 
@@ -110,7 +110,7 @@ func (s *Store) SetStatus(ctx context.Context, id ApplicationID, to Status) erro
 ```
 
 When the read must also block concurrent writers, lock the row in the query (`FOR UPDATE`, see the
-`postgres` skill) or make the write conditional on the old value.
+`postgres-best-practices` skill) or make the write conditional on the old value.
 
 ---
 
@@ -176,7 +176,7 @@ the string in Go is stable. The same applies to foreign-key and check violations
 The store never calls `time.Now()` and SQL never calls `now()` for a value the application
 compares. Take the instant as a parameter from the injected clock and pass it to the query.
 A test then controls time, and every comparison in one request uses one instant. The
-`postgres` skill states the one-clock-per-comparison rule from the SQL side.
+`postgres-best-practices` skill states the one-clock-per-comparison rule from the SQL side.
 
 ---
 
