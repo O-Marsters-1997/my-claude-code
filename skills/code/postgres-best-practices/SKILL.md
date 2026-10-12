@@ -18,6 +18,7 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 | ------------------------------------------------------- | ------------------------------------------------ |
 | Go code that runs these queries (`database/sql`, pgx)   | `go-idiomatic` `references/database.md`          |
 | A closed value set mirrored as a Go type                | `go-idiomatic` `references/enums.md`             |
+| A repo with `sqlc.yaml` (queries, config, CI)           | `references/sqlc.md`                             |
 
 ## Schema
 
