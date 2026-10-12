@@ -59,10 +59,10 @@ RIGHT (vertical):
 
 ### 1. Planning
 
-**When a contract exists** (stubs merged into the feature branch by a scaffold PR), its signatures
-are frozen, because parallel tickets build against them. Skip the interface-design items below
-(confirming interface changes, deep modules, designing for testability) and write tests through the
-stub interfaces as they stand. If a test cannot be written without changing a signature, take the
+**When a contract exists** (a `## Signatures` section in the ticket, copied from the plan), its
+signatures are frozen, because parallel tickets build against them. Skip the interface-design items
+below (confirming interface changes, deep modules, designing for testability) and write tests
+through those signatures as written. If a test cannot be written without changing a signature, take the
 contract-change path in `implement` instead of editing it.
 
 Before writing any code:

@@ -40,19 +40,20 @@ If every change the issue asks for is under `skills/`, run /skill-updater with t
 
 Use /tdd where possible, at pre-agreed seams.
 
-Signatures declared by a merged scaffold's stubs are frozen: never edit one to make the work fit.
+Signatures in the ticket's `## Signatures` section are frozen: write them exactly as given and
+never change one to make the work fit.
 If a frozen signature can't be kept, take the contract-change path and stop:
 
 1. Create the `contract-change` label if missing (check `gh label list` first; `--force` would
    recolour an existing one).
 2. File an issue labelled `contract-change`, `status:backlog` and the ticket's feature
-   label (the user approves it by moving it to ready), naming the signature, why it can't be kept, and the proposed new one. Its stub PR must carry
-   `Closes #<issue>` so reconcile can match it.
+   label (the user approves it by moving it to ready), naming the signature, why it can't be kept, and the proposed new one. The user resolves it by
+   updating the plan and the `## Signatures` of every affected ticket, then closing it.
 3. Add `- Blocked by #<new issue>` to this ticket's `## Blocked by` section and set it back to
    `status:backlog`.
 4. Open a draft PR with the work so far, leaving the signature untouched, and stop.
 
-`/fleet reconcile` moves the ticket back to ready once the change lands as a stub PR.
+`/fleet reconcile` moves the ticket back to ready once the `contract-change` issue is closed.
 
 A ticket carrying `size:xs`, or a dispatch prompt saying `Size: xs`, is a small fix: keep the
 diff to what the ticket asks, with no adjacent refactors. Skip /tdd unless the fix changes

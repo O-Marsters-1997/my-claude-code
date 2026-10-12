@@ -40,7 +40,7 @@ Both halves rely on these, so they are defined once here.
   Moving to `done` also needs `gh issue close <N>`. A ticket with no `status:*` label is backlog.
 - **Blockers.** A ticket's `## Blocked by` section lists `- Blocked by #<N>` lines, or "None".
   This is the only record of dependencies; both subcommands read it.
-- **Feature label.** The label `to-scaffold` creates and `to-tickets` applies to every ticket of a
+- **Feature label.** The label `to-plan` creates and `to-tickets` applies to every ticket of a
   feature, `project:<slug>`. It scopes every `gh issue list` in both subcommands with
   `--label "<label>"`. The argument may be `<slug>` or `project:<slug>`: if it matches an existing
   label exactly (`gh label list`), use it as is, so `sweep-YYYY-MM-DD` and older bare labels keep

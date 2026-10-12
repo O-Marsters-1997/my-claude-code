@@ -2,9 +2,9 @@
 name: artifact-scan
 description: >
   Use whenever the user asks "which skill should I use?", "where are we in the workflow?",
-  "what should I run next?", "what product docs already exist?", "do we have a roadmap/PRD/scaffold
+  "what should I run next?", "what product docs already exist?", "do we have a roadmap/PRD/plan
   yet?", or "what's left before I start coding?". Front door to the product workflow suite:
-  detects the ideate report, approach doc, roadmap, PRDs, scaffold PRs and tickets, then names the
+  detects the ideate report, approach doc, roadmap, PRDs, plans and tickets, then names the
   one skill to run next based on what exists rather than a fixed order. Routes between *skills* —
   for "what feature should I build next?" use ideate. Also usable as a preflight routine from
   other product skills.
@@ -22,7 +22,7 @@ PORTFOLIO — many features        ideate  or  chat-to-approach
                                         ↓
                             ./docs/approach.md  →  ./ideas/roadmap.html
                                                         ↓  pick ONE card
-FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → ticket-tracker
+FEATURE — one feature per run    to-prd → to-plan → to-tickets → ticket-tracker
                                  non-code work: to-prd → to-tickets
 ```
 
@@ -31,7 +31,7 @@ FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → tic
   built, which then breaks down into several tickets. Six cards means six runs down the spine, not
   one. When a skill is handed a portfolio artifact, it must establish *which feature* first.
 - **Never send the user backwards.** A missing upstream artifact is written inline or offered, never
-  a reason to stop and run another skill first. The one hard gate is the merged scaffold PR.
+  a reason to stop and run another skill first. The one hard gate is an approved plan.
 
 That rule drives this skill's whole job: **report what exists, don't compute a first gap.**
 An earlier artifact being absent is not a problem to solve — it is usually a deliberate skip.
@@ -44,18 +44,18 @@ An earlier artifact being absent is not a problem to solve — it is usually a d
 | approach doc     | portfolio | `test -f ./docs/approach.md`                           | `chat-to-approach`     |
 | roadmap board    | portfolio | `test -f ./ideas/roadmap.html`                               | `to-roadmap`           |
 | PRD              | feature   | `ls ./docs/prd-*.md` and `gh issue list` for `[PRD]`   | `to-prd`               |
-| scaffold PR      | feature   | `gh pr list --state all --search scaffold` (merged = gate cleared) | `to-scaffold`   |
+| plan             | feature   | `ls ./docs/plans/*.md` (excluding `metrics.md`)       | `to-plan`              |
 | tickets          | feature   | `gh issue list` — any issue NOT titled `[PRD]`         | `to-tickets`           |
 
-Feature-level artifacts are **countable, not binary**. Three scaffold PRs means three features are
-mid-spine; it does not mean "the scaffold stage is done". Report counts and names, never a single tick.
+Feature-level artifacts are **countable, not binary**. Three plans means three features are
+mid-spine; it does not mean "the plan stage is done". Report counts and names, never a single tick.
 
 ## Procedure
 
 1. **Scan local files** in one pass:
    ```bash
    ls ./ideas/reports/*-ideate.md ./docs/approach.md ./ideas/roadmap.html \
-      ./docs/prd-*.md 2>/dev/null
+      ./docs/prd-*.md ./docs/plans/*.md 2>/dev/null
    ```
 2. **Scan GitHub issues** once, then split by title:
    ```bash
@@ -77,8 +77,8 @@ mid-spine; it does not mean "the scaffold stage is done". Report counts and name
    | A conversation from claude.ai or elsewhere | `chat-to-approach` | Captures the handoff into `approach.md` |
    | An approach doc, wants to prioritise | `to-roadmap` | Turns many features into Now / Next / Later |
    | A roadmap, wants to start building | Pick one card → `to-prd` | Each card is its own spine run |
-   | A PRD for a code feature | `to-scaffold` | Opens the scaffold PR that gates ticket cutting |
-   | A PRD for non-code work, or a merged scaffold PR | `to-tickets` | |
+   | A PRD for a code feature | `to-plan` | Writes the plan whose approval gates ticket cutting |
+   | A PRD for non-code work, or an approved plan | `to-tickets` | |
    | Tickets already filed | `ticket-tracker` | Move them through the board |
 
    When the invocation itself makes the intent obvious, route on that and say so — a user who
@@ -99,10 +99,10 @@ Product artifacts
 
   Feature (per feature)
     [x] PRDs           — 2: ./docs/prd-search.md, #41 [PRD] Saved views
-    [x] scaffold PRs   — 1: #44 scaffold search (merged)
+    [x] plans          — 1: ./docs/plans/search.md
     [?] tickets        — unknown (gh unavailable)
 
-Next: `to-scaffold` — "Saved views" has a PRD but no scaffold PR yet.
+Next: `to-plan` — "Saved views" has a PRD but no plan yet.
 ```
 
 Use `[x]` present, `[ ]` absent, `[?]` unknown. Always list all six so the user sees the whole
