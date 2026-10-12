@@ -74,7 +74,8 @@ vertical: each is demoable on its own and cuts through every layer.
 
 ### 6. Open the scaffold PR
 
-Commit the stubs and usage example on a branch off the feature branch, push, and open a draft PR
+The feature branch is the one the user names, else the branch checked out when the run started.
+Commit the stubs and usage example on a branch off it, push, and open a draft PR
 whose base is the feature branch (never `main`):
 
 ```bash
@@ -83,7 +84,17 @@ gh pr create --draft --base <feature-branch> --title "Scaffold: <Feature>" --bod
 
 Record the PR number. Merging it freezes the signatures.
 
-### 7. Write the contract
+### 7. Create the feature label
+
+`to-tickets` files tickets under this label and `/fleet` selects by it. The label is `project:<slug>`
+and is the `Label:` line in the contract header.
+
+```bash
+gh label list --search "project:<slug>" --json name -q '.[].name' | grep -qx "project:<slug>" || \
+  gh label create "project:<slug>" -d "<Feature> (docs/plans/<slug>.md)" -c "<any unused hex>"
+```
+
+### 8. Write the contract
 
 Create `docs/plans/` if missing and write `docs/plans/<feature>.md` in exactly this format:
 
@@ -113,17 +124,7 @@ Rules:
 - One bullet per symbol, one line each. No signatures in the contract: the code is the source.
 - Notes stay to about one screen. If something is expressible in code, move it into the stubs.
 
-### 8. Create the feature label
-
-`to-tickets` files tickets under this label and `/fleet` selects by it. The label is `project:<slug>`
-and is the `Label:` line in the contract header.
-
-```bash
-gh label list --search "project:<slug>" | grep -q "^project:<slug>\b" || \
-  gh label create "project:<slug>" -d "<Feature> (docs/plans/<slug>.md)" -c "<any unused hex>"
-```
-
-Commit the contract (on the scaffold branch, so it ships with the PR) and mention the label and
-PR URL in the closing message so the user knows what `/to-tickets` will file under.
+Commit the contract on the scaffold branch and push it, so it ships with the PR. Mention the label
+and PR URL in the closing message so the user knows what `/to-tickets` will file under.
 
 When finished, ask: 'Would you like to log feedback? (yes/no)'. If yes, invoke skill-feedback-collector passing this skill's name and path.
