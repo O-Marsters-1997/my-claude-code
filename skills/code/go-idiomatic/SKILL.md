@@ -272,8 +272,9 @@ to a task described as error handling:
 4. Never discard an error with `_ =`. Join a cleanup error into the returned error, or log it at
    `Warn` when there is nothing to return to.
 5. `panic` only for programmer errors: `Must` helpers on constant input, impossible cases.
-6. Library code takes an injected `*slog.Logger`. Only `main` builds one; nothing else calls
-   `log.*`, `slog.Info` or `slog.Default()`.
+6. Only components where an error stops travelling (handlers, workers, long-lived services) take
+   an injected `*slog.Logger`, as a constructor field. Code below them returns errors and takes no
+   logger. `main` builds the one logger; nothing calls `log.*`, `slog.Info` or `slog.Default()`.
 7. Log messages are constant; variable data goes in snake_case key-value attributes, with `err`
    for the error. Never log secrets or personal data.
 8. Output the user asked for goes to an injected `io.Writer`, not to the logger.
