@@ -1,0 +1,75 @@
+{
+  "skill_name": "go-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Go module (example.com/notes) whose only dependencies are github.com/jackc/pgx/v5 and github.com/testcontainers/testcontainers-go/modules/postgres. Package internal/notestore: a Postgres-backed Store with Create(ctx, Note) (int64, error), Get(ctx, id) (Note, error) returning a not-found error for a missing id, and ListByTag(ctx, tag string) ([]Note, error); a Note has ID, Title, Tags []string and CreatedAt. Put the schema in an embedded migrations/001_init.sql that Open(ctx, dsn) applies. Write the tests for the store; there will be several more store packages in this module later that need a database in their tests too.",
+      "expected_output": "Tests run against a real Postgres, never a mocked driver, through a shared internal/pgtest package (the skill's asset or equivalent), not a per-package TestMain. The container is reused by name across test binaries, with Ryuk disabled and an idle watchdog or equivalent self-stop. Each test gets its own database cloned from a migrated TEMPLATE and dropped in t.Cleanup WITH (FORCE). No TRUNCATE or shared rows, and the tests call t.Parallel(). TEST_DATABASE_URL skips the container; startup has a timeout and its error names Docker and the env var. The image is pinned to a version, not latest. No dependency beyond the two named (plus what they pull in): no go-cmp, no testify, no reflect.DeepEqual; slices.Equal or field comparisons, errors.Is for not-found. Helpers call t.Helper(); no time.Sleep.",
+      "files": [],
+      "assertions": [
+        {"id": "real-db", "text": "Store tests run against a real Postgres; no sqlmock or mocked driver"},
+        {"id": "shared-helper", "text": "Container access lives in one shared test-support package (e.g. internal/pgtest); no TestMain starts a container"},
+        {"id": "reuse-across-binaries", "text": "The container is reused by name across test binaries (WithReuseByName or equivalent), with Ryuk disabled and a self-stop mechanism"},
+        {"id": "db-per-test-template", "text": "Each test gets its own database created from a migrated TEMPLATE, dropped in t.Cleanup"},
+        {"id": "no-truncate", "text": "No TRUNCATE or shared rows between tests"},
+        {"id": "parallel", "text": "Database tests call t.Parallel()"},
+        {"id": "env-override", "text": "TEST_DATABASE_URL (exactly that name) skips the container"},
+        {"id": "startup-timeout", "text": "Container startup has a timeout and its error mentions Docker and the env var"},
+        {"id": "pinned-image", "text": "Postgres image is pinned to a version, not latest"},
+        {"id": "deps-respected", "text": "go.mod adds no go-cmp or testify; no reflect.DeepEqual"},
+        {"id": "errors-is", "text": "Not-found is matched with errors.Is against an exported sentinel"},
+        {"id": "tests-pass", "text": "go test ./... passes"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a Go module (example.com/semver, stdlib only, Go 1.24). Package semver: Parse(s string) (Version, error) for strings like \"1.2.3\", \"v1.2.3\" and \"1.2.3-rc.1\", where Version is struct{ Major, Minor, Patch int; Pre []string }, plus Compare(a, b Version) int following semver precedence. Invalid input returns errors the caller can tell apart: empty input, a non-numeric part, and a leading zero. Write thorough tests.",
+      "expected_output": "Black-box package semver_test. No new dependencies: no go-cmp, no testify, because the user said stdlib only. No reflect.DeepEqual; Version contains a slice so the test compares fields with == and Pre with slices.Equal (or a helper that calls t.Helper and does the same). Success and error cases are separate tests: no wantErr bool or `if tt.wantErr` branch. Errors are exported sentinels matched with errors.Is, never err.Error() strings. Failure messages read Func(in) = got, want want. Tables are slices of structs with a name field run through t.Run. A FuzzParse target exists with seeds and a property such as no panic or a round trip.",
+      "files": [],
+      "assertions": [
+        {"id": "black-box", "text": "Tests are in package semver_test"},
+        {"id": "stdlib-only", "text": "go.mod has no requirements (no go-cmp, no testify)"},
+        {"id": "no-deepequal", "text": "No reflect.DeepEqual; Pre compared with slices.Equal or equivalent"},
+        {"id": "split-error-tests", "text": "No wantErr bool or if tt.wantErr branch; success and error cases are separate tests"},
+        {"id": "errors-is", "text": "Errors are exported sentinels matched with errors.Is, never by string"},
+        {"id": "message-shape", "text": "Failure messages follow Func(in) = got, want want"},
+        {"id": "named-tables", "text": "Tables are slices of structs with a name field run through t.Run"},
+        {"id": "fuzz", "text": "A FuzzParse target with seeds checks a property"},
+        {"id": "tests-pass", "text": "go test ./... passes"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a Go module (example.com/signup, stdlib only). Package internal/signup: a Service with Register(ctx, email string) error that rejects a malformed or already-registered email, saves the user through a UserStore interface (Get(ctx, email) (User, error), Save(ctx, User) error), and sends a welcome email through a Mailer interface (Send(ctx, to, subject, body string) error). If sending fails the user stays registered and Register returns an error wrapping the mailer's. Also a Notifier that, when Start(ctx) runs, drains a channel of registered emails in a goroutine and sends each a follow-up through the Mailer. Write the tests.",
+      "expected_output": "UserStore is doubled with a stateful in-memory fake (map plus the same not-found sentinel), not a mock asserting Get/Save were called; tests assert on stored state and returned errors. The Mailer is the one system boundary where a recording stub that captures sent messages is acceptable. The send-failure path uses a one-method stub that returns an error, not a failure flag on the fake, and is matched with errors.Is. No mocking library or generated mocks, no testify. The Notifier test has no time.Sleep: it waits on a channel, polls a condition with a deadline, or uses testing/synctest; t.Fatal is never called from a goroutine the test did not start on. Black-box package signup_test, helpers call t.Helper, and Service-level tests do not inspect unexported fields.",
+      "files": [],
+      "assertions": [
+        {"id": "stateful-fake", "text": "UserStore is a stateful in-memory fake; tests assert on stored state, not on calls made"},
+        {"id": "mailer-recorder", "text": "Mailer is a recording stub capturing sent messages; no mocking library"},
+        {"id": "one-method-stub", "text": "Send failure uses a one-method stub, not a failure flag on a fake, matched with errors.Is"},
+        {"id": "no-sleep", "text": "No time.Sleep used to wait in the Notifier test (synctest bubble sleeps excepted)"},
+        {"id": "no-fatal-in-goroutine", "text": "t.Fatal/FailNow never called from a goroutine the test started"},
+        {"id": "black-box", "text": "Tests are in package signup_test and don't inspect unexported fields"},
+        {"id": "tests-pass", "text": "go test -race ./... passes"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Create a Go module example.com/inventory (Go 1.25, pgx/v5 for Postgres). Package internal/catalog: Product{SKU, Name string; PriceCents int64; Tags []string} and a Postgres Repository with Upsert(ctx, Product) error, Get(ctx, sku) (Product, error) with a not-found error, and ByTag(ctx, tag) ([]Product, error); schema in embedded SQL migrations. Package internal/importer: Parse(r io.Reader) ([]catalog.Product, error) for CSV with header sku,name,price,tags (price like 12.50, tags separated by ;), with errors the caller can tell apart for a missing column and a bad price, reporting the line number. Package internal/api: an http.ServeMux with GET /products/{sku} returning JSON and POST /import taking a CSV body, backed by small interfaces over the repository and importer. Package internal/reindex: a Worker whose Start(ctx) consumes SKUs from a channel in a goroutine, loads each product and passes it to an Indexer interface (Index(ctx, Product) error), carrying on after an indexing error. Add cmd/inventory/main.go wiring it all from DATABASE_URL. Build the whole thing first and make go build ./... and go vet ./... pass. Only then, write the tests for all four packages and make go test ./... pass.",
+      "expected_output": "The tests, written last, still follow the skill. github.com/google/go-cmp is added to go.mod (no dependency restriction was given) and cmp.Diff with (-want +got) compares Products and slices; no testify, no reflect.DeepEqual. Repository tests use a real Postgres through internal/pgtest (installed from the skill's asset: reused named container, per-test database from a migrated template, TEST_DATABASE_URL), call t.Parallel(), and use no TestMain, sqlmock or TRUNCATE. Importer success and error cases are separate tests; error kinds are matched with errors.Is/errors.As, not strings. API tests go through the real ServeMux with httptest, a stateful fake repository, and decode JSON rather than comparing bytes. The reindex Worker test has no time.Sleep wait and no t.Fatal from a spawned goroutine; the indexing-error path uses a one-method stub. Helpers call t.Helper(). go test ./... passes.",
+      "files": [],
+      "assertions": [
+        {"id": "go-cmp-added", "text": "github.com/google/go-cmp is in go.mod and cmp.Diff is used for struct/slice comparisons"},
+        {"id": "no-testify-deepequal", "text": "No testify, no reflect.DeepEqual anywhere in tests"},
+        {"id": "pgtest", "text": "Repository tests use a shared internal/pgtest-style helper with a per-test database cloned from a template"},
+        {"id": "no-testmain-truncate", "text": "No TestMain container, sqlmock or TRUNCATE"},
+        {"id": "env-override", "text": "TEST_DATABASE_URL skips the container"},
+        {"id": "repo-parallel", "text": "Repository tests call t.Parallel()"},
+        {"id": "importer-split", "text": "Importer success and error cases are separate tests; errors matched with errors.Is/As"},
+        {"id": "api-through-mux", "text": "API tests go through the real ServeMux with a stateful fake and decode JSON"},
+        {"id": "worker-no-sleep", "text": "Worker test has no time.Sleep wait and no t.Fatal from a spawned goroutine"},
+        {"id": "tests-pass", "text": "go test ./... passes"}
+      ]
+    }
+  ]
+}

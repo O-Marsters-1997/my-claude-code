@@ -105,7 +105,7 @@ are ignored, which is what you want from a CLI that adds fields between releases
 
 ## Testing
 
-Test callers against a consumer-owned interface (`references/testing.md`). Test the CLI package
+Test callers against a consumer-owned interface (the `go-testing` skill). Test the CLI package
 against the real binary when it is cheap: `git init` in `t.TempDir()`. When it isn't, put a fake
 on `PATH` by re-executing the test binary:
 

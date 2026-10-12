@@ -1,0 +1,14 @@
+version: "2"
+linters:
+  enable:
+    - depguard
+  settings:
+    depguard:
+      rules:
+        pgtest-only:
+          files:
+            - "$all"
+            - "!**/internal/pgtest/**"
+          deny:
+            - pkg: github.com/testcontainers/testcontainers-go
+              desc: get a test database from internal/pgtest instead of starting a container

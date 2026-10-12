@@ -36,7 +36,8 @@ plain feature requests ("add an endpoint", "style this") and stay out of each ot
 
 | Skill | Fires on | Loads alongside |
 |---|---|---|
-| `go-idiomatic` | any `.go`, `go.mod`, Go named in the prompt | `tdd`, `htmx-go-templates`, `goquery-parsing` |
+| `go-idiomatic` | any `.go`, `go.mod`, Go named in the prompt | `go-testing`, `tdd`, `htmx-go-templates`, `goquery-parsing` |
+| `go-testing` | `_test.go`, `go test`, fakes, golden files, fuzzing, testcontainers | `go-idiomatic`, `tdd` |
 | `htmx-go-templates` | `.tmpl`/`.gohtml`, `hx-*` attributes, `HX-*` headers, a handler calling `ExecuteTemplate` | `go-idiomatic` |
 | `goquery-parsing` | writing a Go HTML parser with goquery | `go-idiomatic` |
 | `frontend-best-practices` | `.tsx`/`.jsx`/`.vue`/`.svelte`, components, hooks | `tailwind-shadcn` |
@@ -51,8 +52,10 @@ Boundaries that keep them from colliding:
 
 - **Server templates vs components.** `hx-*` in a Go template routes to `htmx-go-templates`;
   `frontend-best-practices` covers React and Solid only and says so in its framework detection.
-- **Go language vs Go web rendering.** `go-idiomatic` owns style, errors, concurrency and tests;
+- **Go language vs Go web rendering.** `go-idiomatic` owns style, errors and concurrency;
   it routes `html/template` + htmx work to `htmx-go-templates` from its reference table.
+- **Go code vs Go tests.** `go-testing` owns how tests are written, including test databases
+  through its `pgtest` helper; a repo's `testing-policy` decides which tests each layer needs.
 - **Tokens vs usage.** `tailwind-design-system` owns the theme file; `tailwind-shadcn` owns
   day-to-day classes inside an existing token set.
 
