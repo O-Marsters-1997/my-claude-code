@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# PreToolUse gate: block an edit to a Go file until go-idiomatic has been
-# loaded this session (and testing-policy, for a _test.go in a project that
-# ships that skill). Fails open whenever it cannot tell.
 command -v jq >/dev/null || exit 0
 [ "${CC_GO_SKILLS_OFF:-}" = 1 ] && exit 0
 
@@ -49,6 +46,7 @@ loaded() {
 REQUIRED=(go-idiomatic)
 case "$FILE" in
 *_test.go)
+	REQUIRED+=(go-testing)
 	PROJECT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null || echo "${CLAUDE_PROJECT_DIR:-$ROOT}")
 	[ -f "$PROJECT/.claude/skills/testing-policy/SKILL.md" ] && REQUIRED+=(testing-policy)
 	;;

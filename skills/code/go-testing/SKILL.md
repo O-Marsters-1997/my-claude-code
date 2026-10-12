@@ -15,9 +15,10 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash(go:*), Bash(golangci-lint:*),
 
 # Go Testing
 
-How a Go test is written. Which tests a layer needs, which doubles it uses and what the repo's
-helpers are called is the repo's `testing-policy`; when it conflicts with this skill the repo
-wins, and the repo names the deviation. For the red-green-refactor loop, use `tdd`.
+How a Go test is written, in every repo. What to test is the repo's `testing-policy` when it
+ships one: the kinds of test it uses, what each is worth, which a feature needs, and the reusable
+patterns to copy as the codebase grows. It never restates how a test is written, so the two do not
+overlap. For the red-green-refactor loop, use `tdd`.
 
 ## Your defaults that are wrong here
 
@@ -95,8 +96,8 @@ lint rule that keeps testcontainers imports inside `internal/pgtest`.
 
 ## See also
 
-| Skill            | When                                                    |
-| ---------------- | ------------------------------------------------------- |
-| `go-idiomatic`   | Everything about the code under test                    |
-| `tdd`            | Writing the test first, one behaviour at a time         |
-| `testing-policy` | The repo's own rules: which tests per layer, helper names |
+| Skill            | When                                                                |
+| ---------------- | ------------------------------------------------------------------- |
+| `go-idiomatic`   | Everything about the code under test                                |
+| `tdd`            | Writing the test first, one behaviour at a time                     |
+| `testing-policy` | What to test: test kinds, their value, reusable patterns (per repo) |

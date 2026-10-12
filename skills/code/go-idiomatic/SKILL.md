@@ -65,8 +65,8 @@ wiring a logger, choosing a level or separating CLI output.
 ## Testing
 
 Writing, editing or reviewing a `_test.go` file: load the `go-testing` skill, which owns how Go
-tests are written, including test databases. Which tests a layer needs is the repo's
-`testing-policy`, and it wins on conflict.
+tests are written, including test databases. What to test (the kinds of test, what each is
+worth, the reusable patterns) is the repo's `testing-policy` when it ships one.
 
 ---
 
