@@ -11,13 +11,13 @@ description: >
 # Postgres
 
 Rules for schema and queries on Postgres. They are language-agnostic; the Go half lives in the
-`go-idiomatic` skill (`references/database.md`, `references/enums.md`).
+`go-idiomatic` skill (`references/database.md`, and the closed value sets section of `references/patterns.md`).
 ## Where to Look
 
 | If you're working on…                                   | Load this                                        |
 | ------------------------------------------------------- | ------------------------------------------------ |
 | Go code that runs these queries (`database/sql`, pgx)   | `go-idiomatic` `references/database.md`          |
-| A closed value set mirrored as a Go type                | `go-idiomatic` `references/enums.md`             |
+| A closed value set mirrored as a Go type                | `go-idiomatic` `references/patterns.md`          |
 
 ## Schema
 
