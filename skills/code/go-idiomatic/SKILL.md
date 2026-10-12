@@ -34,7 +34,6 @@ Route to the right reference before reading further:
 | Writing or reviewing tests, benchmarks, fuzzing, HTTP tests                    | `references/testing.md`          |
 | Optional fields or return values — when to use `Option[T]`                     | `references/optional.md`         |
 | Pointer vs value receivers, mutation vs optionality                             | `references/value-vs-pointer.md` |
-| Setting up or changing the repo's golangci-lint config                         | `references/lint.md`             |
 | Scaffolding a Go HTTP client for a third-party API, writing a `NewXxxClient`, or attaching auth to outbound HTTP calls | `references/http-client.md` |
 
 ---
@@ -52,7 +51,6 @@ golangci-lint run     # aggregated linter suite
 ```
 
 Configure the linter and let it run — don't write rules here for anything it already enforces.
-`references/lint.md` has a config that enforces this skill's mechanical rules.
 
 ---
 
