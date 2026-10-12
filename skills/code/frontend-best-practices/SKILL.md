@@ -52,6 +52,10 @@ Load **only** the matching reference — don't load both. A framework with no re
 Svelte) gets the shared principles alone; don't ask. If React and Solid signals genuinely conflict,
 or none are present (a fresh file in an empty repo), ask the user once, then proceed.
 
+Server-rendered templates driven by `hx-*` attributes are not a component framework: in a Go
+`html/template` app use the `htmx-go-templates` skill instead, including for the TS module that
+backs it.
+
 **Why this matters (the core divergence):** React re-runs the whole component function on every
 render and relies on dependency arrays + memoization to *prevent* unnecessary work and re-renders.
 SolidJS runs each component function *once* and uses fine-grained signals to update only the exact

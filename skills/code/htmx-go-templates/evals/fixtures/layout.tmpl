@@ -1,0 +1,28 @@
+{{define "layout"}}
+<!doctype html>
+<html>
+<head>
+  <script src="/assets/htmx.min.js"></script>
+  <script>
+    htmx.config.defaultSwapStyle = "outerHTML";
+  </script>
+</head>
+<body>
+  <nav id="rail">
+    <a href="/" hx-get="/" hx-select="#main" hx-target="#main" hx-swap="outerHTML" hx-push-url="true">Board</a>
+    <a href="/archive" hx-get="/archive" hx-select="#main" hx-target="#main" hx-swap="outerHTML" hx-push-url="true">Archive</a>
+    <a href="/settings" hx-get="/settings" hx-select="#main" hx-target="#main" hx-push-url="true">Settings</a>
+    <button onclick="document.getElementById('rail').classList.toggle('narrow')">«</button>
+  </nav>
+  {{template "board" .}}
+  <script>
+    document.body.addEventListener("htmx:afterSwap", function (e) {
+      var links = document.querySelectorAll("#rail a");
+      for (var i = 0; i < links.length; i++) {
+        links[i].classList.toggle("active", links[i].getAttribute("href") === location.pathname);
+      }
+    });
+  </script>
+</body>
+</html>
+{{end}}

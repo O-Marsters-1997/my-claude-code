@@ -1,0 +1,79 @@
+{
+  "skill_name": "htmx-go-templates",
+  "evals": [
+    {
+      "id": 0,
+      "name": "add-page-reachable-from-rail",
+      "prompt": "Add a /tasks/{id} detail page to this taskboard app that you can reach from the rail nav and from each task row. The page shows the task title and status. Files are server.go, layout.tmpl and board.tmpl.",
+      "expected_output": "Adds a handler that declares its response shape and reads htmx headers through one helper rather than hand-typed strings; sets Vary: HX-Request where the body depends on it; extracts the repeated nav-link attribute bundle into a named {{define}} partial and uses it for the new link; keeps a real href.",
+      "files": ["fixtures/server.go", "fixtures/layout.tmpl", "fixtures/board.tmpl"],
+      "assertions": [
+        {"text": "Introduces or uses a single helper/const set for htmx headers instead of hand-typed header strings in the new handler", "type": "manual"},
+        {"text": "Sets Vary: HX-Request (or equivalent) on a route whose body depends on HX-Request", "type": "manual"},
+        {"text": "Extracts the repeated nav-link attribute bundle into a named {{define}} partial and uses it for the new link(s)", "type": "manual"},
+        {"text": "New links keep a real href so they work without JS", "type": "manual"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "non-htmx-form-post-redirect",
+      "prompt": "When JS is off, submitting the new-task form re-renders the board, and refreshing the page asks to resubmit. Fix createTask in server.go and the form in board.tmpl.",
+      "expected_output": "Form gets a real action and method; non-htmx POST answers 303 See Other to GET /; htmx POST returns a fragment or HX-Location, never a 3xx; invalid input re-renders with 422 rather than a plain-text 400.",
+      "files": ["fixtures/server.go", "fixtures/board.tmpl"],
+      "assertions": [
+        {"text": "Non-htmx POST responds with 303 See Other to a GET route", "type": "manual"},
+        {"text": "Form has a real action and method attribute so it works without htmx", "type": "manual"},
+        {"text": "htmx POST does not receive a 3xx redirect; it gets a fragment or HX-Location/HX-Redirect", "type": "manual"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "refused-archive-fails-silently",
+      "prompt": "Clicking Archive on a running task does nothing at all, no message. Users think the button is broken. Make the refusal show up. See server.go archive and the templates.",
+      "expected_output": "Explains htmx 2.x does not swap 4xx bodies by default; adds a responseHandling entry (via meta htmx-config) to swap the chosen status (422) AND has the server set HX-Retarget/HX-Reswap to a persistent flash region with aria-live, swapped by innerHTML; returns HTML not plain text; no inline script.",
+      "files": ["fixtures/server.go", "fixtures/layout.tmpl", "fixtures/board.tmpl"],
+      "assertions": [
+        {"text": "Diagnoses that htmx 2.x does not swap 4xx/5xx responses by default", "type": "manual"},
+        {"text": "Configures responseHandling (or equivalent) so the refusal status is swapped, without an inline <script>", "type": "manual"},
+        {"text": "Server sets HX-Retarget and HX-Reswap to send the error to a known region", "type": "manual"},
+        {"text": "The error region is a persistent aria-live region swapped via innerHTML, not replaced with outerHTML", "type": "manual"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "poll-without-clobbering-input",
+      "prompt": "The task list in board.tmpl refreshes every 5s but it keeps wiping what I'm typing into the new-task box. Fix it so the list stays live.",
+      "expected_output": "Moves the input/form outside the polled target (or splits the region); adds hx-sync to the poller; adds a focus/visibility pause guard in a client module rather than an inline trigger filter; polls a dedicated rows route.",
+      "files": ["fixtures/board.tmpl", "fixtures/server.go"],
+      "assertions": [
+        {"text": "Moves the input out of the polled swap target (or splits the region) rather than only patching around it", "type": "manual"},
+        {"text": "Adds hx-sync to the polling element", "type": "manual"},
+        {"text": "Adds a pause guard (focus or document.hidden) implemented outside the template, not as an inline script or eval trigger filter", "type": "manual"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "collapse-rail-click-handler",
+      "prompt": "Make the rail collapse button remember its state across htmx navigations, and while you're there tidy up the scripts in layout.tmpl.",
+      "expected_output": "Removes inline <script> blocks and onclick from the layout; moves behaviour into a TS module registered through htmx.onLoad with a disposer; htmx config moves to meta htmx-config; template marks elements with data-* attributes.",
+      "files": ["fixtures/layout.tmpl"],
+      "assertions": [
+        {"text": "Removes every inline <script> block and onclick attribute from layout.tmpl", "type": "manual"},
+        {"text": "Moves behaviour into a separate TS/JS module loaded by src", "type": "manual"},
+        {"text": "Registers behaviour via htmx.onLoad (or equivalent) with cleanup/disposer on swap", "type": "manual"},
+        {"text": "Moves htmx config into a <meta name=\"htmx-config\"> tag", "type": "manual"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "status-badge-eq-chain",
+      "prompt": "Add a 'cancelled' status to the task badges in board.tmpl; cancelled should look like failed.",
+      "expected_output": "Replaces the eq chain with a view-model field (e.g. Badge{Class, Label}) computed in Go; adds cancelled there; template only reads the field.",
+      "files": ["fixtures/board.tmpl", "fixtures/server.go"],
+      "assertions": [
+        {"text": "Moves status-to-badge mapping into Go (a view-model field or method) instead of adding another eq branch", "type": "manual"},
+        {"text": "Template reads presentation fields only, with no domain-word eq chain left", "type": "manual"}
+      ]
+    }
+  ]
+}

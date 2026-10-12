@@ -1,0 +1,26 @@
+{{define "board"}}
+<main id="main">
+  <section id="tasks" hx-get="/?part=rows" hx-trigger="every 5s" hx-swap="innerHTML">
+    <form hx-post="/tasks" hx-target="#tasks">
+      <input name="title" placeholder="New task">
+    </form>
+    {{template "rows" .Tasks}}
+  </section>
+</main>
+{{end}}
+
+{{define "rows"}}
+<ul>
+  {{range .}}
+  <li>
+    {{.Title}}
+    {{if eq .Status "failed"}}<span class="badge red">failed</span>
+    {{else if eq .Status "errored"}}<span class="badge red">failed</span>
+    {{else if eq .Status "killed"}}<span class="badge red">failed</span>
+    {{else if eq .Status "running"}}<span class="badge blue">running</span>
+    {{else}}<span class="badge">{{.Status}}</span>{{end}}
+    <button hx-post="/tasks/{{.ID}}/archive" hx-target="closest li">Archive</button>
+  </li>
+  {{end}}
+</ul>
+{{end}}
