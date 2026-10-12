@@ -51,22 +51,3 @@ Every journey appears in exactly one slice.
 For bigger features: why, goal, concepts, out of scope, open questions. Include only what a reader
 needs; the format is the user's call (see SKILL.md step 6). Resolved open questions stay, with the
 answer that settled them.
-
-## Template
-
-```markdown
-# <Feature Name>
-
-**Problem:** <one line>
-
-## Journeys
-
-### J1. <title>
-Surface: <CLI | API | UI>
-1. ...
-→ <observable state>
-
-## Delivery slices
-
-1. **<name>** — <what is usable after>. Journeys: J1
-```

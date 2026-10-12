@@ -25,8 +25,7 @@ FEATURE — one feature per run    to-prd → to-scaffold → to-tickets → tic
 **Portfolio → feature is a fan-out, not a step.** A roadmap card is a *feature*. Six cards means six
 PRDs, never one covering a whole roadmap or approach doc.
 
-**Never send the user backwards.** Upstream artifacts make this stage faster. A missing one is
-written inline or offered, never a reason to stop and run another skill first.
+**Never send the user backwards.** A missing upstream artifact is never a reason to stop.
 
 ## What a PRD is
 
@@ -67,17 +66,14 @@ Run the `grilling` skill; it owns the loop. Focus on who does what and what they
 
 ### 4. Write the journeys
 
-For each way a user gets value, draft a journey: title, surface (CLI, API or UI), 2–5 steps, and a
-final `→ <observable state>` line. Check the set with the user: does it cover the problem, and does
-every journey end somewhere you could point at?
-
-If a prototype exists or would help, link it; the `prototype` skill builds one.
+For each way a user gets value, draft a journey in the reference's format. Check the set with the
+user: does it cover the problem, and does every journey end somewhere you could point at? If a
+prototype would help, the `prototype` skill builds one.
 
 ### 5. Cut delivery slices
 
-Ask what is the smallest release that delivers the core outcome, then what follows. Each slice says
-what is usable after it, in product terms, and lists the journey numbers it delivers. Sequence by
-user value, not technical dependency.
+Ask for the smallest release that delivers the core outcome, then what follows. Sequence by user
+value, not technical dependency.
 
 ### 6. Offer the optional layer
 

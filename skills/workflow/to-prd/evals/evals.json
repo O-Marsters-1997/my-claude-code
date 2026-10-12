@@ -20,7 +20,16 @@
       "expectations": [
         {"text": "The agent asks the user which format the optional layer should take"},
         {"text": "The core is still present with journeys ending in an arrow line"},
-        {"text": "The agent does not file a GitHub issue unless asked"}
+        {"text": "The agent does not file a GitHub issue unless asked"},
+        {"text": "Every journey appears in exactly one delivery slice"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Write a PRD from ./docs/approach.md, which lists five features.",
+      "expected_output": "The agent asks which one feature the PRD is for before writing anything.",
+      "expectations": [
+        {"text": "The agent asks which single feature to cover instead of writing one PRD for all five"}
       ]
     }
   ]
