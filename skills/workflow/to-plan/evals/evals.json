@@ -4,7 +4,12 @@
     {
       "id": 1,
       "prompt": "/to-plan recruiter-agencies — in job-scraper, PRD docs/prds/recruiter-agencies.md, run started on main. Exploration finds the PRD's classifier-at-ingest won't hold (the model is billed to each user's own key) and that existing upsertCompany, scoring Service.process, GetJobForScoring and UpsertCompany must change.",
-      "expected_output": "Writes only docs/plans/recruiter-agencies.md: a header with Source, Label and Feature branch; one usage block per journey; Shared only if several slices need it up front; new: signature blocks per slice with nothing referencing a later slice; change: bullets for upsertCompany, Service.process, GetJobForScoring and UpsertCompany. Asks whether to edit the PRD or record the classifier move under PRD drift. Asks before naming feature/recruiter-agencies because the run started on main. Creates no code files, branch, commit or PR, and stops for the user's review of the plan."
+      "expected_output": "Writes only docs/plans/recruiter-agencies.md: a header with Source, Label and Feature branch; a one- or two-sentence overview; a contents list of phases; one phase per PRD delivery slice, each with a Journeys line and New/Modified definitions, nothing referencing a later phase. Asks whether to edit the PRD or record the classifier move under PRD drift. Asks before naming feature/recruiter-agencies because the run started on main. Creates no code files, branch, commit or PR, and stops for the user's review of the plan."
+    },
+    {
+      "id": 2,
+      "prompt": "/to-plan recruiter-agencies — in job-scraper, PRD docs/prds/recruiter-agencies.md with three delivery slices (Mark and filter J1–J4, Likely-recruiter badge J5, Recruiter contacts J6–J7) introducing Company kind and Recruiter Contact. Assume every question is answered with the recommended option.",
+      "expected_output": "The plan has a 1–2 sentence overview, a contents list and three phase sections, each opening with one-line glossary entries for its new terms (Company kind, Recruiter Contact), a Journeys line of numbers only, and New/Modified blocks. Code is definitions only: types, enums, DTO shapes, port interfaces and CREATE TABLE schema; no usage section or call sites, no useX hooks, fetchX functions, mocks, fakes, route bindings, ALTER TABLE or migration files. Modified blocks show final shapes with no 'adds'/'was' delta wording. Each phase fits about one screen."
     }
   ]
 }
