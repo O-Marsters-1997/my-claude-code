@@ -43,19 +43,38 @@ loaded() {
 		' 2>/dev/null | grep -q true
 }
 
+PROJECT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null || echo "${CLAUDE_PROJECT_DIR:-$ROOT}")
+
+installed() {
+	[ -f "$HOME/.claude/skills/$1/SKILL.md" ] || [ -f "$PROJECT/.claude/skills/$1/SKILL.md" ]
+}
+
 REQUIRED=(go-idiomatic)
 case "$FILE" in
 *_test.go)
 	REQUIRED+=(go-testing)
-	PROJECT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null || echo "${CLAUDE_PROJECT_DIR:-$ROOT}")
 	[ -f "$PROJECT/.claude/skills/testing-policy/SKILL.md" ] && REQUIRED+=(testing-policy)
 	;;
 esac
 
 MISSING=()
+UNINSTALLED=()
 for skill in "${REQUIRED[@]}"; do
-	loaded "$skill" || MISSING+=("$skill")
+	if ! installed "$skill"; then
+		UNINSTALLED+=("$skill")
+	elif ! loaded "$skill"; then
+		MISSING+=("$skill")
+	fi
 done
+
+if [ ${#UNINSTALLED[@]} -gt 0 ]; then
+	printf 'Required skill(s) not installed: %s. Ask the user to install them before editing %s:\n' "${UNINSTALLED[*]}" "$FILE" >&2
+	for skill in "${UNINSTALLED[@]}"; do
+		printf '  npx skills add O-Marsters-1997/my-claude-code --skill %s -g -y\n' "$skill" >&2
+	done
+	printf 'Set CC_GO_SKILLS_OFF=1 to skip this check.\n' >&2
+	exit 2
+fi
 [ ${#MISSING[@]} -eq 0 ] && exit 0
 
 printf 'Load %s with the Skill tool before editing %s, then retry this edit. Set CC_GO_SKILLS_OFF=1 to skip this check.\n' "${MISSING[*]}" "$FILE" >&2
