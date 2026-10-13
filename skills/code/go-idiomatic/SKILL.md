@@ -23,7 +23,9 @@ Route to the right reference before reading further:
 | If you're working on…                                                          | Load this                        |
 | ------------------------------------------------------------------------------ | -------------------------------- |
 | Goroutines, channels, sync primitives, errgroup, leaks, races                  | `references/concurrency.md`      |
-| Adding a sentinel or error type, translating errors between packages, cleanup in `defer`, `panic` | `references/errors.md` |
+| Adding a sentinel or error type, translating errors between packages or to HTTP responses, logging where an error came from, cleanup in `defer`, `panic` | `references/errors.md` |
+| HTTP middleware: request Content-Type, CSRF, session cookie attributes         | `references/middleware.md`       |
+| Storing session or reset tokens, password reset or change, encrypting a column | `references/secrets.md`          |
 | Giving `main` or a component a logger, choosing a level, CLI output vs logs    | `references/logging.md`          |
 | Interface design, zero values, identifier types, typed value sets, anti-patterns | `references/patterns.md`         |
 | Writing or reviewing tests, benchmarks, fuzzing, test databases                | the `go-testing` skill           |
@@ -57,7 +59,8 @@ to a task described as error handling:
 8. Output the user asked for goes to an injected `io.Writer`, not to the logger.
 
 A routine `return fmt.Errorf(...)` or log line needs only these rules. Load `references/errors.md`
-when adding a sentinel or error type, or handling a cleanup error, and `references/logging.md` when
+when adding a sentinel or error type, turning an error into an HTTP response, wrapping a driver or
+outbound-call error, or handling a cleanup error, and `references/logging.md` when
 wiring a logger, choosing a level or separating CLI output.
 
 ---
@@ -82,6 +85,9 @@ worth, the reusable patterns) is the repo's `testing-policy` when it ships one.
    are never allowed: a real name is waiting to be found.
 4. No package-level state such as a global `*sql.DB` set in `init()`. Pass dependencies through
    constructors.
+5. `main` parses the environment once into a typed config struct, validates it, and exits on a bad
+   value at startup rather than on the first request that needs it. Constructors receive only the
+   fields they use, not the whole struct. Nothing below `cmd/` calls `os.Getenv`.
 
 ---
 
@@ -122,7 +128,8 @@ Do not instruct it to match the file's existing comment density.
 ## Tooling
 
 Run `gofmt`, `goimports`, `go vet ./...` and `golangci-lint run` before finishing. Leave
-mechanical rules to the linter rather than restating them here.
+mechanical rules to the linter rather than restating them here. Never add `//nolint` to existing
+violations: fix them, or leave the rule off until they are fixed.
 
 ---
 
