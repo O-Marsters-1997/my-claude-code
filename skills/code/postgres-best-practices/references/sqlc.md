@@ -119,6 +119,7 @@ A repo that records a decision to commit generated code but has no such step is 
 ## Shared schemas and enums
 
 When several sqlc packages share one schema, each package generates its own copy of every enum
-type, and the copies are not interchangeable. Map each to the domain type in the store (see
-`references/enums.md` in `go-idiomatic`). `text` + `CHECK`, per the Schema rules in `SKILL.md`,
-generates plain `string` and avoids the duplication.
+type, and the copies are not interchangeable. Do not map each copy to a domain type; convert the
+`ENUM` to `text` + `CHECK` (the [ENUM conversion](migrations.md#enum-conversion) recipe), which
+generates plain `string`. The store parses that into the domain's typed value set (`go-idiomatic`
+`references/patterns.md` § Typed Value Sets).

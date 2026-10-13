@@ -11,14 +11,16 @@ description: >
 # Postgres
 
 Rules for schema and queries on Postgres. They are language-agnostic; the Go half lives in the
-`go-idiomatic` skill (`references/database.md`, `references/enums.md`).
+`go-idiomatic` skill (`references/database.md`, `references/patterns.md`).
+
 ## Where to Look
 
 | If you're working on…                                   | Load this                                        |
 | ------------------------------------------------------- | ------------------------------------------------ |
 | Go code that runs these queries (`database/sql`, pgx)   | `go-idiomatic` `references/database.md`          |
-| A closed value set mirrored as a Go type                | `go-idiomatic` `references/enums.md`             |
+| A closed value set mirrored as a Go type                | `go-idiomatic` `references/patterns.md` § Typed Value Sets |
 | Writing or changing a migration, any tool               | `references/migrations.md`                       |
+| Converting an existing Postgres `ENUM` to `text` + `CHECK` | `references/migrations.md` § ENUM Conversion  |
 | Migrations in a repo that uses goose                    | `references/goose.md` (only when the repo uses goose) |
 | Only if the repo has `sqlc.yaml`: queries, config, CI   | `references/sqlc.md`                             |
 
@@ -26,7 +28,8 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 
 - **Closed value sets are `text` + a named `CHECK`, never a Postgres `ENUM`.** Adding a value to
   an `ENUM` is a type migration and removing one is not supported; a `CHECK` is one `ALTER`.
-  Never mix the two styles in one schema, and never leave a status column unchecked.
+  Never mix the two styles in one schema, and never leave a status column unchecked. An existing
+  `ENUM` is a conversion to schedule, not a style to extend.
 - **Every foreign key column has an index.** Postgres does not create one. Without it, deleting
   a parent scans the child table, and `ON DELETE CASCADE` turns that into one scan per row.
 - **`timestamptz` for instants, `date` only for calendar dates.** Never store times as `text`.
@@ -35,6 +38,10 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
   `<table>_<cols>_idx`). Names are what errors and migrations refer to.
 - **One meaning for absence per column.** NULL or `''`, not both. Pick NULL unless the column is
   `NOT NULL DEFAULT ''` by design.
+- **An append-only table gets a retention policy in the migration that creates it.** Outboxes,
+  run logs and audit trails only grow; decide how long rows live, index the column the cleanup
+  filters on, and delete expired rows in batches (`DELETE ... WHERE id IN (SELECT id ... LIMIT n)`)
+  from a scheduled job. Added later, the first cleanup is one huge delete on a huge table.
 
 ## Queries
 
@@ -43,6 +50,9 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
   `NOW()` with the app's `time.Now()` makes leases and expiries untestable and skewed.
 - **Explicit column lists.** No `SELECT *` and no `RETURNING *`; adding a column must not change
   what callers receive.
+- **Every list query has a hard `LIMIT`.** A list without one returns the whole table once the
+  table grows. On growing tables page by keyset (`WHERE (created_at, id) < ($1, $2) ORDER BY
+  created_at DESC, id DESC LIMIT $3`), not `OFFSET`, which reads and discards every skipped row.
 - **No N+1 loops.** Fetch with `= ANY($1::uuid[])`, insert with multi-row `VALUES` or `COPY`.
 - **Claiming work uses `FOR UPDATE SKIP LOCKED`** so concurrent workers take different rows
   instead of queueing on one. Update the claimed row in the same statement or transaction.

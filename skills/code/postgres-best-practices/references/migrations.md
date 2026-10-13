@@ -9,6 +9,7 @@ Rules for schema migrations on Postgres, independent of the migration tool. For 
 - [Down Migrations](#down-migrations)
 - [Breaking Changes](#breaking-changes)
 - [Locks and Indexes](#locks-and-indexes)
+- [ENUM Conversion](#enum-conversion)
 - [One Schema Source of Truth](#one-schema-source-of-truth)
 - [Tests](#tests)
 
@@ -58,6 +59,24 @@ and a failure rolls back the schema change too. Batch large backfills as
   timeout, one long transaction elsewhere stalls the whole table. A timeout fails the migration
   fast, and you retry it.
 - Keep DDL migrations short: one table, one concern.
+
+## ENUM Conversion
+
+An existing Postgres `ENUM` becomes `text` + a named `CHECK` in one migration per type:
+
+```sql
+ALTER TABLE jobs ALTER COLUMN status TYPE text USING status::text;
+ALTER TABLE jobs ADD CONSTRAINT jobs_status_check
+    CHECK (status IN ('queued', 'running', 'done', 'failed'));
+DROP TYPE job_status;
+```
+
+Convert every column using the type before the `DROP TYPE`, and recreate any default that names an
+enum value (`DEFAULT 'queued'::job_status`) as plain text, or the drop fails.
+
+`ALTER COLUMN ... TYPE` rewrites the table under an `ACCESS EXCLUSIVE` lock. On a small table that
+is fine with a `lock_timeout`. On a big one use expand/contract: add a `text` column, write both,
+backfill in batches, swap readers over, then drop the enum column and the type.
 
 ## One Schema Source of Truth
 
