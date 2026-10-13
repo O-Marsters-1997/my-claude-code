@@ -26,6 +26,11 @@ fi
 [ -r "$TRANSCRIPT" ] || exit 0
 
 SKILL=postgres-best-practices
+if [ ! -f "$HOME/.claude/skills/$SKILL/SKILL.md" ]; then
+	printf 'Required skill not installed: %s. Ask the user to install it before editing %s:\n  npx skills add O-Marsters-1997/my-claude-code --skill %s -g -y\nSet CC_SQL_SKILLS_OFF=1 to skip this check.\n' "$SKILL" "$FILE" "$SKILL" >&2
+	exit 2
+fi
+
 if grep -E -e "\"skill\":\"$SKILL\"" -e "<command-name>/?$SKILL</command-name>" "$TRANSCRIPT" |
 	jq -e --arg s "$SKILL" '
 		[
