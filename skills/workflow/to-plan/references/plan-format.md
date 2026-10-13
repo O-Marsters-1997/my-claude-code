@@ -1,8 +1,8 @@
 # Plan format
 
-`docs/plans/<feature>.md`, exactly this shape. `/to-tickets` copies each slice's blocks into its
-tickets, so keep every block self-contained: a reader with only one slice's section must be able to
-write that slice's code.
+`docs/plans/<feature>.md`, exactly this shape. `/to-tickets` copies each phase into its tickets, so
+keep every phase self-contained: a reader with only one phase's section, plus the phases before it,
+must be able to build it. See [example-plan.md](example-plan.md) for the density to match.
 
 ````markdown
 # Plan: <Feature>
@@ -11,48 +11,46 @@ write that slice's code.
 > Label: project:<slug>
 > Feature branch: <branch>
 
-Signatures are frozen once tickets are cut: changing one is a `contract-change` issue that blocks
+<One or two sentences: what the feature adds to the domain and where it lives.>
+
+Definitions are frozen once tickets are cut: changing one is a `contract-change` issue that blocks
 dependent work, never a quiet edit.
 
-## Usage
+## Phases
 
-### J1. <journey name>
+1. [<PRD slice name>](#phase-1-<anchor>)
+2. [<PRD slice name>](#phase-2-<anchor>)
+
+## Phase 1: <PRD slice name>
+
+Journeys: J1, J2
+
+**Glossary**
+
+- **<Term>**: <what it is, what it relates to>.
+
+**New**
+
 ```<lang>
-<the caller's code for this journey>
+// path/to/file
+<type, enum, port interface or table definition>
 ```
 
-## Shared
+**Modified**
 
-<Only if several slices need it before any can start; otherwise omit the section.>
-
-new:
 ```<lang>
-// path/to/file.go
-type Thing struct { … }
-func NewThing(…) (*Thing, error)
+// path/to/existing/file
+<the definition's final shape, or the part that matters>
 ```
 
-## Slices
+## Phase 2: …
 
-### Slice 1: <PRD slice name: what is usable after it, in product terms> (J1, J2)
-
-new:
-```<lang>
-// path/to/file.go
-func (s *Service) DoThing(ctx context.Context, id ID) (Result, error)
-```
-
-- change: `path/to/existing.go:upsertCompany` — also writes `kind`
-- route: `POST /things/{id}` → `Service.DoThing`
-
-### Slice 2: … (J3)
-
-<A PRD slice with no new or changed symbols still gets a heading, saying so.>
+<A phase with nothing new or modified still gets a heading and Journeys line, saying so.>
 
 ## Notes
 
-Only what signatures cannot say: rationale, ordering and invariants, gotchas, conventions, auth
-approach. About one screen.
+<A few lines at most: invariants and rules the definitions cannot say (who may write what), and
+module ownership where it isn't obvious.>
 
 ### PRD drift
 
@@ -61,9 +59,8 @@ approach. About one screen.
 
 Rules:
 
-- Group a slice's `new:` signatures by file, one fenced block per file or one block with a
-  `// path` line before each file's declarations. Signatures and type shapes only, no bodies.
-- One `change:` bullet per existing symbol, one line each.
-- Every new or changed symbol appears in exactly one place. Nothing references a symbol defined in a
-  later slice.
+- One fenced block per file, headed by a `// path` (or `-- path`) line. Definitions only, no bodies,
+  no call sites, no migrations.
+- Omit **Glossary**, **New** or **Modified** in a phase when it has none.
+- Every definition appears in exactly one phase. Nothing references a definition from a later phase.
 - Omit `### PRD drift` when nothing drifted.
