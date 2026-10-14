@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wire my-claude-code into ~/.claude/
+# Wire my-claude-code into ~/.claude/ and ~/.codex/
 # Safe to re-run after pulling changes on any machine.
 set -e
 
@@ -64,5 +64,21 @@ fi
 rm -f "$SETTINGS"
 printf '%s\n' "$merged" > "$SETTINGS"
 echo "settings.json: generated from settings.shared.json + settings.user.json"
+
+CODEX="${CODEX_HOME:-$HOME/.codex}"
+mkdir -p "$CODEX"
+CODEX_HOOKS="$CODEX/hooks.json"
+CODEX_USER_HOOKS="$CODEX/hooks.user.json"
+if [ ! -f "$CODEX_USER_HOOKS" ]; then
+  if [ -f "$CODEX_HOOKS" ]; then
+    cp "$CODEX_HOOKS" "$CODEX_USER_HOOKS"
+  else
+    printf '{}\n' > "$CODEX_USER_HOOKS"
+  fi
+  echo "Codex hooks.user.json: seeded"
+fi
+jq -s '.[0] as $shared | .[1] as $user | ($shared * $user) | .hooks = (reduce ((($shared.hooks // {}) + ($user.hooks // {})) | keys[]) as $event ({}; .[$event] = (($shared.hooks[$event] // []) + ($user.hooks[$event] // []))))' "$REPO/codex/hooks.json" "$CODEX_USER_HOOKS" > "$CODEX_HOOKS.tmp"
+mv "$CODEX_HOOKS.tmp" "$CODEX_HOOKS"
+echo "Codex hooks.json: generated from codex/hooks.json + hooks.user.json; review new hooks with /hooks"
 
 echo "Done. Install plugins manually if on a new machine (skill-creator, gopls-lsp)."
