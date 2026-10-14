@@ -9,7 +9,7 @@ description: >
   whole-system design assessment rather than a diff, use architecture-review.
 ---
 
-Review of the diff between `HEAD` and a fixed point the user supplies, along two axes (a third, Journey, checks a delivery slice rather than a diff; see _Journey axis_):
+Review of the change against a fixed point the user supplies, along two axes (a third, Journey, checks a delivery slice rather than a diff; see _Journey axis_):
 
 - **Standards** — does the code conform to this repo's documented coding standards?
 - **Contract** — does the code meet the ticket's acceptance criteria, implement every signature the ticket lists, and keep those signatures as written?
@@ -22,9 +22,16 @@ Both diff axes run as **parallel sub-agents** so they don't pollute each other's
 
 Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
 
-Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
+For committed work capture `git diff <fixed-point>...HEAD` (three-dot, against the merge-base).
+For work still in progress capture `git diff <fixed-point>` (tracked staged and unstaged changes)
+and read any untracked files in scope explicitly. Note the commits via
+`git log <fixed-point>..HEAD --oneline`. Keep the worktree path in both reviewer briefs.
 
-Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the
+effective change is non-empty, including untracked files. A bad ref or empty change should fail
+here — not inside two parallel sub-agents. A review run for /implement is **low** on `size:xs`
+and **medium** otherwise; both require independent reviewers. Low uses the same two axes but
+focuses on the small fix and its regression test rather than adjacent design advice.
 
 ### 2. Identify the contract and spec source
 
@@ -65,17 +72,19 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 **Standards sub-agent prompt** — include:
 
-- The full diff command and commit list.
+- The full diff command, any untracked-file paths, and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
 - The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Contract sub-agent prompt** — include:
 
-- The diff command and commit list.
+- The diff command, any untracked-file paths, and commit list.
 - The path or fetched contents of the ticket (or other spec), including its `## Signatures` section when one exists.
 - The brief: "Report: (a) acceptance criteria or requirements that are missing, partial, or look implemented but wrong; (b) behaviour in the diff that wasn't asked for (scope creep). Quote the ticket line for each finding. With a contract also report: (c) every `new:` signature or `change:` bullet in the ticket's `## Signatures` that the diff does not implement; (d) signature diff: compare each declaration the diff adds for a `new:` signature (name, parameters, return types, visibility) against the ticket's block, and flag every mismatch that is not tied to a `contract-change` issue (match `gh issue list --label contract-change --state all` against the issue numbers in the commits and PR body, or an issue naming the changed symbol). A signature edit with no such issue is a violation, not a judgement call. Under 400 words."
 
 If neither a ticket nor a spec is available, skip the Contract sub-agent and note this in the final report.
+If a required reviewer cannot be launched or its report cannot be read, report the review as
+blocked; never replace that axis with the implementer's own judgement or claim it passed.
 
 ### 5. Aggregate
 

@@ -5,6 +5,13 @@ description: "Implement a ticket or spec end to end. Invoke ONLY when the user t
 
 If you were not explicitly told to run implement, stop and say so instead of continuing.
 
+If you are not the `implementation` agent, delegate the entire job to that agent in the assigned
+worktree. Include the original ticket/spec, base, size, brief, files, scratch/report path and fleet
+result contract verbatim; do not implement or review in the parent. If the agent cannot be found or
+launched, report `blocked` (`reviewed=no` for fleet) rather than silently doing the work yourself.
+The agent loads this skill and follows the worker instructions below; this delegation does not
+repeat inside it. Wait for its result and preserve the fleet one-line output unchanged.
+
 Implement the work described by the user in the spec or tickets.
 
 For a large or multi-part ticket, split it into smaller /implement runs by logical slice, or
@@ -12,7 +19,7 @@ checkpoint with /compact between major phases (after planning, after test-writin
 final review). A single long session re-sends its whole growing history on every turn, so cost
 compounds with session length far faster than with the same work split into smaller ones.
 
-Run test suites expected to take over about 30 seconds with `run_in_background`, end the turn and
+Run test suites expected to take over about 30 seconds in the background, end the turn and
 wait for the completion notification. Never poll with sleep or Monitor loops: each poll re-sends
 the whole session.
 
@@ -36,9 +43,14 @@ match it.
 `~/.claude/rules/comments.md` is the authority on comments. It outranks a standards
 skill's own comment guidance.
 
-If every change the issue asks for is under `skills/`, run /skill-updater with the issue number instead of the steps below: it verifies old vs new on the issue's scenario and opens the draft PR itself.
+If every change the issue asks for is under `skills/`, load `skill-updater` with the issue number
+for its baseline-versus-new verification and draft PR, then independently review the PR's final
+diff with `code-review` at the required level before reporting `reviewed=yes`. Apply and push
+warranted findings to that branch and repeat review if the fix materially changes the diff. If
+the updater or independent review cannot finish, return `blocked` with `reviewed=no` for fleet.
+This route does not bypass the review gate merely because the updater opened a PR.
 
-Use /tdd where possible, at pre-agreed seams.
+Load `tdd` where possible, at pre-agreed seams.
 
 Signatures in the ticket's `## Signatures` section are frozen: write them exactly as given and
 never change one to make the work fit.
@@ -56,9 +68,9 @@ If a frozen signature can't be kept, take the contract-change path and stop:
 `/fleet reconcile` moves the ticket back to ready once the `contract-change` issue is closed.
 
 A ticket carrying `size:xs`, or a dispatch prompt saying `Size: xs`, is a small fix: keep the
-diff to what the ticket asks, with no adjacent refactors. Skip /tdd unless the fix changes
+diff to what the ticket asks, with no adjacent refactors. Skip `tdd` unless the fix changes
 observable behaviour, and then add one regression test. Skip code-simplifier. Review with
-/code-review low instead of medium.
+/code-review low instead of medium. Both levels require an independent reviewer.
 
 Given several issues at once (a fleet bundle), work them in the order given, one commit per
 issue whose message ends `Closes #<N>`, and one PR for the whole bundle. Run the review passes
@@ -73,14 +85,11 @@ If the repo has `.claude/fleet.toml`, the final pass before pushing runs every c
 `[checks] pre_push` list, in order, and fixes failures before pushing. Run only the listed
 commands; anything not listed is left to CI. Without the file, behave as above.
 
-Don't invoke code-simplifier after each individual edit. Batch it once near the end of the
-change, right before /code-review.
+Don't invoke code-simplifier after each individual edit. Load `code-simplifier` once near the end
+of the change, right before code-review.
 
-Once done, use /code-review medium to review the work, or low for a small fix. Pass it the
-worktree path and the diff against `Base:` (`git -C <worktree> diff origin/<base>...HEAD`). If
-that diff is empty, stop and report; never fall back to `HEAD~1`.
-Run /code-review in the foreground and read its result when it returns. Never wait on it by
-polling or sleeping (`sleep`, `timeout`, `tail -f`, `perl -e 'sleep …'`): that only idles the turn.
+Before committing or reporting a reviewed result, follow `references/review-gate.md` for the
+independent review and failure path.
 
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
