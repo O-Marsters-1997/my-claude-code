@@ -1,0 +1,10 @@
+{
+  "skill_name": "implement",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A fleet parent is explicitly told to run /implement for issue #696, base feat/conformance-p3, size s. Who owns implementation, which independent review is required, and what result is allowed if the reviewer cannot launch?",
+      "expected_output": "Delegate to the named implementation agent in the assigned ticket worktree; it runs independent medium Standards and Contract review. If review cannot launch, report blocked with reviewed=no, never done or reviewed=yes."
+    }
+  ]
+}
