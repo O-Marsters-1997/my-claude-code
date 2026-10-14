@@ -140,6 +140,7 @@ These skills help you write, refactor, and fix code.
 ## Tooling & Setup
 
 - **settings** (`setup.sh`) — `~/.claude/settings.json` is generated, not edited. `setup.sh` merges the tracked `settings.shared.json` (permissions, hooks, statusLine, plugins, `autoMode`) with the untracked `~/.claude/settings.user.json` (`model`, `effortLevel`, `env`), so every launcher, including `claude -p` from scripts, gets both. Change either source and re-run `./setup.sh`; `setup.sh` also installs a git `post-merge` hook (`githooks/post-merge`) that re-runs it after every pull or merge on `main` in this repo. Edits Claude Code writes straight into `settings.json` (`/model`, `/permissions`) are dropped on the next run; `setup.sh` prints them and keeps the old file as `settings.json.bak`, so move any keepers into a source file. The merge is `jq '.[0] * .[1]'`, so a key in both files takes the user file's value and arrays are replaced, not combined.
+- **Codex hooks** (`setup.sh`) — setup also merges `codex/hooks.json` with `~/.codex/hooks.user.json` into `~/.codex/hooks.json`, preserving existing hooks on first run and appending user hook groups for each event. It reuses the compatible Bash checks and adds session-start skill instructions. Open `/hooks` in Codex to trust the new definitions. The Claude skill gates and edit-comment hook read Claude tool calls or transcripts, so they are not installed as Codex enforcement hooks.
 - **clean-comments** — Set up a `/clean-comments` command and a PreToolUse hook that blocks git commits when staged code files contain self-documenting comments.
 
   ```
@@ -179,4 +180,3 @@ These skills help you write, refactor, and fix code.
   ```
   npx skills add O-Marsters-1997/skills --skill ubiquitous-language
   ```
-

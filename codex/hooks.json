@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/codex-skill-context.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-staged-comments.sh"
+          },
+          {
+            "type": "command",
+            "command": "rtk hook codex"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-bash-inplace-edits.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
