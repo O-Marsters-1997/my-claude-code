@@ -2,7 +2,7 @@
 reflect="$HOME/.claude/bin/reflect"
 
 if [ -x "$reflect" ]; then
-	"$reflect" marker harvest --block || exit $?
+	"$reflect" marker harvest || exit $?
 else
 	echo "pre-commit: $reflect missing, skipping marker harvest (run setup.sh)" >&2
 fi

@@ -24,7 +24,7 @@ func TestMark(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "l.jsonl")
-			if err := ledger.Append(path, ledger.Learning{ID: "a", Text: "keep", Status: "pending", Kind: "fix"}); err != nil {
+			if err := ledger.Append(path, ledger.Learning{ID: "a", Text: "keep", Status: "pending"}); err != nil {
 				t.Fatal(err)
 			}
 			err := ledger.Mark(path, tt.id, tt.status, ledger.MarkFields{Issue: tt.issue, Scope: tt.scope})

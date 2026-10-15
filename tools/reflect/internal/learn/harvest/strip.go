@@ -17,7 +17,7 @@ import (
 
 var afterCloser = regexp.MustCompile(`(?:\*/\}?|-->)\s*(\S.*)$`)
 
-var commentOpener = regexp.MustCompile(`\s*(?:/{2,}|#+|\{?/\*+|<!--)\s*$`)
+var commentOpener = regexp.MustCompile(`\s*(?:/{2,}|#+|-{2,}|\{?/\*+|<!--)\s*$`)
 
 func stripMarkers(ctx context.Context, top, root string, ids map[string]map[string]bool) error {
 	for _, file := range slices.Sorted(maps.Keys(ids)) {

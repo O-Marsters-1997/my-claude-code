@@ -19,12 +19,14 @@ func TestParseCommentStyles(t *testing.T) {
 		{"jsx", "{/* REFLECT(go-idiomatic): wrap errors */}"},
 		{"html", "<!-- REFLECT(go-idiomatic): wrap errors -->"},
 		{"trailing", "x := f() // REFLECT(go-idiomatic): wrap errors"},
+		{"sql", "-- REFLECT(go-idiomatic): wrap errors"},
+		{"sql trailing", "select 1; -- REFLECT(go-idiomatic): wrap errors"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := marker.Parse([]string{tt.line, "y := 1"})
-			if len(got) != 1 || got[0].Text != "wrap errors" || got[0].Skill != "go-idiomatic" || got[0].Later {
-				t.Fatalf("Parse(%q) = %+v, want one fix marker with skill and text", tt.line, got)
+			if len(got) != 1 || got[0].Text != "wrap errors" || got[0].Skill != "go-idiomatic" {
+				t.Fatalf("Parse(%q) = %+v, want one marker with skill and text", tt.line, got)
 			}
 		})
 	}
@@ -38,11 +40,12 @@ func TestParseTargets(t *testing.T) {
 		"",
 		"// plain note",
 		"return nil",
-		"call() // REFLECT later: trailing",
+		"call() // REFLECT: trailing",
+		"// REFLECT later: not a marker",
 	}
 	want := []marker.Marker{
 		{Text: "first line second line", Line: 2, Col: 3, End: 3, Target: 6, TargetText: "return nil"},
-		{Text: "trailing", Later: true, Line: 7, Col: 10, End: 7, Target: 7, TargetText: "call() // REFLECT later: trailing"},
+		{Text: "trailing", Line: 7, Col: 10, End: 7, Target: 7, TargetText: "call() // REFLECT: trailing"},
 	}
 	if diff := cmp.Diff(want, marker.Parse(lines)); diff != "" {
 		t.Errorf("Parse mismatch (-want +got):\n%s", diff)

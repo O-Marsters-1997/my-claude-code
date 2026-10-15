@@ -52,7 +52,7 @@ func checkout(t *testing.T, root, name, remote string) {
 }
 
 const pageOne = `[
- {"id":1,"body":"reflect(go-idiomatic): use errors.Is\nbecause wrapping","path":"a.go","line":7,"diff_hunk":"@@ -1 +1 @@\n+x","user":{"login":"me"}},
+ {"id":1,"body":"reflect(go-idiomatic): use errors.Is\nbecause wrapping","path":"a.go","line":7,"diff_hunk":"@@ -1 +1 @@\n+x","original_commit_id":"abc123","pull_request_url":"https://api.github.com/repos/o/good/pulls/42","user":{"login":"me"}},
  {"id":2,"body":"reflect: not mine","path":"a.go","line":8,"user":{"login":"other"}},
  {"id":3,"body":"looks fine","path":"a.go","line":9,"user":{"login":"me"}}
 ]`
@@ -80,27 +80,25 @@ func TestRunRecordsOwnLearnComments(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Recorded != 2 {
-		t.Fatalf("Recorded = %d, want 2", res.Recorded)
+	if res.Recorded != 1 {
+		t.Fatalf("Recorded = %d, want 1", res.Recorded)
 	}
 	got, err := ledger.Read(o.Ledger)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 2 {
-		t.Fatalf("ledger has %d learnings, want 2", len(got))
+	if len(got) != 1 {
+		t.Fatalf("ledger has %d learnings, want 1", len(got))
 	}
-	fix, later := got[0], got[1]
+	fix := got[0]
 	want := ledger.Learning{
-		Source: "pr", Kind: "fix", Skill: "go-idiomatic", Text: "use errors.Is\nbecause wrapping", File: "a.go", Line: 7,
+		Source: "pr", Skill: "go-idiomatic", Text: "use errors.Is\nbecause wrapping", File: "a.go", Line: 7,
 		Before: "@@ -1 +1 @@\n+x", Status: "pending", Origin: "https://github.com/o/good",
+		Commit: "abc123", PR: 42,
 	}
 	fix.ID, fix.TS, fix.Repo = "", "", ""
 	if fix != want {
 		t.Errorf("Run() fix learning = %+v, want %+v", fix, want)
-	}
-	if later.Kind != "later" || later.Line != 3 || later.Text != "rename this" {
-		t.Errorf("later learning = %+v", later)
 	}
 }
 
@@ -132,8 +130,8 @@ func TestRunTwiceRecordsNothingNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 2 {
-		t.Errorf("ledger has %d learnings, want 2", len(got))
+	if len(got) != 1 {
+		t.Errorf("ledger has %d learnings, want 1", len(got))
 	}
 }
 

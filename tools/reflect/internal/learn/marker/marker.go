@@ -10,7 +10,6 @@ import (
 // Col is the byte offset of the REFLECT keyword within line Line.
 type Marker struct {
 	Skill      string
-	Later      bool
 	Text       string
 	Line       int
 	Col        int
@@ -20,11 +19,11 @@ type Marker struct {
 }
 
 var (
-	marked   = regexp.MustCompile(`\bREFLECT(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
-	opener   = regexp.MustCompile(`(?:/{2,}|#+|\{?/\*+|<!--|\*)\s*$`)
-	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+(?:\s|$)|\{?/\*+|<!--|\*(?:[\s/]|$))`)
+	marked   = regexp.MustCompile(`\bREFLECT(?:\(([\w.-]+)\))?:\s*(.*)`)
+	opener   = regexp.MustCompile(`(?:/{2,}|#+|-{2,}|\{?/\*+|<!--|\*)\s*$`)
+	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+(?:\s|$)|-{2,}(?:\s|$)|\{?/\*+|<!--|\*(?:[\s/]|$))`)
 	closer   = regexp.MustCompile(`\s*(?:\*/\}?|-->)\s*$`)
-	opening  = regexp.MustCompile(`^\s*(?:/{2,}|#+|\{?/\*+|<!--|\*)\s?`)
+	opening  = regexp.MustCompile(`^\s*(?:/{2,}|#+|-{2,}|\{?/\*+|<!--|\*)\s?`)
 	hasClose = regexp.MustCompile(`(?:\*/\}?|-->)\s*$`)
 )
 
@@ -37,8 +36,7 @@ func ParseComment(body string) (m Marker, ok bool) {
 	}
 	return Marker{
 		Skill: loc[1],
-		Later: loc[2] != "",
-		Text:  strings.TrimSpace(closer.ReplaceAllString(loc[3], "")),
+		Text:  strings.TrimSpace(closer.ReplaceAllString(loc[2], "")),
 	}, true
 }
 

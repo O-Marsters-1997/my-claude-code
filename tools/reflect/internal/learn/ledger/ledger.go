@@ -18,7 +18,6 @@ type Learning struct {
 	ID         string `json:"id"`
 	TS         string `json:"ts,omitempty"`
 	Source     string `json:"source,omitempty"`
-	Kind       string `json:"kind,omitempty"`
 	Scope      string `json:"scope,omitempty"`
 	Skill      string `json:"skill,omitempty"`
 	Text       string `json:"text,omitempty"`
@@ -28,6 +27,7 @@ type Learning struct {
 	Line       int    `json:"line,omitempty"`
 	TargetText string `json:"target_line_text,omitempty"`
 	Commit     string `json:"commit,omitempty"`
+	PR         int    `json:"pr,omitempty"`
 	Before     string `json:"before,omitempty"`
 	After      string `json:"after,omitempty"`
 	Status     string `json:"status,omitempty"`
