@@ -60,8 +60,11 @@ writing it, and again before finishing, because they creep back in late in a lon
    `reflect.DeepEqual` either way.
 7. Failure messages read `Func(in) = got, want want`. Match errors with `errors.Is`/`errors.As`;
    a caller that needs to tell errors apart gets an exported sentinel or type.
-8. Use a table only when every case is checked the same way: a slice of structs with a `name`
-   field run with `t.Run(tt.name, ...)`. A branch on a case field means split the test.
+8. One outer test per function or method under test (`TestFunc`, `TestType_Method`); every case
+   runs in `t.Run`. Where cases are checked the same way, use a table: a slice of structs with a
+   `name` field run with `t.Run(tt.name, ...)`. Where they aren't, write named subtests inside
+   the same outer test. A branch on a case field means named subtests, not one table. Never a
+   second top-level `Test` named after a scenario.
 9. `t.Error` to keep going, `t.Fatal` when the rest can't run. Never `t.Fatal` from a goroutine
    the test didn't start on; send the error back on a channel.
 10. Helpers take `t`, call `t.Helper()`, fail on setup errors and register `t.Cleanup`. They set
