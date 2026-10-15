@@ -3,9 +3,10 @@ name: triage-reflections
 description: >
   Routes pending REFLECT-marker learnings from the reflect ledger to GitHub issues. Use when the user
   says "triage reflections", "/triage-reflections", "process my REFLECT markers", "what have I
-  learned", or when the statusline shows reflect:N. Infers missing skill and scope, merges duplicates into one
-  item with every example, drops lessons already covered by a rule or lint config, proposes routes
-  for the user to accept, files one issue per skill, and writes every decision back to the ledger
+  learned", or when the statusline shows reflect:N. Infers missing skill and scope, splits notes
+  into explicit and unclear, plays unclear ones back for correction, merges duplicates into one
+  item with every example, drops lessons already covered by a rule or lint config, routes by a
+  three-way test the user can correct, files one issue per skill, and writes every decision back to the ledger
   with `reflect marker mark`.
 ---
 
@@ -24,27 +25,41 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
    and file, then match it to a repo skill (`<repo>/.claude/skills/`) or a library skill
    (`reflect status` gives the `library:` path). Resolve an installed copy to its library source
    as `routing.md` describes.
-3. **Merge and drop.** Merge pending learnings with the same skill and scope that say the same
+3. **Classify.** Split every note by one test:
+   - **Explicit**: it has an `after`, or its text states a checkable rule ("inject the clock,
+     don't sleep"). For a PR note (`source: pr`) the `after` is fetched now: diff the commented
+     lines between the record's `commit` and the merged head of PR `pr` with `gh`. Write nothing
+     back to the ledger for it.
+   - **Unclear**: any other note ("not sure this is best", "could be simpler"). Read the code and
+     reach a reading and a proposed rule.
+4. **Merge and drop.** Merge pending learnings with the same skill and scope that say the same
    thing (judged by reading `text`, `before` and `after`) into one item, keeping every example
    (file, line, `before`/`after`) and a count such as "seen in 4 places": the repetition is the
    evidence, and each merged learning still counts toward a proposal's 3+.
    Mark `rejected` only a learning that an existing skill, `AGENTS.md`, rule or lint config
    already states. Check by reading the target; do not assume.
-4. **Propose.** Show a table, one row per item: ids, text, count, route, reason. Wait for the user
-   to accept, change or reject each row. Never file before this.
-5. **File** the accepted rows (below), then **mark** each.
-6. **Propose upward** (below) over the deferred and promoted learnings.
-7. **Report** the issue URLs, the proposals, and counts of promoted, deferred and rejected.
+5. **Play back.** Send one message holding every unclear note (code, your reading, the proposed
+   rule) and the route table for the explicit ones (ids, text, count, route, reason). Close with:
+   "Correct anything I've got wrong. Anything you don't mention, I'll take as agreed." Silence on
+   a note is agreement; never ask note by note. Re-verify all corrections together, then play back
+   only the changed notes plus a one-line list of what is settled, until a reply carries none.
+   "Go" settles the rest. Never file before this.
+6. **File** the settled rows (below), then **mark** each.
+7. **Propose upward** (below) over the deferred and promoted learnings.
+8. **Report** the issue URLs, the proposals, and counts of promoted, deferred and rejected.
 
 ## Routes
 
+Apply the three-way test; its result is the reason column. A `(skill)` hint that disagrees with it
+appears in the play-back next to your choice.
+
 | Learning | Action | Mark |
 | --- | --- | --- |
-| scope global, names a library skill | one issue on the skill's source repo | `promoted` |
-| scope repo, names a repo skill | one issue on the learning's `repo` field (pass `-R <owner>/<repo>` from its `origin`) to amend that skill | `promoted` |
-| kind `later`, scope repo | `inbox` issue on that repo via `file-issue` inbox mode | `promoted` |
-| scope repo with no skill (`REFLECT(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
-| user rejects, or a drop from step 3 | file nothing | `rejected` |
+| only about this code | `inbox` issue on the learning's `repo` via `file-issue` inbox mode | `promoted` |
+| depends on this repo's terms, ADRs or layout | one issue on the learning's `repo` field (pass `-R <owner>/<repo>` from its `origin`) to amend the repo skill or `AGENTS.md` | `promoted` |
+| holds in any repo using the same language or tool | one issue on the library skill's source repo | `promoted` |
+| repo lesson with no skill (`REFLECT(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
+| user rejects, or a drop from step 4 | file nothing | `rejected` |
 
 A merged item takes one route, and every learning in it gets that item's mark and `--issue` URL.
 
@@ -72,7 +87,7 @@ filed group: skip it, so a group is never proposed twice.
 
 Judge "one theme" and "same lesson" by reading `text`, `before` and `after`; when unsure, leave the
 learning out. Show the proposed groups to the user and wait for acceptance before filing, as in
-step 4. A proposal lists each learning (id, text, repo, `before`/`after`) as evidence and stops
+step 5. A proposal lists each learning (id, text, repo, `before`/`after`) as evidence and stops
 there: it contains no skill draft, no proposed wording and no patch. Use the reflect issue format
 with label `reflect`, and the genericising rules above for global and public-repo issues.
 
