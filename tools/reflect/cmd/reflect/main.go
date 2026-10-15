@@ -258,7 +258,7 @@ func runMarker(e env, args []string) (string, error) {
 	return "", errors.New(learnUsage)
 }
 
-func addObservation(path, repo, area, text string) error {
+func addObservation(path, root, area, text string) error {
 	text = redact.Clean(text, 4000)
 	if strings.TrimSpace(text) == "" {
 		return errors.New("observation text is empty")
@@ -267,11 +267,15 @@ func addObservation(path, repo, area, text string) error {
 	if area != "" {
 		scope = "area:" + filepath.ToSlash(filepath.Clean(area))
 	}
-	sum := sha256.Sum256([]byte(repo + scope + text))
-	return ledger.Append(path, ledger.Learning{
+	sum := sha256.Sum256([]byte(root + scope + text))
+	err := ledger.Append(path, ledger.Learning{
 		ID: hex.EncodeToString(sum[:])[:12], TS: time.Now().UTC().Format(time.RFC3339), Source: "manual",
-		Scope: scope, Text: text, Repo: repo, Status: "pending",
+		Scope: scope, Text: text, Repo: root, Status: "pending",
 	})
+	if err != nil {
+		return fmt.Errorf("append observation: %w", err)
+	}
+	return nil
 }
 
 func location(l ledger.Learning) string {
