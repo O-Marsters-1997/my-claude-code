@@ -67,18 +67,10 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 - **Never build SQL, or shell that carries SQL, with `fmt.Sprintf` or string concatenation.**
   Pass values as bind parameters (`$1`) or, for a script, as environment variables the script
   reads. Pass identifiers through `pgx.Identifier{"schema", "table"}.Sanitize()`. Interpolating
-  even an int starts the habit that becomes injection. Enable gosec G201/G202
-  (`lint/golangci.yml`); they catch Sprintf and concatenation that reach a query call, not SQL
-  inside a shell string, so review has to.
+  even an int starts the habit that becomes injection.
 
-Before, SQL baked into a Sprintf'd entrypoint:
-
-```go
-var entrypoint = fmt.Sprintf(`psql -c "ALTER SYSTEM SET idle_in_transaction_session_timeout = %d"`, idleTimeout)
-```
-
-After, a static script that reads its value from the environment (`IDLE_TIMEOUT` set via the
-container's `Env`):
+A container entrypoint is a static script that reads its value from the environment
+(`IDLE_TIMEOUT` set via the container's `Env`):
 
 ```go
 //go:embed entrypoint.sh

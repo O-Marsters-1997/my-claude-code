@@ -34,7 +34,7 @@
     {
       "id": 6,
       "prompt": "In a Go integration-test helper, start a Postgres testcontainer whose entrypoint script runs a psql query that sets idle_in_transaction_session_timeout from an int idleTimeout argument. Show the Go code and the script.",
-      "expected_output": "The script is a static file (//go:embed entrypoint.sh) that reads the timeout from an environment variable the container is started with. The entrypoint is not built with fmt.Sprintf or string concatenation. Mentions gosec G201/G202 for linting.",
+      "expected_output": "The script is a static file (//go:embed entrypoint.sh) that reads the timeout from an environment variable the container is started with. The entrypoint is not built with fmt.Sprintf or string concatenation.",
       "files": []
     }
   ]
