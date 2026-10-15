@@ -62,6 +62,25 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 - **`ON CONFLICT` names its target** (`ON CONFLICT (col)` or `ON CONSTRAINT name`). A bare
   `ON CONFLICT DO NOTHING` silently swallows violations of constraints you did not mean.
 
+## Building SQL
+
+- **Never build SQL, or shell that carries SQL, with `fmt.Sprintf` or string concatenation.**
+  Pass values as bind parameters (`$1`) or, for a script, as environment variables the script
+  reads. Pass identifiers through `pgx.Identifier{"schema", "table"}.Sanitize()`. Interpolating
+  even an int starts the habit that becomes injection.
+
+A container entrypoint is a static script that reads its value from the environment
+(`IDLE_TIMEOUT` set via the container's `Env`):
+
+```go
+//go:embed entrypoint.sh
+var entrypoint string
+```
+
+```sh
+psql -v t="$IDLE_TIMEOUT" -c "ALTER SYSTEM SET idle_in_transaction_session_timeout = :'t'"
+```
+
 ## Altering tables
 
 - **Add columns nullable or with a constant default**, then backfill, then add `NOT NULL`.
