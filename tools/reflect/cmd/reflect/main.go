@@ -3,6 +3,8 @@ package main
 import (
 	"cmp"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -22,6 +24,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/legacy"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/metrics"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/record"
+	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/replay"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/repo"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/scan"
@@ -161,7 +164,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runMarker(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect marker harvest | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
+	const learnUsage = "usage: reflect marker harvest | pull | add [--area path] <text> | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -222,9 +225,19 @@ func runMarker(e env, args []string) (string, error) {
 		}
 		var sb strings.Builder
 		for _, l := range learnings {
-			fmt.Fprintf(&sb, "%s\t%s\t%s:%d\t%s\n", l.ID, l.Status, l.File, l.Line, l.Text)
+			fmt.Fprintf(&sb, "%s\t%s\t%s\t%s\n", l.ID, l.Status, location(l), l.Text)
 		}
 		return sb.String(), nil
+	case "add":
+		area := fs.String("area", "", "directory the observation is about, whole repo when empty")
+		if err := fs.Parse(reorder(args[1:])); err != nil || fs.NArg() != 1 {
+			return "", errors.New(learnUsage)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		return "", addObservation(ledger.DefaultPath(), wd, *area, fs.Arg(0))
 	case "mark":
 		issue := fs.String("issue", "", "issue URL, required for promoted")
 		proposal := fs.String("proposal", "", "proposal issue URL grouping this learning")
@@ -243,6 +256,33 @@ func runMarker(e env, args []string) (string, error) {
 		return learnStatus(ledger.DefaultPath(), *remind)
 	}
 	return "", errors.New(learnUsage)
+}
+
+func addObservation(path, root, area, text string) error {
+	text = redact.Clean(text, 4000)
+	if strings.TrimSpace(text) == "" {
+		return errors.New("observation text is empty")
+	}
+	scope := "repo"
+	if area != "" {
+		scope = "area:" + filepath.ToSlash(filepath.Clean(area))
+	}
+	sum := sha256.Sum256([]byte(root + scope + text))
+	err := ledger.Append(path, ledger.Learning{
+		ID: hex.EncodeToString(sum[:])[:12], TS: time.Now().UTC().Format(time.RFC3339), Source: "manual",
+		Scope: scope, Text: text, Repo: root, Status: "pending",
+	})
+	if err != nil {
+		return fmt.Errorf("append observation: %w", err)
+	}
+	return nil
+}
+
+func location(l ledger.Learning) string {
+	if l.File == "" {
+		return l.Scope
+	}
+	return fmt.Sprintf("%s:%d", l.File, l.Line)
 }
 
 const remindThreshold = 10
