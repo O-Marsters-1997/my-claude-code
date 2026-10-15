@@ -41,7 +41,7 @@ An item stays in the sweep only if all hold:
 
 Rejects are listed with their route: `triage-issue` for an unexplained bug, `capture-idea` or
 `to-prd` for a feature, and `needs-design` for a design or refactor concern with no known fix
-(such as a `LEARN later:` marker). Name no skill for `needs-design`: deciding the fix is the
+(such as a `REFLECT later:` marker). Name no skill for `needs-design`: deciding the fix is the
 open work. A rejected inbox issue stays open but leaves the inbox in step 6, or every later
 sweep explores and rejects it again.
 

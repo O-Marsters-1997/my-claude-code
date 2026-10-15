@@ -287,7 +287,7 @@ func reminder(pending int) string {
 	if pending < remindThreshold {
 		return ""
 	}
-	return fmt.Sprintf("%d pending learnings: run /triage-learnings\n", pending)
+	return fmt.Sprintf("%d pending reflect markers: run /triage-reflections\n", pending)
 }
 
 func reportsDir(root string) (string, error) {

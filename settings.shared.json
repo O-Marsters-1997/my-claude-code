@@ -86,7 +86,7 @@
           },
           {
             "type": "command",
-            "command": "~/.claude/bin/reflect learn status --remind 2>/dev/null || true"
+            "command": "~/.claude/bin/reflect marker status --remind 2>/dev/null || true"
           }
         ]
       }
