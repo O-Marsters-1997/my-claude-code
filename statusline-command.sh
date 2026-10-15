@@ -89,9 +89,9 @@ fi
 # Pending learnings
 learn_bin="$HOME/.claude/bin/reflect"
 if [ -x "$learn_bin" ]; then
-  learn_n=$("$learn_bin" learn status 2>/dev/null)
+  learn_n=$("$learn_bin" marker status 2>/dev/null)
   if [ "${learn_n:-0}" -gt 0 ] 2>/dev/null; then
-    parts="$parts $(printf '\033[1;35m[learn:%s]\033[0m' "$learn_n")"
+    parts="$parts $(printf '\033[1;35m[reflect:%s]\033[0m' "$learn_n")"
   fi
 fi
 

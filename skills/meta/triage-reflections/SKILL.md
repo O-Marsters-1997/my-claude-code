@@ -1,15 +1,15 @@
 ---
-name: triage-learnings
+name: triage-reflections
 description: >
-  Routes pending LEARN-marker learnings from the reflect ledger to GitHub issues. Use when the user
-  says "triage learnings", "/triage-learnings", "process my LEARN markers", "what have I learned",
-  or when the statusline shows learn:N. Infers missing skill and scope, merges duplicates into one
+  Routes pending REFLECT-marker learnings from the reflect ledger to GitHub issues. Use when the user
+  says "triage reflections", "/triage-reflections", "process my REFLECT markers", "what have I
+  learned", or when the statusline shows reflect:N. Infers missing skill and scope, merges duplicates into one
   item with every example, drops lessons already covered by a rule or lint config, proposes routes
   for the user to accept, files one issue per skill, and writes every decision back to the ledger
-  with `reflect learn mark`.
+  with `reflect marker mark`.
 ---
 
-# Triage learnings
+# Triage reflections
 
 Turn pending learnings into filed issues, and leave none pending that were handled. Triage files
 issues only; it never edits a skill (`skill-updater`, `/implement` and `/fleet` do that).
@@ -19,7 +19,7 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 
 ## Steps
 
-1. **Load.** `reflect learn ls --json --status pending`. Empty means say so and stop.
+1. **Load.** `reflect marker ls --json --status pending`. Empty means say so and stop.
 2. **Infer.** For a learning with no `skill` or no `scope`, read its `text`, `before`, `after`
    and file, then match it to a repo skill (`<repo>/.claude/skills/`) or a library skill
    (`reflect status` gives the `library:` path). Resolve an installed copy to its library source
@@ -43,7 +43,7 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
 | scope global, names a library skill | one issue on the skill's source repo | `promoted` |
 | scope repo, names a repo skill | one issue on the learning's `repo` field (pass `-R <owner>/<repo>` from its `origin`) to amend that skill | `promoted` |
 | kind `later`, scope repo | `inbox` issue on that repo via `file-issue` inbox mode | `promoted` |
-| scope repo with no skill (`LEARN(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
+| scope repo with no skill (`REFLECT(repo)`), or no owner and no other learning shares its theme | file nothing | `deferred` |
 | user rejects, or a drop from step 3 | file nothing | `rejected` |
 
 A merged item takes one route, and every learning in it gets that item's mark and `--issue` URL.
@@ -61,7 +61,7 @@ library issues. Put each item's count and every example's `before`/`after` under
 
 ## Proposals
 
-After marking, run `reflect learn ls --json` and consider every learning with status `deferred` or
+After marking, run `reflect marker ls --json` and consider every learning with status `deferred` or
 `promoted` and an empty `proposal` field. A learning already carrying a `proposal` URL belongs to a
 filed group: skip it, so a group is never proposed twice.
 
@@ -79,7 +79,7 @@ with label `reflect`, and the genericising rules above for global and public-rep
 After the proposal exists, for every learning in it, keep its status and record the URL:
 
 ```bash
-reflect learn mark <id> <current-status> --proposal <proposal-url>
+reflect marker mark <id> <current-status> --proposal <proposal-url>
 ```
 
 `--proposal` is separate from `--issue`, so a promoted learning keeps its own issue link.
@@ -89,9 +89,9 @@ reflect learn mark <id> <current-status> --proposal <proposal-url>
 After each issue is filed, for every learning in it:
 
 ```bash
-reflect learn mark <id> promoted --issue <issue-url> [--scope global|repo] [--skill name]
-reflect learn mark <id> deferred
-reflect learn mark <id> rejected
+reflect marker mark <id> promoted --issue <issue-url> [--scope global|repo] [--skill name]
+reflect marker mark <id> deferred
+reflect marker mark <id> rejected
 ```
 
 Mark only after the issue exists, so a failed filing leaves the learning pending for the next run.

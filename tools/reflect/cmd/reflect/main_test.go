@@ -19,7 +19,7 @@ func TestLearnStatus(t *testing.T) {
 		{"empty count", 0, 0, false, "0\n"},
 		{"counts pending only", 3, 2, false, "3\n"},
 		{"no reminder below threshold", 9, 0, true, ""},
-		{"reminder at threshold", 10, 1, true, "10 pending learnings: run /triage-learnings\n"},
+		{"reminder at threshold", 10, 1, true, "10 pending reflect markers: run /triage-reflections\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
