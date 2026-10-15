@@ -93,7 +93,7 @@ func TestAdd(t *testing.T) {
 }
 ```
 
-### Success and error cases are separate tests
+### Success and error cases are separate tables
 
 A `wantErr bool` field forces an `if tt.wantErr` branch, so half the table is checked one way and
 half another. Split them into two tables under the one `TestParse`. The error table checks every
@@ -340,24 +340,26 @@ Tests of code that depends on the store seed the fake and assert on the result o
 not on which methods were called:
 
 ```go
-func TestRenameUser(t *testing.T) {
-    store := memstore.New()
-    if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
-        t.Fatalf("Save() error = %v", err)
-    }
-    svc := users.NewService(store)
+func TestService_Rename(t *testing.T) {
+    t.Run("renames the user", func(t *testing.T) {
+        store := memstore.New()
+        if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
+            t.Fatalf("Save() error = %v", err)
+        }
+        svc := users.NewService(store)
 
-    if err := svc.Rename(context.Background(), "123", "Alicia"); err != nil {
-        t.Fatalf("Rename() error = %v", err)
-    }
+        if err := svc.Rename(context.Background(), "123", "Alicia"); err != nil {
+            t.Fatalf("Rename() error = %v", err)
+        }
 
-    got, err := store.Get(context.Background(), "123")
-    if err != nil {
-        t.Fatalf("Get(123) error = %v", err)
-    }
-    if got.Name != "Alicia" {
-        t.Errorf("Name after Rename(123, Alicia) = %q, want %q", got.Name, "Alicia")
-    }
+        got, err := store.Get(context.Background(), "123")
+        if err != nil {
+            t.Fatalf("Get(123) error = %v", err)
+        }
+        if got.Name != "Alicia" {
+            t.Errorf("Name after Rename(123, Alicia) = %q, want %q", got.Name, "Alicia")
+        }
+    })
 }
 ```
 
@@ -374,19 +376,24 @@ type failingSave struct {
 
 func (f failingSave) Save(context.Context, userstore.User) error { return f.err }
 
-func TestRenameSaveFails(t *testing.T) {
-    store := memstore.New()
-    if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
-        t.Fatalf("Save() error = %v", err)
-    }
-    errDisk := errors.New("disk full")
-    svc := users.NewService(failingSave{Store: store, err: errDisk})
+```
 
-    err := svc.Rename(context.Background(), "123", "Alicia")
-    if !errors.Is(err, errDisk) {
-        t.Errorf("Rename() error = %v, want %v", err, errDisk)
-    }
-}
+The failing case is one more subtest of the same `TestService_Rename`:
+
+```go
+    t.Run("save fails", func(t *testing.T) {
+        store := memstore.New()
+        if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
+            t.Fatalf("Save() error = %v", err)
+        }
+        errDisk := errors.New("disk full")
+        svc := users.NewService(failingSave{Store: store, err: errDisk})
+
+        err := svc.Rename(context.Background(), "123", "Alicia")
+        if !errors.Is(err, errDisk) {
+            t.Errorf("Rename() error = %v, want %v", err, errDisk)
+        }
+    })
 ```
 
 ---

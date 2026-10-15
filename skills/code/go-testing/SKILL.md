@@ -29,7 +29,7 @@ writing it, and again before finishing, because they creep back in late in a lon
 | ----------------------------------------------------- | ------------------------------------------------------------------------------- |
 | testify `assert`/`require`, any assertion library     | Plain `if` plus `t.Errorf`; `cmp.Diff` for anything not a scalar                |
 | `reflect.DeepEqual`                                   | `cmp.Diff(want, got)`, reported as `(-want +got)`                                |
-| A table with `wantErr bool` and an `if tt.wantErr`    | Two tests: a success table and an error table checked with `errors.Is`          |
+| A table with `wantErr bool` and an `if tt.wantErr`    | Two tables under one test: success, and errors checked with `errors.Is`        |
 | gomock, mockery, `EXPECT().Times(1)`                  | A stateful in-memory fake; assert on the state it ends in                       |
 | `sqlmock` or a mocked `database/sql` driver           | A real Postgres from `internal/pgtest`                                          |
 | `TestMain` starting a container per package           | `pgtest.New(t)`: one container per repo, a database per test                    |
