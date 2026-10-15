@@ -32,7 +32,7 @@ func readFile(t *testing.T, dir, name string) string {
 	return string(b)
 }
 
-const laterMarked = "package a\n\n// LEARN later: tidy this\n// up soon\nfunc f() {}\n"
+const laterMarked = "package a\n\n// REFLECT later: tidy this\n// up soon\nfunc f() {}\n"
 
 func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) {
 	dir := newRepo(t)
@@ -71,14 +71,14 @@ func TestStripKeepsUnstagedHunksUnstaged(t *testing.T) {
 	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n\nfunc g() {}\n" {
 		t.Errorf("worktree = %q", got)
 	}
-	if diff := gitOut(t, dir, "diff"); !strings.Contains(diff, "+func g() {}") || strings.Contains(diff, "LEARN") {
+	if diff := gitOut(t, dir, "diff"); !strings.Contains(diff, "+func g() {}") || strings.Contains(diff, "REFLECT") {
 		t.Errorf("unstaged diff = %q, want only g", diff)
 	}
 }
 
 func TestStripDeletesOnlyTheMarkerLines(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n// keep me\n// LEARN later: one\n// two\n\n// other\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\n// keep me\n// REFLECT later: one\n// two\n\n// other\nfunc f() {}\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	want := "package a\n\n// keep me\n\n// other\nfunc f() {}\n"
 	if got := readFile(t, dir, "a.go"); got != want {
@@ -88,7 +88,7 @@ func TestStripDeletesOnlyTheMarkerLines(t *testing.T) {
 
 func TestStripKeepsCodeBesideTrailingMarker(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\nfunc f() {} // LEARN later: trailing\n")
+	write(t, dir, "a.go", "package a\n\nfunc f() {} // REFLECT later: trailing\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n" {
 		t.Errorf("worktree = %q, want code kept", got)
@@ -97,7 +97,7 @@ func TestStripKeepsCodeBesideTrailingMarker(t *testing.T) {
 
 func TestStripKeepsCodeAfterBlockCommentMarker(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n/* LEARN later: x */ func f() {}\n")
+	write(t, dir, "a.go", "package a\n\n/* REFLECT later: x */ func f() {}\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n" {
 		t.Errorf("worktree = %q, want code kept", got)
@@ -114,7 +114,7 @@ func TestStripFlagRemovesFixMarkersWithoutBlocking(t *testing.T) {
 	if err != nil || res.Blocked || res.Recorded != 1 {
 		t.Fatalf("Run = %+v, %v, want recorded and not blocked", res, err)
 	}
-	if strings.Contains(gitOut(t, dir, "show", ":a.go"), "LEARN") || strings.Contains(readFile(t, dir, "a.go"), "LEARN") {
+	if strings.Contains(gitOut(t, dir, "show", ":a.go"), "REFLECT") || strings.Contains(readFile(t, dir, "a.go"), "REFLECT") {
 		t.Error("fix marker survived --strip")
 	}
 	if got, _ := ledger.Read(lp); len(got) != 1 || got[0].Kind != "fix" {
@@ -154,10 +154,10 @@ func TestCommitFormsProduceMarkerFreeTrees(t *testing.T) {
 			}
 			write(t, dir, "a.go", laterMarked)
 			gitIn(t, dir, tt.commit...)
-			if tree := gitOut(t, dir, "show", "HEAD:a.go"); strings.Contains(tree, "LEARN") {
+			if tree := gitOut(t, dir, "show", "HEAD:a.go"); strings.Contains(tree, "REFLECT") {
 				t.Errorf("committed tree = %q, want no marker", tree)
 			}
-			if got := readFile(t, dir, "a.go"); strings.Contains(got, "LEARN") {
+			if got := readFile(t, dir, "a.go"); strings.Contains(got, "REFLECT") {
 				t.Errorf("worktree = %q, want no marker", got)
 			}
 		})

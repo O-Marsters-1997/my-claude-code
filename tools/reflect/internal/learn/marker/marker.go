@@ -20,7 +20,7 @@ type Marker struct {
 }
 
 var (
-	marked   = regexp.MustCompile(`\b(?:REFLECT|LEARN)(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	marked   = regexp.MustCompile(`\bREFLECT(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	opener   = regexp.MustCompile(`(?:/{2,}|#+|\{?/\*+|<!--|\*)\s*$`)
 	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+(?:\s|$)|\{?/\*+|<!--|\*(?:[\s/]|$))`)
 	closer   = regexp.MustCompile(`\s*(?:\*/\}?|-->)\s*$`)

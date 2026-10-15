@@ -14,12 +14,11 @@ func TestParseCommentStyles(t *testing.T) {
 		line string
 	}{
 		{"slash", "// REFLECT(go-idiomatic): wrap errors"},
-		{"retired LEARN keyword", "// LEARN(go-idiomatic): wrap errors"},
-		{"hash", "# LEARN(go-idiomatic): wrap errors"},
-		{"block", "/* LEARN(go-idiomatic): wrap errors */"},
-		{"jsx", "{/* LEARN(go-idiomatic): wrap errors */}"},
-		{"html", "<!-- LEARN(go-idiomatic): wrap errors -->"},
-		{"trailing", "x := f() // LEARN(go-idiomatic): wrap errors"},
+		{"hash", "# REFLECT(go-idiomatic): wrap errors"},
+		{"block", "/* REFLECT(go-idiomatic): wrap errors */"},
+		{"jsx", "{/* REFLECT(go-idiomatic): wrap errors */}"},
+		{"html", "<!-- REFLECT(go-idiomatic): wrap errors -->"},
+		{"trailing", "x := f() // REFLECT(go-idiomatic): wrap errors"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -34,16 +33,16 @@ func TestParseCommentStyles(t *testing.T) {
 func TestParseTargets(t *testing.T) {
 	lines := []string{
 		"package x",
-		"// LEARN: first line",
+		"// REFLECT: first line",
 		"// second line",
 		"",
 		"// plain note",
 		"return nil",
-		"call() // LEARN later: trailing",
+		"call() // REFLECT later: trailing",
 	}
 	want := []marker.Marker{
 		{Text: "first line second line", Line: 2, Col: 3, End: 3, Target: 6, TargetText: "return nil"},
-		{Text: "trailing", Later: true, Line: 7, Col: 10, End: 7, Target: 7, TargetText: "call() // LEARN later: trailing"},
+		{Text: "trailing", Later: true, Line: 7, Col: 10, End: 7, Target: 7, TargetText: "call() // REFLECT later: trailing"},
 	}
 	if diff := cmp.Diff(want, marker.Parse(lines)); diff != "" {
 		t.Errorf("Parse mismatch (-want +got):\n%s", diff)
@@ -51,14 +50,14 @@ func TestParseTargets(t *testing.T) {
 }
 
 func TestParseIgnoresNonComments(t *testing.T) {
-	lines := []string{`s := "LEARN: not a comment"`, "// LEARNED: no", "// nothing"}
+	lines := []string{`s := "REFLECT: not a comment"`, "// REFLECTED: no", "// nothing"}
 	if got := marker.Parse(lines); len(got) != 0 {
 		t.Errorf("Parse = %+v, want none", got)
 	}
 }
 
 func TestParseBlockComment(t *testing.T) {
-	lines := []string{"/*", " * LEARN: block text", " * more text", " */", "code()"}
+	lines := []string{"/*", " * REFLECT: block text", " * more text", " */", "code()"}
 	got := marker.Parse(lines)
 	if len(got) != 1 || got[0].Text != "block text more text" || got[0].Target != 5 {
 		t.Errorf("Parse = %+v, want continued text targeting line 5", got)
@@ -72,7 +71,7 @@ func TestParseCommentNoMarker(t *testing.T) {
 }
 
 func TestParseIgnoresMarkersInStringsAndCodeLines(t *testing.T) {
-	lines := []string{`fmt.Println("// LEARN: in a string")`, `// LEARN: real`, "*p = 1", "#include <x.h>"}
+	lines := []string{`fmt.Println("// REFLECT: in a string")`, `// REFLECT: real`, "*p = 1", "#include <x.h>"}
 	got := marker.Parse(lines)
 	if len(got) != 1 || got[0].Text != "real" || got[0].Target != 3 {
 		t.Errorf("Parse = %+v, want one marker targeting *p = 1", got)

@@ -53,11 +53,11 @@ func checkout(t *testing.T, root, name, remote string) {
 
 const pageOne = `[
  {"id":1,"body":"reflect(go-idiomatic): use errors.Is\nbecause wrapping","path":"a.go","line":7,"diff_hunk":"@@ -1 +1 @@\n+x","user":{"login":"me"}},
- {"id":2,"body":"learn: not mine","path":"a.go","line":8,"user":{"login":"other"}},
+ {"id":2,"body":"reflect: not mine","path":"a.go","line":8,"user":{"login":"other"}},
  {"id":3,"body":"looks fine","path":"a.go","line":9,"user":{"login":"me"}}
 ]`
 
-const pageTwo = `[{"id":4,"body":"Learn later: rename this","path":"b.go","original_line":3,"user":{"login":"me"}}]`
+const pageTwo = `[{"id":4,"body":"Reflect later: rename this","path":"b.go","original_line":3,"user":{"login":"me"}}]`
 
 func setup(t *testing.T) (pull.Options, *fakeGh) {
 	t.Helper()
