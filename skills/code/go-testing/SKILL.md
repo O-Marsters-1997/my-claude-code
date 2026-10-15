@@ -18,7 +18,7 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash(go:*), Bash(golangci-lint:*),
 How a Go test is written, in every repo. What to test is the repo's `testing-policy` when it
 ships one: the kinds of test it uses, what each is worth, which a feature needs, and the reusable
 patterns to copy as the codebase grows. It never restates how a test is written, so the two do not
-overlap. For the red-green-refactor loop, use `tdd`.
+overlap. A repo without one gets it from `testing-policy-creator`. For the red-green-refactor loop, use `tdd`.
 
 ## Your defaults that are wrong here
 

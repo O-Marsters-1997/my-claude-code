@@ -1,6 +1,6 @@
 # Code skills
 
-Seventeen skills for writing, designing and reviewing code. Unlike the workflow suite they are
+Nineteen skills for writing, designing and reviewing code. Unlike the workflow suite they are
 mostly independent: each one loads on its own trigger, and several standards skills are meant to
 load side by side. This file is the map for humans working on them.
 
@@ -70,6 +70,7 @@ Boundaries that keep them from colliding:
 | `improve-codebase-architecture` | the whole codebase | an HTML report of deepening opportunities, then a grilling on one (slash-only) |
 | `record-decision` | a decision just made | an ADR in `docs/adr/`, plus `CONTEXT.md` terms |
 | `compare-tools` | a choice between libraries or tools | a ranked comparison for this project |
+| `testing-policy-creator` | the whole codebase | the repo's `testing-policy` skill, after a grilling; a list of tests that break it |
 
 ## Review and docs
 
