@@ -149,21 +149,9 @@ exports a sentinel or a type, and the test uses `errors.Is` or `errors.As`.
 
 ### One outer test per function
 
-Scenarios for one function are subtests of one outer test, not sibling top-level tests. Before,
-two scenarios of `InTx` each get their own top-level function:
-
-```go
-func TestInTxCancelledMidFnRollsBack(t *testing.T) {
-    // ...
-}
-
-func TestReadsThatDecideAWriteSeeOneSnapshot(t *testing.T) {
-    // ...
-}
-```
-
-After, one `TestInTx` with a named subtest per scenario. The checks differ, so they stay named
-subtests rather than a table:
+Scenarios for one function are subtests of one outer test, never sibling top-level tests named
+after the scenario. `InTx` gets one `TestInTx` with a named subtest per scenario. The checks
+differ, so they stay named subtests rather than a table:
 
 ```go
 func TestInTx(t *testing.T) {
