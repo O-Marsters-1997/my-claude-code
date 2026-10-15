@@ -98,7 +98,8 @@
   },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
   "autoMode": {
     "environment": [
