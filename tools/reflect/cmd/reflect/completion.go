@@ -49,6 +49,7 @@ func zshCompletion() string {
 	sb.WriteString("  if (( CURRENT == 2 )); then\n    compadd -- " + strings.Join(commands, " ") + "\n    return\n  fi\n")
 	sb.WriteString("  [[ $words[2] == marker ]] || return\n")
 	sb.WriteString("  if (( CURRENT == 3 )); then\n    compadd -- " + strings.Join(markerNames(), " ") + "\n    return\n  fi\n")
+	sb.WriteString("  if [[ $words[CURRENT-1] == --area ]]; then\n    compadd -U -- ${(f)\"$(reflect complete-area \"$PREFIX\" 2>/dev/null)\"}\n    return\n  fi\n")
 	sb.WriteString("  case $words[3] in\n")
 	for _, m := range markerCommands {
 		if len(m.flags) > 0 {
@@ -63,6 +64,8 @@ func bashCompletion() string {
 	var sb strings.Builder
 	sb.WriteString("_reflect() {\n  local cur=${COMP_WORDS[COMP_CWORD]} words=\"\"\n")
 	sb.WriteString("  if [ \"$COMP_CWORD\" -eq 1 ]; then\n    words=\"" + strings.Join(commands, " ") + "\"\n")
+	sb.WriteString("  elif [ \"${COMP_WORDS[1]}\" = marker ] && [ \"${COMP_WORDS[COMP_CWORD-1]}\" = --area ]; then\n")
+	sb.WriteString("    local IFS=$'\\n'\n    COMPREPLY=($(reflect complete-area \"$cur\" 2>/dev/null))\n    return\n")
 	sb.WriteString("  elif [ \"${COMP_WORDS[1]}\" = marker ]; then\n")
 	sb.WriteString("    if [ \"$COMP_CWORD\" -eq 2 ]; then\n      words=\"" + strings.Join(markerNames(), " ") + "\"\n    else\n      case ${COMP_WORDS[2]} in\n")
 	for _, m := range markerCommands {

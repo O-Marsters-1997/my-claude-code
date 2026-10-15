@@ -90,6 +90,12 @@ func run(e env, cmd string, args []string) (string, error) {
 		return legacy.Uninstall(e.root())
 	case "completion":
 		return completionScript(args)
+	case "complete-area":
+		if len(args) != 1 {
+			return "", errors.New("usage: reflect complete-area <fragment>")
+		}
+		matches, err := areaMatches(e.root(), args[0])
+		return strings.Join(matches, "\n") + "\n", err
 	}
 	return "", fmt.Errorf("unknown command %q; %s", cmd, usage)
 }
