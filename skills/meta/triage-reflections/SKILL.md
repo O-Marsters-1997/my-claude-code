@@ -43,7 +43,9 @@ body, labels, dedupe and the `-R` repo flags: `skills/meta/reflect/references/is
    "Correct anything I've got wrong. Anything you don't mention, I'll take as agreed." Silence on
    a note is agreement; never ask note by note. Re-verify all corrections together, then play back
    only the changed notes plus a one-line list of what is settled, until a reply carries none.
-   "Go" settles the rest. Never file before this.
+   "Go" settles the rest. Never file before this. Once settled, route an unclear note by the same
+   three-way test, with its proposed rule as the issue content. Where a `(skill)` hint disagrees
+   with the test, show both in the route table. The reason column names the test that matched.
 6. **File** the settled rows (below), then **mark** each.
 7. **Propose upward** (below) over the deferred and promoted learnings.
 8. **Report** the issue URLs, the proposals, and counts of promoted, deferred and rejected.
