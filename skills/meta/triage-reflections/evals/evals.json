@@ -10,6 +10,11 @@
       "id": 2,
       "prompt": "Pending notes: N1 (PR note, no after, text \"could be simpler\"), N2 (has an after, hint (tdd), but only about one function in this repo), N3 (text \"inject the clock, don't sleep\", no after). The user replies to the play-back correcting only N1.",
       "expected_output": "N1 is unclear; N2 and N3 are explicit. One play-back lists N1 with code, reading and proposed rule, plus the route table with N2 routed to an inbox issue and the disagreeing (tdd) hint shown beside it. After the reply only N1 is played back again, with N2 and N3 listed as settled."
+    },
+    {
+      "id": 3,
+      "prompt": "The user has settled three items: X (repo route: amend AGENTS.md on repo acme/app), Y (global route: library skill go-testing on acme/skills), and a proposal group Z of 3 repo learnings on acme/app. Output the exact gh issue create commands, with every --label and -R flag, and any gh label create commands.",
+      "expected_output": "X and Y carry --label reflect --label status:ready --label inbox; Z carries --label reflect --label inbox. The inbox label is created with gh label create inbox -c \"#c5def5\" if missing."
     }
   ]
 }

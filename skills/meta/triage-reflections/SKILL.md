@@ -66,8 +66,10 @@ appears in the play-back next to your choice.
 A merged item takes one route, and every learning in it gets that item's mark and `--issue` URL.
 
 Group by skill: one issue per skill per run, listing every item for that skill. Use
-the reflect issue format with labels `reflect` and `status:ready`, and add the `from:` line for
-library issues. Put each item's count and every example's `before`/`after` under Evidence.
+the reflect issue format with labels `reflect`, `status:ready` and `inbox`, and add the `from:` line
+for library issues. Put each item's count and every example's `before`/`after` under Evidence.
+Every issue triage files carries `inbox`, because `/sweep` reads only that label and an issue
+without it is never batched. Create the label if missing (`gh label create inbox -c "#c5def5"`).
 
 - **Mechanical lessons** (a script or linter could catch it): the issue also asks for a snippet in
   the skill's `lint/` folder, in the house forms (forbidigo, errorlint for Go).
@@ -91,7 +93,7 @@ Judge "one theme" and "same lesson" by reading `text`, `before` and `after`; whe
 learning out. Show the proposed groups to the user and wait for acceptance before filing, as in
 step 5. A proposal lists each learning (id, text, repo, `before`/`after`) as evidence and stops
 there: it contains no skill draft, no proposed wording and no patch. Use the reflect issue format
-with label `reflect`, and the genericising rules above for global and public-repo issues.
+with labels `reflect` and `inbox`, and the genericising rules above for global and public-repo issues.
 
 After the proposal exists, for every learning in it, keep its status and record the URL:
 
