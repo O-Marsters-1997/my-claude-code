@@ -29,42 +29,16 @@ type Options struct {
 	Repo    string
 	Ledger  string
 	Library string
-	Block   bool
-	Strip   bool
 }
 
-// Found is one fix marker still present in a staged or unstaged diff.
-type Found struct {
-	File string
-	Line int
-	Text string
-}
-
-// Result reports what a Run saw. Blocked is true when Block was set and fix
-// markers remain.
 type Result struct {
-	Found    []Found
 	Recorded int
-	Blocked  bool
-}
-
-// Report lists the found markers as file:line: text, one per line.
-func (r Result) Report() string {
-	var b strings.Builder
-	for _, f := range r.Found {
-		fmt.Fprintf(&b, "%s:%d: %s\n", f.File, f.Line, f.Text)
-	}
-	return b.String()
 }
 
 const maxField = 4000
 
 var hunk = regexp.MustCompile(`^@@ -\S+ \+(\d+)(?:,(\d+))? @@`)
 
-// Run records the markers in the staged and unstaged diffs as pending
-// learnings, skipping ones already in the ledger. Later markers are removed
-// from the staged blobs and the working tree without blocking; Strip removes
-// fix markers the same way.
 func Run(ctx context.Context, o Options) (Result, error) {
 	top, err := git(ctx, o.Repo, "rev-parse", "--show-toplevel")
 	if err != nil {
@@ -84,6 +58,7 @@ func Run(ctx context.Context, o Options) (Result, error) {
 	origin = strings.TrimSpace(origin)
 
 	var res Result
+	var recorded []ledger.Learning
 	toStrip := map[string]map[string]bool{}
 	seen := map[string]bool{}
 	for _, staged := range []bool{true, false} {
@@ -109,30 +84,20 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				}
 				text := redact.Clean(m.Text, maxField)
 				id := learningID(root, file, text)
-				stripped := m.Later || o.Strip
-				if stripped {
-					if toStrip[file] == nil {
-						toStrip[file] = map[string]bool{}
-					}
-					toStrip[file][id] = true
+				if toStrip[file] == nil {
+					toStrip[file] = map[string]bool{}
 				}
+				toStrip[file][id] = true
 				if seen[id] {
 					continue
 				}
 				seen[id] = true
-				kind := "fix"
-				if m.Later {
-					kind = "later"
-				}
-				if !stripped {
-					res.Found = append(res.Found, Found{File: file, Line: m.Line, Text: text})
-				}
 				if have[id] {
 					continue
 				}
 				scopeName, skill := scope.Resolve(root, o.Library, m.Skill)
 				l := ledger.Learning{
-					ID: id, TS: time.Now().UTC().Format(time.RFC3339), Source: "editor", Kind: kind,
+					ID: id, TS: time.Now().UTC().Format(time.RFC3339), Source: "editor",
 					Scope: scopeName, Skill: skill, Text: text, Repo: root, Origin: origin, File: file, Line: m.Line,
 					TargetText: redact.Clean(m.TargetText, maxField),
 					Before:     redact.Clean(snippet(lines, m), maxField), Status: "pending",
@@ -140,6 +105,7 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				if err := ledger.Append(o.Ledger, l); err != nil {
 					return Result{}, err
 				}
+				recorded = append(recorded, l)
 				res.Recorded++
 			}
 		}
@@ -147,16 +113,9 @@ func Run(ctx context.Context, o Options) (Result, error) {
 	if err := stripMarkers(ctx, top, root, toStrip); err != nil {
 		return Result{}, err
 	}
-	slices.SortFunc(res.Found, func(a, b Found) int {
-		if c := strings.Compare(a.File, b.File); c != 0 {
-			return c
-		}
-		return a.Line - b.Line
-	})
-	if err := recordFixes(ctx, top, root, o.Ledger); err != nil {
+	if err := recordFixes(ctx, top, o.Ledger, recorded); err != nil {
 		return Result{}, err
 	}
-	res.Blocked = o.Block && len(res.Found) > 0
 	return res, nil
 }
 

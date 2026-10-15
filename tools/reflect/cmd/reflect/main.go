@@ -161,7 +161,7 @@ func runMetrics(e env, args []string) (string, error) {
 }
 
 func runMarker(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect marker harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
+	const learnUsage = "usage: reflect marker harvest | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
@@ -169,8 +169,6 @@ func runMarker(e env, args []string) (string, error) {
 	fs.SetOutput(io.Discard)
 	switch args[0] {
 	case "harvest":
-		block := fs.Bool("block", false, "exit 1 while fix markers remain")
-		strip := fs.Bool("strip", false, "delete every recorded marker, fix markers included")
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
 			return "", errors.New(learnUsage)
 		}
@@ -178,14 +176,8 @@ func runMarker(e env, args []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		res, err := harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Library: library, Block: *block, Strip: *strip})
-		if err != nil {
-			return "", err
-		}
-		if res.Blocked {
-			return res.Report(), fmt.Errorf("%d fix marker(s) remain; resolve or remove them before committing", len(res.Found))
-		}
-		return "", nil
+		_, err = harvest.Run(context.Background(), harvest.Options{Repo: wd, Ledger: ledger.DefaultPath(), Library: library})
+		return "", err
 	case "pull":
 		if err := fs.Parse(args[1:]); err != nil || fs.NArg() != 0 {
 			return "", errors.New(learnUsage)
@@ -230,7 +222,7 @@ func runMarker(e env, args []string) (string, error) {
 		}
 		var sb strings.Builder
 		for _, l := range learnings {
-			fmt.Fprintf(&sb, "%s\t%s\t%s\t%s:%d\t%s\n", l.ID, l.Status, l.Kind, l.File, l.Line, l.Text)
+			fmt.Fprintf(&sb, "%s\t%s\t%s:%d\t%s\n", l.ID, l.Status, l.File, l.Line, l.Text)
 		}
 		return sb.String(), nil
 	case "mark":

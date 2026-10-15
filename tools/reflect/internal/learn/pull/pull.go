@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,7 +48,7 @@ const (
 )
 
 var (
-	learnComment = regexp.MustCompile(`(?is)^\s*reflect(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	learnComment = regexp.MustCompile(`(?is)^\s*reflect(?:\(([\w.-]+)\))?:\s*(.*)`)
 	githubRemote = regexp.MustCompile(`github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$`)
 )
 
@@ -59,7 +60,10 @@ type comment struct {
 	OrigLine  int    `json:"original_line"`
 	DiffHunk  string `json:"diff_hunk"`
 	CreatedAt string `json:"created_at"`
-	User      struct {
+
+	OriginalCommit string `json:"original_commit_id"`
+	PullRequestURL string `json:"pull_request_url"`
+	User           struct {
 		Login string `json:"login"`
 	} `json:"user"`
 }
@@ -115,18 +119,15 @@ func Run(ctx context.Context, o Options) (Result, error) {
 				continue
 			}
 			have[id] = true
-			kind := "fix"
-			if m[2] != "" {
-				kind = "later"
-			}
 			line := c.Line
 			if line == 0 {
 				line = c.OrigLine
 			}
 			l := ledger.Learning{
-				ID: id, TS: cmp.Or(c.CreatedAt, started.Format(time.RFC3339)), Source: "pr", Kind: kind, Skill: m[1],
-				Text: redact.Clean(strings.TrimSpace(m[3]), maxField), Repo: repos[slug],
+				ID: id, TS: cmp.Or(c.CreatedAt, started.Format(time.RFC3339)), Source: "pr", Skill: m[1],
+				Text: redact.Clean(strings.TrimSpace(m[2]), maxField), Repo: repos[slug],
 				Origin: "https://github.com/" + slug, File: c.Path, Line: line,
+				Commit: c.OriginalCommit, PR: prNumber(c.PullRequestURL),
 				Before: redact.Clean(c.DiffHunk, maxField), Status: "pending",
 			}
 			if err := ledger.Append(o.Ledger, l); err != nil {
@@ -141,6 +142,11 @@ func Run(ctx context.Context, o Options) (Result, error) {
 		}
 	}
 	return res, nil
+}
+
+func prNumber(url string) int {
+	n, _ := strconv.Atoi(url[strings.LastIndex(url, "/")+1:])
+	return n
 }
 
 func fetch(ctx context.Context, gh Gh, slug, since string) ([]comment, error) {

@@ -42,7 +42,7 @@ func newRepo(t *testing.T) string {
 
 func run(t *testing.T, dir, ledgerPath string) harvest.Result {
 	t.Helper()
-	res, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: ledgerPath, Block: true})
+	res, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: ledgerPath})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,25 +51,27 @@ func run(t *testing.T, dir, ledgerPath string) harvest.Result {
 
 const marked = "package a\n\n// REFLECT(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() {}\n"
 
-func TestStagedMarkerBlocksAndRecordsOnce(t *testing.T) {
+func TestStagedMarkerIsRecordedOnceAndStripped(t *testing.T) {
 	dir := newRepo(t)
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
 	write(t, dir, "a.go", marked)
 	gitIn(t, dir, "add", "a.go")
 
-	res := run(t, dir, lp)
-	if !res.Blocked || !strings.HasPrefix(res.Report(), "a.go:3: wrap errors") {
-		t.Fatalf("Run = %+v, report %q, want blocked with a.go:3", res, res.Report())
+	if res := run(t, dir, lp); res.Recorded != 1 {
+		t.Fatalf("Run = %+v, want one recorded", res)
 	}
-	if again := run(t, dir, lp); again.Recorded != 0 || !again.Blocked {
-		t.Errorf("second Run = %+v, want blocked and nothing recorded", again)
+	if again := run(t, dir, lp); again.Recorded != 0 {
+		t.Errorf("second Run = %+v, want nothing recorded", again)
+	}
+	if strings.Contains(gitOut(t, dir, "show", ":a.go"), "REFLECT") || strings.Contains(readFile(t, dir, "a.go"), "REFLECT") {
+		t.Error("marker survived in the index or worktree")
 	}
 	got, err := ledger.Read(lp)
 	if err != nil || len(got) != 1 {
 		t.Fatalf("Read = %v, %v, want one learning", got, err)
 	}
 	l := got[0]
-	if l.Kind != "fix" || l.Status != "pending" || l.Skill != "go-idiomatic" || l.File != "a.go" || l.TargetText != "func f() {}" {
+	if l.Status != "pending" || l.Skill != "go-idiomatic" || l.File != "a.go" || l.TargetText != "func f() {}" {
 		t.Errorf("learning = %+v", l)
 	}
 	if strings.Contains(l.Text, "hunter2") || strings.Contains(l.Before, "hunter2") {
@@ -80,49 +82,55 @@ func TestStagedMarkerBlocksAndRecordsOnce(t *testing.T) {
 	}
 }
 
-func TestUnstagedMarkerBlocks(t *testing.T) {
+func TestUnstagedMarkerIsRecorded(t *testing.T) {
 	dir := newRepo(t)
 	write(t, dir, "a.go", marked)
-	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); !res.Blocked {
-		t.Errorf("Run = %+v, want blocked", res)
+	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Recorded != 1 {
+		t.Errorf("Run = %+v, want one recorded", res)
 	}
 }
 
-func TestCleanDiffPasses(t *testing.T) {
+func TestCleanDiffRecordsNothing(t *testing.T) {
 	dir := newRepo(t)
 	write(t, dir, "a.go", "package a\n\nfunc f() { _ = 1 }\n")
-	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	if res := run(t, dir, lp); res.Blocked || len(res.Found) != 0 {
-		t.Errorf("Run = %+v, want pass", res)
+	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Recorded != 0 {
+		t.Errorf("Run = %+v, want nothing recorded", res)
 	}
 }
 
-func TestMarkerOutsideDiffIgnoredAndLaterSkipped(t *testing.T) {
+func TestMarkerOutsideDiffIgnoredAndLaterFormDoesNotParse(t *testing.T) {
 	dir := newRepo(t)
 	write(t, dir, "a.go", "package a\n\n// REFLECT: old\nfunc f() {}\n")
 	gitIn(t, dir, "add", ".")
 	gitIn(t, dir, "commit", "-qm", "has marker")
-	write(t, dir, "a.go", "package a\n\n// REFLECT: old\nfunc f() {}\n// REFLECT later: tidy\nfunc g() {}\n")
-	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Blocked {
-		t.Errorf("Run = %+v, want pass: old marker is not in the diff and later does not block", res)
+	body := "package a\n\n// REFLECT: old\nfunc f() {}\n// REFLECT later: tidy\nfunc g() {}\n"
+	write(t, dir, "a.go", body)
+	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Recorded != 0 {
+		t.Errorf("Run = %+v, want nothing: old marker is not in the diff and later does not parse", res)
 	}
-}
-
-func TestNonBlockingStillRecords(t *testing.T) {
-	dir := newRepo(t)
-	write(t, dir, "a.go", marked)
-	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	res, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: lp})
-	if err != nil || res.Blocked || res.Recorded != 1 {
-		t.Errorf("Run = %+v, %v, want recorded without blocking", res, err)
+	if got := readFile(t, dir, "a.go"); got != body {
+		t.Errorf("worktree = %q, want untouched", got)
 	}
 }
 
 func TestAddedPlusPlusLineDoesNotHideMarker(t *testing.T) {
 	dir := newRepo(t)
 	write(t, dir, "a.go", "package a\n\n++ x\n// REFLECT: after pluses\nfunc f() {}\n")
-	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); !res.Blocked {
-		t.Errorf("Run = %+v, want blocked", res)
+	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Recorded != 1 {
+		t.Errorf("Run = %+v, want one recorded", res)
+	}
+}
+
+func TestSQLDashMarkerIsRecordedAndStripped(t *testing.T) {
+	dir := newRepo(t)
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "q.sql", "-- REFLECT: index this\nselect 1;\nselect 2; -- REFLECT: trailing\n")
+	gitIn(t, dir, "add", "q.sql")
+	if res := run(t, dir, lp); res.Recorded != 2 {
+		t.Fatalf("Run = %+v, want two recorded", res)
+	}
+	if got := readFile(t, dir, "q.sql"); got != "select 1;\nselect 2;\n" {
+		t.Errorf("worktree = %q", got)
 	}
 }
 
@@ -166,111 +174,50 @@ func afterOf(t *testing.T, lp string) string {
 	return got[0].After
 }
 
-func recordMarked(t *testing.T) (string, string) {
+func repoWithOldTarget(t *testing.T) string {
 	t.Helper()
+	dir := newRepo(t)
+	write(t, dir, "a.go", "package a\n\nfunc f() {} // old\n")
+	gitIn(t, dir, "add", ".")
+	gitIn(t, dir, "commit", "-qm", "old target")
+	return dir
+}
+
+func TestAfterIsTheStagedHunkThatChangesTheTarget(t *testing.T) {
+	dir := repoWithOldTarget(t)
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "a.go", "package a\n\n// REFLECT: drop the comment\nfunc f() {}\n")
+	gitIn(t, dir, "add", "a.go")
+	run(t, dir, lp)
+	if got := afterOf(t, lp); got != "-func f() {} // old\n+func f() {}" {
+		t.Errorf("after = %q", got)
+	}
+}
+
+func TestAfterStaysEmptyWhenCommitLeavesTargetAlone(t *testing.T) {
 	dir := newRepo(t)
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
 	write(t, dir, "a.go", marked)
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
-	return dir, lp
-}
-
-func TestFixFillsAfterFromStagedHunk(t *testing.T) {
-	dir, lp := recordMarked(t)
 	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); got != "-func f() {}\n+func f() error { return nil }" {
-		t.Errorf("after = %q", got)
-	}
-}
-
-func TestFixMatchesAfterLinesShiftAbove(t *testing.T) {
-	dir, lp := recordMarked(t)
-	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\nfunc f() error { return nil }\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); !strings.Contains(got, "-func f() {}") || !strings.Contains(got, "+func f() error { return nil }") {
-		t.Errorf("after = %q", got)
-	}
-}
-
-func TestFixWaitsUntilFileStaged(t *testing.T) {
-	dir, lp := recordMarked(t)
-	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
-	gitIn(t, dir, "add", "a.go")
-	write(t, dir, "b.go", "package a\n")
-	gitIn(t, dir, "reset", "-q", "a.go")
-	gitIn(t, dir, "add", "b.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); got != "" {
-		t.Fatalf("after = %q, want empty while file unstaged", got)
-	}
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); got == "" {
-		t.Error("after still empty after staging the file")
-	}
-}
-
-func TestFixNeverOverwritesAfter(t *testing.T) {
-	dir, lp := recordMarked(t)
-	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	first := afterOf(t, lp)
-	gitIn(t, dir, "commit", "-qm", "fix")
-	write(t, dir, "a.go", "package a\n\nfunc f() error { return errors.New(\"x\") }\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); got != first {
-		t.Errorf("after = %q, want unchanged %q", got, first)
-	}
-}
-
-func TestFixNotRecordedWhileMarkerRemains(t *testing.T) {
-	dir, lp := recordMarked(t)
-	write(t, dir, "a.go", "package a\n\n// REFLECT(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() error { return nil }\n")
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
 	if got := afterOf(t, lp); got != "" {
-		t.Errorf("after = %q, want empty while marker remains", got)
+		t.Errorf("after = %q, want empty on a later commit", got)
 	}
 }
 
-func TestFixMatchesAfterLinesRemovedAbove(t *testing.T) {
-	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\nfunc f() {}\n")
-	gitIn(t, dir, "add", ".")
-	gitIn(t, dir, "commit", "-qm", "more")
-	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\n// REFLECT: wrap\nfunc f() {}\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
-	gitIn(t, dir, "add", "a.go")
-	run(t, dir, lp)
-	if got := afterOf(t, lp); !strings.Contains(got, "-func f() {}") || !strings.Contains(got, "+func f() error { return nil }") {
-		t.Errorf("after = %q", got)
-	}
-}
-
-func TestFixFallsBackToNearestHunk(t *testing.T) {
+func TestAfterIgnoresHunksThatDoNotTouchTheTarget(t *testing.T) {
 	dir := newRepo(t)
 	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\nfunc g() {}\n")
 	gitIn(t, dir, "add", ".")
 	gitIn(t, dir, "commit", "-qm", "g")
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\n// REFLECT: tidy\nfunc g() {}\n")
+	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\n// REFLECT: tidy\nfunc g() int { return 1 }\n")
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
-	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\nfunc g() int { return 1 }\n")
-	gitIn(t, dir, "add", "a.go")
-	if got := run(t, dir, lp); got.Blocked {
-		t.Fatal("blocked")
-	}
-	if got := afterOf(t, lp); !strings.Contains(got, "+func g() int { return 1 }") {
-		t.Errorf("after = %q", got)
+	if got := afterOf(t, lp); got != "" {
+		t.Errorf("after = %q, want empty: no staged hunk removes the target text", got)
 	}
 }

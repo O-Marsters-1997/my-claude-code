@@ -1,14 +1,12 @@
 package harvest_test
 
 import (
-	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/harvest"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
 )
 
@@ -32,7 +30,7 @@ func readFile(t *testing.T, dir, name string) string {
 	return string(b)
 }
 
-const laterMarked = "package a\n\n// REFLECT later: tidy this\n// up soon\nfunc f() {}\n"
+const laterMarked = "package a\n\n// REFLECT: tidy this\n// up soon\nfunc f() {}\n"
 
 func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) {
 	dir := newRepo(t)
@@ -41,8 +39,8 @@ func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) 
 	gitIn(t, dir, "add", "a.go")
 
 	res := run(t, dir, lp)
-	if res.Blocked || res.Recorded != 1 {
-		t.Fatalf("Run = %+v, want recorded and not blocked", res)
+	if res.Recorded != 1 {
+		t.Fatalf("Run = %+v, want one recorded", res)
 	}
 	want := "package a\n\nfunc f() {}\n"
 	if got := gitOut(t, dir, "show", ":a.go"); got != want {
@@ -52,8 +50,8 @@ func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) 
 		t.Errorf("worktree = %q, want %q", got, want)
 	}
 	got, err := ledger.Read(lp)
-	if err != nil || len(got) != 1 || got[0].Kind != "later" || got[0].Text != "tidy this up soon" {
-		t.Errorf("ledger = %+v, %v, want one later learning", got, err)
+	if err != nil || len(got) != 1 || got[0].Text != "tidy this up soon" {
+		t.Errorf("ledger = %+v, %v, want one learning", got, err)
 	}
 }
 
@@ -78,7 +76,7 @@ func TestStripKeepsUnstagedHunksUnstaged(t *testing.T) {
 
 func TestStripDeletesOnlyTheMarkerLines(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n// keep me\n// REFLECT later: one\n// two\n\n// other\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\n// keep me\n// REFLECT: one\n// two\n\n// other\nfunc f() {}\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	want := "package a\n\n// keep me\n\n// other\nfunc f() {}\n"
 	if got := readFile(t, dir, "a.go"); got != want {
@@ -88,7 +86,7 @@ func TestStripDeletesOnlyTheMarkerLines(t *testing.T) {
 
 func TestStripKeepsCodeBesideTrailingMarker(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\nfunc f() {} // REFLECT later: trailing\n")
+	write(t, dir, "a.go", "package a\n\nfunc f() {} // REFLECT: trailing\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n" {
 		t.Errorf("worktree = %q, want code kept", got)
@@ -97,37 +95,10 @@ func TestStripKeepsCodeBesideTrailingMarker(t *testing.T) {
 
 func TestStripKeepsCodeAfterBlockCommentMarker(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n/* REFLECT later: x */ func f() {}\n")
+	write(t, dir, "a.go", "package a\n\n/* REFLECT: x */ func f() {}\n")
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 	if got := readFile(t, dir, "a.go"); got != "package a\n\nfunc f() {}\n" {
 		t.Errorf("worktree = %q, want code kept", got)
-	}
-}
-
-func TestStripFlagRemovesFixMarkersWithoutBlocking(t *testing.T) {
-	dir := newRepo(t)
-	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", marked)
-	gitIn(t, dir, "add", "a.go")
-
-	res, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: lp, Block: true, Strip: true})
-	if err != nil || res.Blocked || res.Recorded != 1 {
-		t.Fatalf("Run = %+v, %v, want recorded and not blocked", res, err)
-	}
-	if strings.Contains(gitOut(t, dir, "show", ":a.go"), "REFLECT") || strings.Contains(readFile(t, dir, "a.go"), "REFLECT") {
-		t.Error("fix marker survived --strip")
-	}
-	if got, _ := ledger.Read(lp); len(got) != 1 || got[0].Kind != "fix" {
-		t.Errorf("ledger = %+v, want one fix learning", got)
-	}
-}
-
-func TestFixMarkerWithoutStripStaysPut(t *testing.T) {
-	dir := newRepo(t)
-	write(t, dir, "a.go", marked)
-	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
-	if got := readFile(t, dir, "a.go"); got != marked {
-		t.Errorf("worktree = %q, want untouched", got)
 	}
 }
 
@@ -148,7 +119,7 @@ func TestCommitFormsProduceMarkerFreeTrees(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			dir := newRepo(t)
-			hook := "#!/bin/sh\nexec " + bin + " marker harvest --block\n"
+			hook := "#!/bin/sh\nexec " + bin + " marker harvest\n"
 			if err := os.WriteFile(filepath.Join(dir, ".git", "hooks", "pre-commit"), []byte(hook), 0o755); err != nil {
 				t.Fatal(err)
 			}
