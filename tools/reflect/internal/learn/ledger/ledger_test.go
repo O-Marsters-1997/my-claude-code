@@ -13,8 +13,8 @@ import (
 func TestReadFoldsLines(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "sub", "learnings.jsonl")
 	for _, l := range []ledger.Learning{
-		{ID: "a", Kind: "fix", Text: "one", Status: "pending"},
-		{ID: "b", Kind: "later", Status: "pending"},
+		{ID: "a", Text: "one", Status: "pending"},
+		{ID: "b", Status: "pending"},
 		{ID: "a", Status: "promoted", Issue: "u"},
 	} {
 		if err := ledger.Append(path, l); err != nil {
@@ -22,8 +22,8 @@ func TestReadFoldsLines(t *testing.T) {
 		}
 	}
 	want := []ledger.Learning{
-		{ID: "a", Kind: "fix", Text: "one", Status: "promoted", Issue: "u"},
-		{ID: "b", Kind: "later", Status: "pending"},
+		{ID: "a", Text: "one", Status: "promoted", Issue: "u"},
+		{ID: "b", Status: "pending"},
 	}
 	got, err := ledger.Read(path)
 	if err != nil {

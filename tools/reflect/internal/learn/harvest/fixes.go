@@ -3,18 +3,15 @@ package harvest
 import (
 	"context"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
-	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/marker"
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/redact"
 )
 
 type fixHunk struct {
-	oldStart int
-	removed  []string
-	added    []string
+	removed []string
+	added   []string
 }
 
 func (h fixHunk) text() string {
@@ -28,19 +25,8 @@ func (h fixHunk) text() string {
 	return strings.Join(lines, "\n")
 }
 
-func recordFixes(ctx context.Context, top, root, ledgerPath string) error {
-	known, err := ledger.Read(ledgerPath)
-	if err != nil {
-		return err
-	}
-	for _, l := range known {
-		if !awaitsFix(l, root) {
-			continue
-		}
-		content, err := git(ctx, top, "show", ":"+l.File)
-		if err != nil || markerPresent(content, root, l) {
-			continue
-		}
+func recordFixes(ctx context.Context, top, ledgerPath string, recorded []ledger.Learning) error {
+	for _, l := range recorded {
 		diff, err := git(ctx, top, "-c", "core.quotepath=off", "diff", "--cached", "-U0", "--no-color", "--no-ext-diff", "--", l.File)
 		if err != nil {
 			return err
@@ -57,25 +43,11 @@ func recordFixes(ctx context.Context, top, root, ledgerPath string) error {
 	return nil
 }
 
-func awaitsFix(l ledger.Learning, root string) bool {
-	return l.Kind == "fix" && l.Status == "pending" && l.After == "" && l.Repo == root && l.File != ""
-}
-
-func markerPresent(content, root string, l ledger.Learning) bool {
-	lines := strings.Split(strings.ReplaceAll(strings.TrimSuffix(content, "\n"), "\r\n", "\n"), "\n")
-	for _, m := range marker.Parse(lines) {
-		if !m.Later && learningID(root, l.File, redact.Clean(m.Text, maxField)) == l.ID {
-			return true
-		}
-	}
-	return false
-}
-
 func parseHunks(diff string) []fixHunk {
 	var out []fixHunk
 	for _, l := range strings.Split(diff, "\n") {
 		if hunk.MatchString(l) {
-			out = append(out, fixHunk{oldStart: oldStart(l)})
+			out = append(out, fixHunk{})
 			continue
 		}
 		if len(out) == 0 {
@@ -92,37 +64,15 @@ func parseHunks(diff string) []fixHunk {
 	return out
 }
 
-func oldStart(header string) int {
-	rest := strings.TrimPrefix(header, "@@ -")
-	num, _, _ := strings.Cut(rest, " ")
-	num, _, _ = strings.Cut(num, ",")
-	n, _ := strconv.Atoi(num)
-	return n
-}
-
 func pickHunk(hunks []fixHunk, l ledger.Learning) (fixHunk, bool) {
-	if len(hunks) == 0 {
+	target := strings.TrimSpace(l.TargetText)
+	if target == "" {
 		return fixHunk{}, false
 	}
-	if target := strings.TrimSpace(l.TargetText); target != "" {
-		for _, h := range hunks {
-			if slices.ContainsFunc(h.removed, func(r string) bool { return strings.Contains(redact.Clean(r, maxField), target) }) {
-				return h, true
-			}
+	for _, h := range hunks {
+		if slices.ContainsFunc(h.removed, func(r string) bool { return strings.Contains(redact.Clean(r, maxField), target) }) {
+			return h, true
 		}
 	}
-	best := hunks[0]
-	for _, h := range hunks[1:] {
-		if abs(h.oldStart-l.Line) < abs(best.oldStart-l.Line) {
-			best = h
-		}
-	}
-	return best, true
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
+	return fixHunk{}, false
 }

@@ -5,6 +5,11 @@
       "id": 1,
       "prompt": "Pending learnings L1-L5 all say \"tests need improving\" for library skill tdd, scope global, each from a different file and line with its own before/after. L6 says \"wrap errors with %w\", which an existing errorlint config already enforces. The user accepts every row. Give the propose table, the tdd issue's Evidence, and the reflect marker mark command for each learning.",
       "expected_output": "L1-L5 merge into one item shown with a count (seen in 5 places), the issue's Evidence lists all five examples with file, line and before/after, and L1-L5 are all marked promoted with the same --issue URL. Only L6 is marked rejected."
+    },
+    {
+      "id": 2,
+      "prompt": "Pending notes: N1 (PR note, no after, text \"could be simpler\"), N2 (has an after, hint (tdd), but only about one function in this repo), N3 (text \"inject the clock, don't sleep\", no after). The user replies to the play-back correcting only N1.",
+      "expected_output": "N1 is unclear; N2 and N3 are explicit. One play-back lists N1 with code, reading and proposed rule, plus the route table with N2 routed to an inbox issue and the disagreeing (tdd) hint shown beside it. After the reply only N1 is played back again, with N2 and N3 listed as settled."
     }
   ]
 }
