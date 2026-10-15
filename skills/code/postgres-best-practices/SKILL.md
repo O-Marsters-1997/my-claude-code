@@ -62,6 +62,24 @@ Rules for schema and queries on Postgres. They are language-agnostic; the Go hal
 - **`ON CONFLICT` names its target** (`ON CONFLICT (col)` or `ON CONSTRAINT name`). A bare
   `ON CONFLICT DO NOTHING` silently swallows violations of constraints you did not mean.
 
+## Building SQL
+
+- **Never build SQL, or shell that carries SQL, with `fmt.Sprintf` or string concatenation.**
+  Pass values as bind parameters (`$1`) or, for a script, as environment variables the script
+  reads. Pass identifiers through `pgx.Identifier{"schema", "table"}.Sanitize()`. Only an int
+  interpolated today is how injection starts tomorrow. Enable gosec G201/G202
+  (`lint/golangci.yml`).
+
+```go
+// Before: SQL baked into a Sprintf'd entrypoint.
+var entrypoint = fmt.Sprintf(`psql -c "ALTER SYSTEM SET idle_in_transaction_session_timeout = %d"`, idleTimeout)
+
+// After: a static script, parameterised by its environment.
+//go:embed entrypoint.sh
+var entrypoint string // entrypoint.sh: psql -c "ALTER SYSTEM SET ... = '${IDLE_TIMEOUT}'"
+// the container is started with Env: []string{"IDLE_TIMEOUT=" + strconv.Itoa(idleTimeout)}
+```
+
 ## Altering tables
 
 - **Add columns nullable or with a constant default**, then backfill, then add `NOT NULL`.

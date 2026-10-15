@@ -30,6 +30,12 @@
       "prompt": "A Postgres app (uses sqlc, two sqlc packages share the schema) has jobs.status typed as a Postgres ENUM job_status ('queued','running','done'). (1) We need a new status 'cancelled' — write the migration(s). (2) Add a new scrape_run_logs table (id, run_id FK to scrape_runs, level, message, created_at) — write the migration. (3) Write the sqlc query the admin page uses to list run logs newest first.",
       "expected_output": "Converts the ENUM to text + a named CHECK (ALTER COLUMN TYPE text USING status::text, ADD CONSTRAINT jobs_status_check including 'cancelled', DROP TYPE, defaults recreated as text), noting the rewrite lock and expand/contract for a big table, rather than ALTER TYPE ADD VALUE or mapping each sqlc enum copy to a domain type. The logs table has a named FK index, text + CHECK for level and timestamptz, and the same migration decides a retention policy, with an index on created_at and batched deletes. The list query has a hard LIMIT and keyset pagination on (created_at, id), not OFFSET.",
       "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "In a Go integration-test helper, start a Postgres testcontainer whose entrypoint script runs a psql query that sets idle_in_transaction_session_timeout from an int idleTimeout argument. Show the Go code and the script.",
+      "expected_output": "The script is a static file (//go:embed entrypoint.sh) that reads the timeout from an environment variable the container is started with. The entrypoint is not built with fmt.Sprintf or string concatenation. Mentions gosec G201/G202 for linting.",
+      "files": []
     }
   ]
 }
