@@ -93,56 +93,79 @@ func TestAdd(t *testing.T) {
 }
 ```
 
-### Success and error cases are separate tests
+### Success and error cases are separate tables
 
 A `wantErr bool` field forces an `if tt.wantErr` branch, so half the table is checked one way and
-half another. Split them. The error table checks every case with `errors.Is`:
+half another. Split them into two tables under the one `TestParse`. The error table checks every
+case with `errors.Is`:
 
 ```go
 func TestParse(t *testing.T) {
-    tests := []struct {
-        name  string
-        input string
-        want  *config.Config
-    }{
-        {name: "full", input: `{"host": "localhost", "port": 8080}`, want: &config.Config{Host: "localhost", Port: 8080}},
-        {name: "empty object", input: `{}`, want: &config.Config{}},
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got, err := config.Parse(tt.input)
-            if err != nil {
-                t.Fatalf("Parse(%q) error = %v", tt.input, err)
-            }
-            if diff := cmp.Diff(tt.want, got); diff != "" {
-                t.Errorf("Parse(%q) mismatch (-want +got):\n%s", tt.input, diff)
-            }
-        })
-    }
-}
+    t.Run("success", func(t *testing.T) {
+        tests := []struct {
+            name  string
+            input string
+            want  *config.Config
+        }{
+            {name: "full", input: `{"host": "localhost", "port": 8080}`, want: &config.Config{Host: "localhost", Port: 8080}},
+            {name: "empty object", input: `{}`, want: &config.Config{}},
+        }
+        for _, tt := range tests {
+            t.Run(tt.name, func(t *testing.T) {
+                got, err := config.Parse(tt.input)
+                if err != nil {
+                    t.Fatalf("Parse(%q) error = %v", tt.input, err)
+                }
+                if diff := cmp.Diff(tt.want, got); diff != "" {
+                    t.Errorf("Parse(%q) mismatch (-want +got):\n%s", tt.input, diff)
+                }
+            })
+        }
+    })
 
-func TestParseErrors(t *testing.T) {
-    tests := []struct {
-        name    string
-        input   string
-        wantErr error
-    }{
-        {name: "invalid JSON", input: `{invalid}`, wantErr: config.ErrSyntax},
-        {name: "empty input", input: "", wantErr: config.ErrEmpty},
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            _, err := config.Parse(tt.input)
-            if !errors.Is(err, tt.wantErr) {
-                t.Errorf("Parse(%q) error = %v, want %v", tt.input, err, tt.wantErr)
-            }
-        })
-    }
+    t.Run("errors", func(t *testing.T) {
+        tests := []struct {
+            name    string
+            input   string
+            wantErr error
+        }{
+            {name: "invalid JSON", input: `{invalid}`, wantErr: config.ErrSyntax},
+            {name: "empty input", input: "", wantErr: config.ErrEmpty},
+        }
+        for _, tt := range tests {
+            t.Run(tt.name, func(t *testing.T) {
+                _, err := config.Parse(tt.input)
+                if !errors.Is(err, tt.wantErr) {
+                    t.Errorf("Parse(%q) error = %v, want %v", tt.input, err, tt.wantErr)
+                }
+            })
+        }
+    })
 }
 ```
 
 Never match errors on `err.Error()` text. If a caller needs to tell errors apart, the package
 exports a sentinel or a type, and the test uses `errors.Is` or `errors.As`.
+
+### One outer test per function
+
+Scenarios for one function are subtests of one outer test, never sibling top-level tests named
+after the scenario. `InTx` gets one `TestInTx` with a named subtest per scenario. The checks
+differ, so they stay named subtests rather than a table:
+
+```go
+func TestInTx(t *testing.T) {
+    t.Run("cancelled mid fn rolls back", func(t *testing.T) {
+        // ...
+    })
+
+    t.Run("reads that decide a write see one snapshot", func(t *testing.T) {
+        // ...
+    })
+}
+```
+
+`go test -run 'TestInTx/cancelled'` still runs one scenario.
 
 ---
 
@@ -305,24 +328,26 @@ Tests of code that depends on the store seed the fake and assert on the result o
 not on which methods were called:
 
 ```go
-func TestRenameUser(t *testing.T) {
-    store := memstore.New()
-    if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
-        t.Fatalf("Save() error = %v", err)
-    }
-    svc := users.NewService(store)
+func TestService_Rename(t *testing.T) {
+    t.Run("renames the user", func(t *testing.T) {
+        store := memstore.New()
+        if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
+            t.Fatalf("Save() error = %v", err)
+        }
+        svc := users.NewService(store)
 
-    if err := svc.Rename(context.Background(), "123", "Alicia"); err != nil {
-        t.Fatalf("Rename() error = %v", err)
-    }
+        if err := svc.Rename(context.Background(), "123", "Alicia"); err != nil {
+            t.Fatalf("Rename() error = %v", err)
+        }
 
-    got, err := store.Get(context.Background(), "123")
-    if err != nil {
-        t.Fatalf("Get(123) error = %v", err)
-    }
-    if got.Name != "Alicia" {
-        t.Errorf("Name after Rename(123, Alicia) = %q, want %q", got.Name, "Alicia")
-    }
+        got, err := store.Get(context.Background(), "123")
+        if err != nil {
+            t.Fatalf("Get(123) error = %v", err)
+        }
+        if got.Name != "Alicia" {
+            t.Errorf("Name after Rename(123, Alicia) = %q, want %q", got.Name, "Alicia")
+        }
+    })
 }
 ```
 
@@ -339,19 +364,24 @@ type failingSave struct {
 
 func (f failingSave) Save(context.Context, userstore.User) error { return f.err }
 
-func TestRenameSaveFails(t *testing.T) {
-    store := memstore.New()
-    if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
-        t.Fatalf("Save() error = %v", err)
-    }
-    errDisk := errors.New("disk full")
-    svc := users.NewService(failingSave{Store: store, err: errDisk})
+```
 
-    err := svc.Rename(context.Background(), "123", "Alicia")
-    if !errors.Is(err, errDisk) {
-        t.Errorf("Rename() error = %v, want %v", err, errDisk)
-    }
-}
+The failing case is one more subtest of the same `TestService_Rename`:
+
+```go
+    t.Run("save fails", func(t *testing.T) {
+        store := memstore.New()
+        if err := store.Save(context.Background(), userstore.User{ID: "123", Name: "Alice"}); err != nil {
+            t.Fatalf("Save() error = %v", err)
+        }
+        errDisk := errors.New("disk full")
+        svc := users.NewService(failingSave{Store: store, err: errDisk})
+
+        err := svc.Rename(context.Background(), "123", "Alicia")
+        if !errors.Is(err, errDisk) {
+            t.Errorf("Rename() error = %v, want %v", err, errDisk)
+        }
+    })
 ```
 
 ---
