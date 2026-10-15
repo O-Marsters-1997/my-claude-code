@@ -44,3 +44,37 @@ func TestLearnStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestAddObservation(t *testing.T) {
+	tests := []struct {
+		name, area, wantScope string
+	}{
+		{"area", "tools/reflect/", "area:tools/reflect"},
+		{"whole repo", "", "repo"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "learnings.jsonl")
+			if err := addObservation(path, "/r", tt.area, "package is too big"); err != nil {
+				t.Fatal(err)
+			}
+			got, err := ledger.Read(path)
+			if err != nil || len(got) != 1 {
+				t.Fatalf("read = %v, %v", got, err)
+			}
+			l := got[0]
+			if l.Scope != tt.wantScope || l.Text != "package is too big" || l.Status != "pending" {
+				t.Errorf("record = %+v", l)
+			}
+			if l.File != "" || l.Line != 0 || l.TargetText != "" || l.After != "" {
+				t.Errorf("code fields set: %+v", l)
+			}
+			if loc := location(l); loc != tt.wantScope {
+				t.Errorf("location = %q", loc)
+			}
+		})
+	}
+	if err := addObservation(filepath.Join(t.TempDir(), "l.jsonl"), "/r", "", "  "); err == nil {
+		t.Error("empty text accepted")
+	}
+}
