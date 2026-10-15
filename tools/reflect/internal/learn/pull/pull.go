@@ -47,7 +47,7 @@ const (
 )
 
 var (
-	learnComment = regexp.MustCompile(`(?is)^\s*learn(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	learnComment = regexp.MustCompile(`(?is)^\s*(?:reflect|learn)(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	githubRemote = regexp.MustCompile(`github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$`)
 )
 
@@ -64,7 +64,7 @@ type comment struct {
 	} `json:"user"`
 }
 
-// Run records the authenticated user's learn: review comments on every
+// Run records the authenticated user's reflect: review comments on every
 // GitHub remote found since the previous pull as pending learnings. A repo
 // gh cannot read becomes a warning and keeps the last-pull time where it was.
 func Run(ctx context.Context, o Options) (Result, error) {

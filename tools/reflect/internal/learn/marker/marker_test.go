@@ -13,7 +13,8 @@ func TestParseCommentStyles(t *testing.T) {
 		name string
 		line string
 	}{
-		{"slash", "// LEARN(go-idiomatic): wrap errors"},
+		{"slash", "// REFLECT(go-idiomatic): wrap errors"},
+		{"retired LEARN keyword", "// LEARN(go-idiomatic): wrap errors"},
 		{"hash", "# LEARN(go-idiomatic): wrap errors"},
 		{"block", "/* LEARN(go-idiomatic): wrap errors */"},
 		{"jsx", "{/* LEARN(go-idiomatic): wrap errors */}"},

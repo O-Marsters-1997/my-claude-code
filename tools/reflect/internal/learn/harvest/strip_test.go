@@ -148,7 +148,7 @@ func TestCommitFormsProduceMarkerFreeTrees(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			dir := newRepo(t)
-			hook := "#!/bin/sh\nexec " + bin + " learn harvest --block\n"
+			hook := "#!/bin/sh\nexec " + bin + " marker harvest --block\n"
 			if err := os.WriteFile(filepath.Join(dir, ".git", "hooks", "pre-commit"), []byte(hook), 0o755); err != nil {
 				t.Fatal(err)
 			}
