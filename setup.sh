@@ -55,6 +55,20 @@ echo "fleet: built $CLAUDE/bin/fleet"
 mkdir -p ~/.local/bin
 ln -sfn "$CLAUDE/bin/fleet" ~/.local/bin/fleet
 echo "fleet: linked ~/.local/bin/fleet"
+ln -sfn "$CLAUDE/bin/reflect" ~/.local/bin/reflect
+echo "reflect: linked ~/.local/bin/reflect"
+if [ -x "$CLAUDE/bin/reflect" ]; then
+  mkdir -p "$CLAUDE/completions"
+  for shell in zsh bash; do
+    "$CLAUDE/bin/reflect" completion "$shell" > "$CLAUDE/completions/reflect.$shell"
+    rc=~/."${shell}rc"
+    line="[ -f $CLAUDE/completions/reflect.$shell ] && source $CLAUDE/completions/reflect.$shell"
+    if [ -f "$rc" ] && ! grep -qF "completions/reflect.$shell" "$rc"; then
+      printf '\n%s\n' "$line" >> "$rc"
+    fi
+  done
+  echo "reflect: installed shell completion"
+fi
 
 git config --global core.hooksPath "$REPO/githooks/global"
 

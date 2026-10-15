@@ -32,7 +32,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/status"
 )
 
-const usage = "usage: reflect scan|slice|replay|metrics|status|marker|reports|uninstall-legacy|hook"
+var usage = "usage: reflect " + strings.Join(commands, "|")
 
 var library string
 
@@ -88,6 +88,14 @@ func run(e env, cmd string, args []string) (string, error) {
 		return dir + "\n", err
 	case "uninstall-legacy":
 		return legacy.Uninstall(e.root())
+	case "completion":
+		return completionScript(args)
+	case "complete-area":
+		if len(args) != 1 {
+			return "", errors.New("usage: reflect complete-area <fragment>")
+		}
+		matches, err := areaMatches(e.root(), args[0])
+		return strings.Join(matches, "\n") + "\n", err
 	}
 	return "", fmt.Errorf("unknown command %q; %s", cmd, usage)
 }
