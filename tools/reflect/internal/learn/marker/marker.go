@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-// Marker is one LEARN marker found in a file. Line, End and Target are
+// Marker is one REFLECT marker found in a file. Line, End and Target are
 // 1-based; Target is 0 when an own-line marker has no code line after it.
-// Col is the byte offset of the LEARN keyword within line Line.
+// Col is the byte offset of the REFLECT keyword within line Line.
 type Marker struct {
 	Skill      string
 	Later      bool
@@ -20,7 +20,7 @@ type Marker struct {
 }
 
 var (
-	marked   = regexp.MustCompile(`\bLEARN(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	marked   = regexp.MustCompile(`\b(?:REFLECT|LEARN)(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	opener   = regexp.MustCompile(`(?:/{2,}|#+|\{?/\*+|<!--|\*)\s*$`)
 	leading  = regexp.MustCompile(`^\s*(?:/{2,}|#+(?:\s|$)|\{?/\*+|<!--|\*(?:[\s/]|$))`)
 	closer   = regexp.MustCompile(`\s*(?:\*/\}?|-->)\s*$`)

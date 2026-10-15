@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-// Resolve maps the name in LEARN(name) to a scope and skill: a repo skill wins
+// Resolve maps the name in REFLECT(name) to a scope and skill: a repo skill wins
 // over a library one, "repo" is repo scope with no skill, and a bare or
 // unknown name has an empty scope.
 func Resolve(repoRoot, library, name string) (scopeName, skill string) {

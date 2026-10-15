@@ -29,7 +29,7 @@ import (
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/status"
 )
 
-const usage = "usage: reflect scan|slice|replay|metrics|status|learn|reports|uninstall-legacy|hook"
+const usage = "usage: reflect scan|slice|replay|metrics|status|marker|reports|uninstall-legacy|hook"
 
 var library string
 
@@ -76,8 +76,11 @@ func run(e env, cmd string, args []string) (string, error) {
 		return runReplay(e, args)
 	case "metrics":
 		return runMetrics(e, args)
+	case "marker":
+		return runMarker(e, args)
 	case "learn":
-		return runLearn(e, args)
+		fmt.Fprintln(os.Stderr, "reflect: warning: `reflect learn` is now `reflect marker`")
+		return runMarker(e, args)
 	case "status":
 		return status.Report(e.claudeDir, library)
 	case "reports":
@@ -160,12 +163,12 @@ func runMetrics(e env, args []string) (string, error) {
 	return metrics.Report(metrics.Options{Projects: e.projects(), Records: records, Root: e.root(), Exclude: *exclude}), nil
 }
 
-func runLearn(e env, args []string) (string, error) {
-	const learnUsage = "usage: reflect learn harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
+func runMarker(e env, args []string) (string, error) {
+	const learnUsage = "usage: reflect marker harvest [--block] [--strip] | pull | ls [--json] [--status s] | mark <id> <status> [--issue url] [--proposal url] [--scope global|repo] [--skill name] | status [--remind]"
 	if len(args) == 0 {
 		return "", errors.New(learnUsage)
 	}
-	fs := flag.NewFlagSet("learn "+args[0], flag.ContinueOnError)
+	fs := flag.NewFlagSet("marker "+args[0], flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	switch args[0] {
 	case "harvest":
