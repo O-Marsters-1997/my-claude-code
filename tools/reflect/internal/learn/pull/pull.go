@@ -47,7 +47,7 @@ const (
 )
 
 var (
-	learnComment = regexp.MustCompile(`(?is)^\s*(?:reflect|learn)(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
+	learnComment = regexp.MustCompile(`(?is)^\s*reflect(?:\(([\w.-]+)\))?(\s+later)?:\s*(.*)`)
 	githubRemote = regexp.MustCompile(`github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$`)
 )
 

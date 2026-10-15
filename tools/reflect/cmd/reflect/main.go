@@ -78,9 +78,6 @@ func run(e env, cmd string, args []string) (string, error) {
 		return runMetrics(e, args)
 	case "marker":
 		return runMarker(e, args)
-	case "learn":
-		fmt.Fprintln(os.Stderr, "reflect: warning: `reflect learn` is now `reflect marker`")
-		return runMarker(e, args)
 	case "status":
 		return status.Report(e.claudeDir, library)
 	case "reports":

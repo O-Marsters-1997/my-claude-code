@@ -49,7 +49,7 @@ func run(t *testing.T, dir, ledgerPath string) harvest.Result {
 	return res
 }
 
-const marked = "package a\n\n// LEARN(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() {}\n"
+const marked = "package a\n\n// REFLECT(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() {}\n"
 
 func TestStagedMarkerBlocksAndRecordsOnce(t *testing.T) {
 	dir := newRepo(t)
@@ -99,10 +99,10 @@ func TestCleanDiffPasses(t *testing.T) {
 
 func TestMarkerOutsideDiffIgnoredAndLaterSkipped(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n// LEARN: old\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\n// REFLECT: old\nfunc f() {}\n")
 	gitIn(t, dir, "add", ".")
 	gitIn(t, dir, "commit", "-qm", "has marker")
-	write(t, dir, "a.go", "package a\n\n// LEARN: old\nfunc f() {}\n// LEARN later: tidy\nfunc g() {}\n")
+	write(t, dir, "a.go", "package a\n\n// REFLECT: old\nfunc f() {}\n// REFLECT later: tidy\nfunc g() {}\n")
 	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); res.Blocked {
 		t.Errorf("Run = %+v, want pass: old marker is not in the diff and later does not block", res)
 	}
@@ -120,7 +120,7 @@ func TestNonBlockingStillRecords(t *testing.T) {
 
 func TestAddedPlusPlusLineDoesNotHideMarker(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", "package a\n\n++ x\n// LEARN: after pluses\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\n++ x\n// REFLECT: after pluses\nfunc f() {}\n")
 	if res := run(t, dir, filepath.Join(t.TempDir(), "l.jsonl")); !res.Blocked {
 		t.Errorf("Run = %+v, want blocked", res)
 	}
@@ -137,7 +137,7 @@ func TestRecordsResolvedScope(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(lib, "skills", "code", "shared"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	write(t, dir, "a.go", "package a\n\n// LEARN(mine): a\n// LEARN(shared): b\n// LEARN(repo): c\n// LEARN(nope): d\n// LEARN: e\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\n// REFLECT(mine): a\n// REFLECT(shared): b\n// REFLECT(repo): c\n// REFLECT(nope): d\n// REFLECT: e\nfunc f() {}\n")
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
 	if _, err := harvest.Run(context.Background(), harvest.Options{Repo: dir, Ledger: lp, Library: lib}); err != nil {
 		t.Fatal(err)
@@ -231,7 +231,7 @@ func TestFixNeverOverwritesAfter(t *testing.T) {
 
 func TestFixNotRecordedWhileMarkerRemains(t *testing.T) {
 	dir, lp := recordMarked(t)
-	write(t, dir, "a.go", "package a\n\n// LEARN(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() error { return nil }\n")
+	write(t, dir, "a.go", "package a\n\n// REFLECT(go-idiomatic): wrap errors, token=hunter2hunter2\nfunc f() error { return nil }\n")
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
 	if got := afterOf(t, lp); got != "" {
@@ -245,7 +245,7 @@ func TestFixMatchesAfterLinesRemovedAbove(t *testing.T) {
 	gitIn(t, dir, "add", ".")
 	gitIn(t, dir, "commit", "-qm", "more")
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\n// LEARN: wrap\nfunc f() {}\n")
+	write(t, dir, "a.go", "package a\n\nvar x = 1\nvar y = 2\n\n// REFLECT: wrap\nfunc f() {}\n")
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
 	write(t, dir, "a.go", "package a\n\nfunc f() error { return nil }\n")
@@ -262,7 +262,7 @@ func TestFixFallsBackToNearestHunk(t *testing.T) {
 	gitIn(t, dir, "add", ".")
 	gitIn(t, dir, "commit", "-qm", "g")
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\n// LEARN: tidy\nfunc g() {}\n")
+	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\n// REFLECT: tidy\nfunc g() {}\n")
 	gitIn(t, dir, "add", "a.go")
 	run(t, dir, lp)
 	write(t, dir, "a.go", "package a\n\nfunc f() {}\n\nfunc g() int { return 1 }\n")
