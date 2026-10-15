@@ -3,7 +3,6 @@ package harvest
 import (
 	"context"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/O-Marsters-1997/my-claude-code/tools/reflect/internal/learn/ledger"
@@ -11,9 +10,8 @@ import (
 )
 
 type fixHunk struct {
-	oldStart int
-	removed  []string
-	added    []string
+	removed []string
+	added   []string
 }
 
 func (h fixHunk) text() string {
@@ -49,7 +47,7 @@ func parseHunks(diff string) []fixHunk {
 	var out []fixHunk
 	for _, l := range strings.Split(diff, "\n") {
 		if hunk.MatchString(l) {
-			out = append(out, fixHunk{oldStart: oldStart(l)})
+			out = append(out, fixHunk{})
 			continue
 		}
 		if len(out) == 0 {
@@ -64,14 +62,6 @@ func parseHunks(diff string) []fixHunk {
 		}
 	}
 	return out
-}
-
-func oldStart(header string) int {
-	rest := strings.TrimPrefix(header, "@@ -")
-	num, _, _ := strings.Cut(rest, " ")
-	num, _, _ = strings.Cut(num, ",")
-	n, _ := strconv.Atoi(num)
-	return n
 }
 
 func pickHunk(hunks []fixHunk, l ledger.Learning) (fixHunk, bool) {

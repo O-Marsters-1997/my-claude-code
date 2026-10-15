@@ -39,6 +39,7 @@ const maxField = 4000
 
 var hunk = regexp.MustCompile(`^@@ -\S+ \+(\d+)(?:,(\d+))? @@`)
 
+// Run records and strips every marker in the staged and unstaged diffs. It never blocks.
 func Run(ctx context.Context, o Options) (Result, error) {
 	top, err := git(ctx, o.Repo, "rev-parse", "--show-toplevel")
 	if err != nil {

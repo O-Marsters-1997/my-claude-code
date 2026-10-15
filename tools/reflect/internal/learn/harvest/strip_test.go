@@ -30,12 +30,12 @@ func readFile(t *testing.T, dir, name string) string {
 	return string(b)
 }
 
-const laterMarked = "package a\n\n// REFLECT: tidy this\n// up soon\nfunc f() {}\n"
+const twoLineMarked = "package a\n\n// REFLECT: tidy this\n// up soon\nfunc f() {}\n"
 
-func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) {
+func TestMarkerIsStrippedFromIndexAndWorktree(t *testing.T) {
 	dir := newRepo(t)
 	lp := filepath.Join(t.TempDir(), "l.jsonl")
-	write(t, dir, "a.go", laterMarked)
+	write(t, dir, "a.go", twoLineMarked)
 	gitIn(t, dir, "add", "a.go")
 
 	res := run(t, dir, lp)
@@ -57,9 +57,9 @@ func TestLaterMarkerIsStrippedFromIndexAndWorktreeWithoutBlocking(t *testing.T) 
 
 func TestStripKeepsUnstagedHunksUnstaged(t *testing.T) {
 	dir := newRepo(t)
-	write(t, dir, "a.go", laterMarked)
+	write(t, dir, "a.go", twoLineMarked)
 	gitIn(t, dir, "add", "a.go")
-	write(t, dir, "a.go", laterMarked+"\nfunc g() {}\n")
+	write(t, dir, "a.go", twoLineMarked+"\nfunc g() {}\n")
 
 	run(t, dir, filepath.Join(t.TempDir(), "l.jsonl"))
 
@@ -123,7 +123,7 @@ func TestCommitFormsProduceMarkerFreeTrees(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(dir, ".git", "hooks", "pre-commit"), []byte(hook), 0o755); err != nil {
 				t.Fatal(err)
 			}
-			write(t, dir, "a.go", laterMarked)
+			write(t, dir, "a.go", twoLineMarked)
 			gitIn(t, dir, tt.commit...)
 			if tree := gitOut(t, dir, "show", "HEAD:a.go"); strings.Contains(tree, "REFLECT") {
 				t.Errorf("committed tree = %q, want no marker", tree)

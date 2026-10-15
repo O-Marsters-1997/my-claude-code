@@ -145,7 +145,10 @@ func Run(ctx context.Context, o Options) (Result, error) {
 }
 
 func prNumber(url string) int {
-	n, _ := strconv.Atoi(url[strings.LastIndex(url, "/")+1:])
+	n, err := strconv.Atoi(url[strings.LastIndex(url, "/")+1:])
+	if err != nil {
+		return 0
+	}
 	return n
 }
 
