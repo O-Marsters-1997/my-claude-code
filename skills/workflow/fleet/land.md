@@ -1,61 +1,69 @@
 # Land
 
-Run after the user has reviewed the wave's PRs and marked the good ones "Ready for review". A
-draft PR means not approved, so landing never touches it. Everything mechanical lives in the
-`fleet` CLI; this file only branches on its last stdout line.
+Run once the wave's PRs are all open, before the user merges anything. Land never merges. It makes
+every open PR of the wave (drafts included) mergeable by the user, one after another in order,
+with no conflicts and green CI, by merging the right branches into the PR branches. Everything
+mechanical lives in the `fleet` CLI; this file only branches on its output and spawns subagents.
 
 ```bash
-fleet land "<label>" --state "<scratchpad>/fleet/state.md"
+fleet land "<label>" --state "<scratchpad>/fleet/state.md" [--resolved "<line>"]...
 ```
 
-Every run, finished or stopped, appends one row to `.claude/fleet-metrics.jsonl` and prints it to
-stderr. Pass each resolver return line as `--resolved "<line>"`. `fleet metrics [--label X]
-[--last N]` shows the rows, a trend and any crossed threshold.
+Each run waits for every PR's checks to finish, simulates merging the PRs in order onto
+`feat/<slug>`, regenerates generated-only conflicts itself, and writes the plan JSON (default
+`.claude/fleet-land-plan.json`; `--plan` moves it). Every run, finished or stopped, appends one row
+to `.claude/fleet-metrics.jsonl`. `fleet land "<label>" --check` only reads and simulates, spawns
+nothing and pushes nothing, and prints `land` or `reconcile`.
 
-Progress goes to stderr and is for the user. Read only the one line on stdout:
+Progress goes to stderr. Stdout has one line per PR, in merge order, then one terminal line:
 
-- `done <n>`: every PR in the wave landed and the suite is green. Run reconcile
-  ([reconcile.md](reconcile.md)) for the label.
-- `drafts <PR>...`: everything marked ready has landed. Tell the user which PRs remain drafts,
-  that they need review and "Ready for review", and to re-run `/fleet land <label>` afterwards.
-  Do not reconcile.
-- `needs-resolver <PR> <branch> <path>...`: that PR conflicts with the feature branch in the
-  listed paths beyond what `[regen]` covers, and every later PR is still unlanded. Spawn exactly
-  one fresh resolver for that PR (see Resolver below), never the ticket's own subagent. Do not
-  reconcile yet. A PR that conflicts only in `[regen]` files never reaches you: land regenerates
-  them itself.
-- `gate-failed <PR> <cmd>`: that PR conflicted only in generated files, land regenerated them in
-  its worktree, and the `pre_push` command `<cmd>` failed before anything was pushed. Report the
-  PR and command to the user and stop. Do not spawn a resolver. Do not reconcile.
-- `gate-failed <PR>` (no command): the resolver's `pre_push` gate failed for that PR, recorded
-  through `--resolved`. Handle it as `failed` under Resolver below.
-- `regen-stale <path>...`: after the last landing, rerunning the `[regen]` commands on the feature
-  branch changed these generated files, so they are out of date. Report the paths to the user and
-  stop. Do not reconcile.
-- `suite-red #<n>`: the suite failed on the feature branch after landing, and bisecting the
-  squash commits this run landed names PR `#<n>` as the culprit. Spawn a resolver subagent, giving
-  it the culprit PR, the label and `feat/<slug>`, to fix the culprit in a follow-up PR into
-  `feat/<slug>`; never open that PR by hand. Do not reconcile. Once the user has marked the
-  follow-up PR "Ready for review", re-run `/fleet land <label>`: it lands the follow-up and
-  re-runs the suite, and reconcile waits for `done`.
+```
+#<PR> <branch> ci=green|red|pending|none conflicts=<paths|none> pull-in=<#PR,...|none> <status>
+```
 
-## Resolver
+`<status>` is `ok`, `needs-work`, `gate-failed <reason>` or `blocked-by #<PR>`. Read the terminal
+line:
 
-Brief the resolver with: both PRs' diffs (the conflicting PR and the PRs already landed on the
-feature branch that touch the conflicted paths), both tickets' intent, the conflicted paths, its
-worktree via `tp`, and `[checks] pre_push` from `.claude/fleet.toml` as the gate. It must:
+- `needs-work #<PR>...`: those PRs each need exactly one fresh subagent (see Subagent below). Run
+  them in the order of the plan's `pull_in` graph: a PR's subagent starts only after the subagents
+  of every PR it pulls in have returned, so it merges their final tips. PRs with no pull-in
+  relation run in parallel. If a pulled-in PR's subagent returns `failed`, do not start the
+  dependent PR's subagent. Then re-run `fleet land` with every return line as `--resolved`.
+- `ready <n>`: the final ordered simulation is conflict-free and the suite is green on it. Tell the
+  user the order to squash-merge the PRs into `feat/<slug>`, and that `/fleet reconcile <label>`
+  follows. Land has already commented a compare link on each PR that pulled in earlier ones, so
+  its diff shows only its own changes.
+- `gate-failed #<PR> <reason>`: `<reason>` is `resolver-failed`, `ci-red` (still red after its
+  subagent), `ci-pending` (checks did not finish within `--ci-timeout`; re-run later) or
+  `conflicts-remain`. Name the PR and the reason, list the PRs the plan shows as `blocked-by` it,
+  and hand them to the user. No retries and no second subagent. Reconcile is still next.
+- `gate-failed #<PR> <cmd>`: any other text after the PR is a `pre_push` command: a
+  regenerate-only fix failed it before anything was pushed. No per-PR lines precede it. Report it
+  and stop.
+- `regen-stale <path>...`: re-running the `[regen]` commands on the final simulated result changed
+  these generated files. Report the paths and stop.
+- `suite-red #<PR>`: the suite failed on the final simulated result, and bisecting over the chain
+  names this PR. Report it; do not spawn another subagent.
 
-1. Merge `origin/feat/<slug>` into the PR's branch and resolve the conflict once.
-2. Keep both intents, or name what it dropped. Invent no behaviour.
-3. Run every `pre_push` command; a red gate means it stops and reports `failed`.
-4. Push without force, and comment on the PR the touched files and any trade-off.
-5. Write a report and return exactly one line: `<PR> resolved|failed append|rewrite <report path>`
+After every outcome, recommend `/fleet reconcile <label>` once the user has merged what they
+chose to merge. A non-zero exit is an error, not an outcome: show its stderr (for example a
+missing `feat/<slug>`, or open tickets whose PRs target another base) and stop.
+
+## Subagent
+
+One fresh subagent per `needs-work` PR, never the ticket's own, and never a second for the same PR.
+It fixes CI and conflicts together. Brief it with the plan path and its PR number (it reads the
+plan for failing checks, conflicting paths and the PRs to pull in), the PR's diff and ticket
+intent, the intent of each pulled-in PR, its worktree via `tp`, and `[checks] pre_push` as the
+gate. It must:
+
+1. Merge `origin/feat/<slug>` and then each `pull_in` branch's tip into the PR branch. Never
+   rebase and never force-push. Resolve each conflict once.
+2. Fix every failing check listed for the PR.
+3. Keep both intents, or name what it dropped. Invent no behaviour.
+4. Run every `pre_push` command; a red gate means it stops and reports `failed`.
+5. Push without force, and comment on the PR the touched files and any trade-off.
+6. Write a report and return exactly one line: `<PR> resolved|failed append|rewrite <report path>`
    (`append` when both sides only added code, `rewrite` when it had to change existing lines).
 
-On `resolved`, re-run `fleet land "<label>" --resolved "<line>"`, passing the line verbatim; the
-remaining PRs then continue in order. On `failed`, record it once with
-`fleet land "<label>" --resolved "<line>"`, which lands nothing and prints `gate-failed <PR>`. Then
-stop: name the PR, say the later PRs are still unlanded, hand the PR to the user, and do not
-reconcile. Never spawn a second resolver for the same PR.
-
-A non-zero exit is an error, not an outcome: show its stderr to the user and stop.
+Pass each return line verbatim as `--resolved "<line>"` on the re-run.

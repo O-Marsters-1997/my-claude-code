@@ -37,14 +37,10 @@ func numbers(entries []queue.Entry) []int {
 	return out
 }
 
-func TestBuildSkipsDrafts(t *testing.T) {
+func TestBuildKeepsDrafts(t *testing.T) {
 	prs := []gh.PR{pr(30, false, 3), pr(20, true, 2), pr(10, false, 1)}
-	ready, drafts := queue.Build(prs, nil)
-	if diff := cmp.Diff([]int{10, 30}, numbers(ready)); diff != "" {
-		t.Errorf("ready (-want +got):\n%s", diff)
-	}
-	if len(drafts) != 1 || drafts[0].Number != 20 {
-		t.Errorf("drafts = %v, want only PR 20", drafts)
+	if diff := cmp.Diff([]int{10, 20, 30}, numbers(queue.Build(prs, nil))); diff != "" {
+		t.Errorf("Build() (-want +got):\n%s", diff)
 	}
 }
 
@@ -92,7 +88,7 @@ func TestBuildOrder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ready, _ := queue.Build(tt.prs, tt.issues)
+			ready := queue.Build(tt.prs, tt.issues)
 			if diff := cmp.Diff(tt.want, numbers(ready)); diff != "" {
 				t.Errorf("Build() order (-want +got):\n%s", diff)
 			}
@@ -101,7 +97,7 @@ func TestBuildOrder(t *testing.T) {
 }
 
 func TestBuildBundleTickets(t *testing.T) {
-	ready, _ := queue.Build([]gh.PR{pr(61, false, 9, 2, 7)}, nil)
+	ready := queue.Build([]gh.PR{pr(61, false, 9, 2, 7)}, nil)
 	if diff := cmp.Diff([]int{2, 7, 9}, ready[0].Tickets); diff != "" {
 		t.Errorf("Tickets (-want +got):\n%s", diff)
 	}

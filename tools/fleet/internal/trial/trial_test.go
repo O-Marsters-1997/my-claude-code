@@ -155,6 +155,48 @@ func TestRun(t *testing.T) {
 	}
 }
 
+func TestMerge(t *testing.T) {
+	t.Run("clean merges chain", func(t *testing.T) {
+		r := base(t)
+		r.git("switch", "-q", "-c", "a", "main")
+		r.commit("a.txt", "a\n")
+		r.git("switch", "-q", "-c", "b", "main")
+		r.commit("b.txt", "b\n")
+		d := deps.DefaultDeps(&bytes.Buffer{}, &bytes.Buffer{})
+		ctx := context.Background()
+
+		sha, paths, err := trial.Merge(ctx, d, r.dir, "main", "a")
+		if err != nil || len(paths) != 0 || sha == "" {
+			t.Fatalf("Merge(main, a) = %q, %v, %v; want a commit", sha, paths, err)
+		}
+		sha, paths, err = trial.Merge(ctx, d, r.dir, sha, "b")
+		if err != nil || len(paths) != 0 {
+			t.Fatalf("Merge(<a>, b) = %q, %v, %v; want clean", sha, paths, err)
+		}
+		out, err := exec.Command("git", "-C", r.dir, "ls-tree", "--name-only", sha).Output()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := string(out); !strings.Contains(got, "a.txt") || !strings.Contains(got, "b.txt") {
+			t.Errorf("chained tree = %q, want a.txt and b.txt", got)
+		}
+	})
+
+	t.Run("conflict returns paths and no commit", func(t *testing.T) {
+		r := base(t)
+		r.git("switch", "-q", "-c", "a", "main")
+		r.commit("src.txt", "a\n")
+		r.git("switch", "-q", "-c", "b", "main")
+		r.commit("src.txt", "b\n")
+		d := deps.DefaultDeps(&bytes.Buffer{}, &bytes.Buffer{})
+
+		sha, paths, err := trial.Merge(context.Background(), d, r.dir, "a", "b")
+		if err != nil || sha != "" || strings.Join(paths, " ") != "src.txt" {
+			t.Errorf("Merge(a, b) = %q, %v, %v; want no commit and src.txt", sha, paths, err)
+		}
+	})
+}
+
 func TestRunBadRef(t *testing.T) {
 	r := base(t)
 	var out bytes.Buffer

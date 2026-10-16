@@ -21,17 +21,12 @@ var (
 	anyHeading = regexp.MustCompile(`^\s*#+\s`)
 )
 
-func Build(prs []gh.PR, issues []gh.Issue) (ready []Entry, drafts []gh.PR) {
-	var entries []Entry
-	for _, pr := range prs {
-		if pr.IsDraft {
-			drafts = append(drafts, pr)
-			continue
-		}
-		entries = append(entries, Entry{PR: pr, Tickets: tickets(pr)})
+func Build(prs []gh.PR, issues []gh.Issue) []Entry {
+	entries := make([]Entry, len(prs))
+	for i, pr := range prs {
+		entries[i] = Entry{PR: pr, Tickets: tickets(pr)}
 	}
-	sort.Slice(drafts, func(i, j int) bool { return drafts[i].Number < drafts[j].Number })
-	return order(entries, Blockers(issues)), drafts
+	return order(entries, Blockers(issues))
 }
 
 func tickets(pr gh.PR) []int {

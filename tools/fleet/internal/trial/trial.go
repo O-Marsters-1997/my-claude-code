@@ -31,20 +31,36 @@ func Run(ctx context.Context, d deps.Deps, in Input) error {
 }
 
 func Classify(ctx context.Context, d deps.Deps, in Input) (string, error) {
-	paths, err := conflicts(ctx, d, in)
+	_, paths, err := mergeTree(ctx, d, in.Dir, in.Tip, in.Branch)
 	if err != nil {
 		return "", err
 	}
 	return verdict(paths, in.RegenGlobs), nil
 }
 
-func conflicts(ctx context.Context, d deps.Deps, in Input) ([]string, error) {
+func Merge(ctx context.Context, d deps.Deps, dir, base, branch string) (sha string, paths []string, err error) {
+	tree, paths, err := mergeTree(ctx, d, dir, base, branch)
+	if err != nil || len(paths) > 0 {
+		return "", paths, err
+	}
+	env := []string{
+		"GIT_AUTHOR_NAME=fleet", "GIT_AUTHOR_EMAIL=fleet@localhost",
+		"GIT_COMMITTER_NAME=fleet", "GIT_COMMITTER_EMAIL=fleet@localhost",
+	}
+	out, err := d.Git.Run(ctx, dir, env, "commit-tree", tree, "-p", base, "-p", branch, "-m", "fleet simulation: "+branch)
+	if err != nil {
+		return "", nil, fmt.Errorf("commit simulated merge of %s: %w", branch, err)
+	}
+	return strings.TrimSpace(string(out)), nil, nil
+}
+
+func mergeTree(ctx context.Context, d deps.Deps, dir, tip, branch string) (string, []string, error) {
 	env := []string{"GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1"}
-	out, err := d.Git.Run(ctx, in.Dir, env, "merge-tree", "--write-tree", "--name-only", "-z", in.Tip, in.Branch)
+	out, err := d.Git.Run(ctx, dir, env, "merge-tree", "--write-tree", "--name-only", "-z", tip, branch)
 	if err != nil {
 		var exit *exec.ExitError
 		if !errors.As(err, &exit) || exit.ExitCode() != 1 || len(out) == 0 {
-			return nil, err
+			return "", nil, err
 		}
 	}
 	fields := bytes.Split(out, []byte{0})
@@ -55,7 +71,7 @@ func conflicts(ctx context.Context, d deps.Deps, in Input) ([]string, error) {
 		}
 		paths = append(paths, string(f))
 	}
-	return paths, nil
+	return string(fields[0]), paths, nil
 }
 
 func verdict(paths, globs []string) string {

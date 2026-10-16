@@ -70,7 +70,9 @@ review, so the body only lists every ticket with the label, one `#<N> <title>` p
 gh pr create --base main --head "feat/<slug>" --title "<title>" --body "<body>"
 ```
 
-It is not a draft: every ticket in it already passed review on its own PR.
+It is not a draft: every ticket in it already passed review on its own PR. Tell the user to merge
+it with rebase-and-merge, so `main` reads as one commit per ticket (each ticket PR was squashed
+into `feat/<slug>`).
 
 ## 5. Record metrics
 
