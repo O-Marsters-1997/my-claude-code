@@ -161,10 +161,18 @@ Report to the user:
 - each hotspot from `fleet hotspots`, with its ticket numbers and a suggested refactor ticket
   that would split the shared file (omit the section when the output was `none`).
 
-End the report by telling them to review each PR, mark the good ones "Ready for review", and run
-`/fleet land <label>` with the label filled in. Land squash-merges the ready PRs in order and
-leaves drafts alone; a PR that conflicts with the feature branch is handed back for the tip to
-be merged into it by hand.
+Once every PR is open, run `fleet land "<label>" --check`. It reads CI and simulates merging the
+PRs in order, drafts included, without spawning anything or pushing, and prints one word. End the
+report by telling the user to review each PR, then:
+
+- `land`: a PR conflicts now or after an earlier PR merges, or CI is red. Recommend
+  `/fleet land <label>` before they merge anything, so every PR can merge in order without
+  conflicts. Land never merges; the user squash-merges each PR into `feat/<slug>` themselves.
+- `reconcile`: nothing needs preparing. Recommend merging the PRs in order, then
+  `/fleet reconcile <label>`.
+
+A non-zero exit is an error (for example `feat/<slug>` missing, or tickets whose PRs target
+another base): show its stderr and stop.
 
 ## 6. CI follow-up
 

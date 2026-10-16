@@ -9,7 +9,7 @@
     {
       "id": 2,
       "prompt": "Follow dispatch.md for label `demo` with three ready, non-tiny tickets: #10, #11 and #12 all name internal/app.go and the golden directory testdata/golden/. Say how each worktree is based, what runs in parallel, each prompt's Base, and what the final report tells the user about merging.",
-      "expected_output": "No chains: all three worktrees are created up front from origin/feat/demo and run in parallel, and every prompt has Base: feat/demo. There is no merge simulation or rebase step. The report lists PRs in issue order and ends by telling the user to review each PR, mark the good ones Ready for review, and run `/fleet land demo`."
+      "expected_output": "No chains: all three worktrees are created up front from origin/feat/demo and run in parallel, and every prompt has Base: feat/demo. There is no merge simulation or rebase step. The report lists PRs in issue order, then runs `fleet land demo --check` and, on `land`, tells the user to review each PR and run `/fleet land demo` before merging; on `reconcile`, to merge the PRs in order and run `/fleet reconcile demo`."
     },
     {
       "id": 3,
@@ -18,8 +18,8 @@
     },
     {
       "id": 4,
-      "prompt": "Follow land.md for label `demo`. The wave has three PRs into feat/demo: #20 and #22 are marked ready, #21 is still a draft. `fleet land demo` prints `drafts #21` on stdout after landing. Say what you run, what you tell the user, and whether you reconcile.",
-      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. #20 and #22 landed in that order; the report says #21 is still a draft needing review and Ready for review, then to re-run `/fleet land demo`. It does not run reconcile."
+      "prompt": "Follow land.md for label `demo`. The wave has three PRs into feat/demo: #20 and #22 are ready for review, #21 is still a draft. `fleet land demo` prints one line per PR with status `ok`, then `ready 3` on stdout. Say what you run, what you tell the user, and whether you merge anything.",
+      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own, and merges nothing: the draft #21 was prepared like the others. Tells the user the order to squash-merge #20, #21 and #22 into feat/demo, notes the compare links land commented, and recommends `/fleet reconcile demo` afterwards."
     },
     {
       "id": 5,
@@ -28,18 +28,18 @@
     },
     {
       "id": 6,
-      "prompt": "Follow land.md for label `demo`. #20 and #21 both edit the body of `Parse` in internal/app.go and are marked ready. `fleet land demo` landed #20 and prints `needs-resolver #21 issue-21/add-cache internal/app.go` on stdout. Say what you do next, and what happens when the resolver returns `#21 resolved rewrite <report>` versus `#21 failed rewrite <report>`.",
-      "expected_output": "Spawns exactly one fresh resolver for #21, never the ticket's own subagent, briefed with both PRs' diffs, both tickets' intent, internal/app.go, the worktree via `tp` and `[checks] pre_push` as the gate. It does not hand the conflict to the user first and does not reconcile. On `resolved` it re-runs `fleet land demo --resolved \"#21 resolved rewrite <report>\"`. On `failed` (for example a red pre_push gate) it stops, names #21, says later PRs are still unlanded, hands #21 to the user, and does not spawn a second resolver or reconcile. Its only further land call records the line with `fleet land demo --resolved \"#21 failed rewrite <report>\"`, which prints `gate-failed #21` and lands nothing."
+      "prompt": "Follow land.md for label `demo`. #20 and #21 both edit the body of `Parse` in internal/app.go. `fleet land demo` prints a line for #21 with `pull-in=#20 needs-work` and the terminal line `needs-work #21` on stdout. Say what you do next, and what happens when the subagent returns `#21 resolved rewrite <report>` versus `#21 failed rewrite <report>`.",
+      "expected_output": "Spawns exactly one fresh subagent for #21, never the ticket's own, briefed with the plan path and PR number, both PRs' intent, the worktree via `tp` and `[checks] pre_push`, and told to merge origin/feat/demo and #20's tip into the branch (no rebase, no force-push). It does not hand the conflict to the user first. On `resolved` it re-runs `fleet land demo --resolved \"#21 resolved rewrite <report>\"`. On `failed` it records the line the same way, which prints `gate-failed #21 resolver-failed`; it then names #21 and any `blocked-by #21` PRs, hands them to the user, spawns no second subagent, and still recommends reconcile."
     },
     {
       "id": 7,
-      "prompt": "Follow land.md for label `demo`. Two ready PRs into feat/demo, #30 and #31, both regenerate the same testdata/golden/ directory, so #31 conflicts with the feature branch only in generated files. `fleet land demo` logs `regen #31: <command>` on stderr and prints `done 2` on stdout. Say what you run, whether you spawn a resolver or merge anything by hand, and what happens next.",
-      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. Spawns no resolver and merges nothing by hand: #31 was regenerated and landed through the Regen tier by the CLI. Treats `done 2` as every PR landed with a green suite and runs reconcile for the label."
+      "prompt": "Follow land.md for label `demo`. Two PRs into feat/demo, #30 and #31, both regenerate the same testdata/golden/ directory, so #31 conflicts with #30 only in generated files. `fleet land demo` logs `regen #31: <command>` on stderr and prints `ready 2` on stdout. Say what you run, whether you spawn a subagent or merge anything by hand, and what happens next.",
+      "expected_output": "Runs only `fleet land demo`, with no git or gh commands of its own. Spawns no subagent and merges nothing by hand: #31 was regenerated by the CLI. Treats `ready 2` as both PRs mergeable in order with a green suite, tells the user to squash-merge them in order, and recommends reconcile."
     },
     {
       "id": 8,
       "prompt": "Follow land.md for label `demo`. `fleet land demo` prints `gate-failed #31 just lint` on stdout. A second run prints `regen-stale testdata/golden/out.txt`. For each, say what you tell the user, what you run next, and whether you reconcile.",
-      "expected_output": "For both lines it reports to the user and stops: gate-failed names PR #31 and the failing `just lint` command, regen-stale names testdata/golden/out.txt as out of date. It spawns no resolver, edits no files itself and does not reconcile."
+      "expected_output": "For both lines it reports to the user and stops: gate-failed names PR #31 and the failing `just lint` command, regen-stale names testdata/golden/out.txt as out of date. It spawns no subagent and edits no files itself. It still recommends reconcile once the user has merged what they chose."
     }
   ]
 }

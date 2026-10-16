@@ -18,7 +18,8 @@ type Git interface {
 type GH interface {
 	OpenIssues(ctx context.Context, labels ...string) ([]gh.Issue, error)
 	OpenPRs(ctx context.Context, base string) ([]gh.PR, error)
-	MergePR(ctx context.Context, number int) error
+	OpenPRsAll(ctx context.Context) ([]gh.PR, error)
+	Checks(ctx context.Context, number int) ([]gh.Check, error)
 	CommentPR(ctx context.Context, number int, body string) error
 	Issues(ctx context.Context, label string) ([]gh.Issue, error)
 	PRs(ctx context.Context, base string) ([]gh.PR, error)

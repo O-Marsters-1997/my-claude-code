@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,12 @@ type PR struct {
 	State       string    `json:"state"`
 	URL         string    `json:"url"`
 	CreatedAt   time.Time `json:"createdAt"`
+	BaseRefName string    `json:"baseRefName"`
+}
+
+type Check struct {
+	Name   string `json:"name"`
+	Bucket string `json:"bucket"`
 }
 
 type Client struct{}
@@ -48,12 +55,39 @@ func (Client) OpenIssues(ctx context.Context, labels ...string) ([]Issue, error)
 
 func (Client) OpenPRs(ctx context.Context, base string) ([]PR, error) {
 	args := []string{"pr", "list", "--state", "open", "--base", base, "--limit", "200",
-		"--json", "number,headRefName,isDraft,body,createdAt"}
+		"--json", "number,headRefName,isDraft,body,createdAt,url"}
 	var prs []PR
 	if err := decode(ctx, &prs, args); err != nil {
 		return nil, fmt.Errorf("list pull requests: %w", err)
 	}
 	return prs, nil
+}
+
+func (Client) OpenPRsAll(ctx context.Context) ([]PR, error) {
+	args := []string{"pr", "list", "--state", "open", "--limit", "200",
+		"--json", "number,headRefName,baseRefName,isDraft,body,url"}
+	var prs []PR
+	if err := decode(ctx, &prs, args); err != nil {
+		return nil, fmt.Errorf("list pull requests: %w", err)
+	}
+	return prs, nil
+}
+
+func (Client) Checks(ctx context.Context, number int) ([]Check, error) {
+	out, err := run(ctx, "pr", "checks", strconv.Itoa(number), "--json", "name,bucket")
+	if len(out) == 0 {
+		if err != nil && strings.Contains(err.Error(), "no checks reported") {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("pr checks #%d: %w", number, err)
+		}
+	}
+	var checks []Check
+	if err := json.Unmarshal(out, &checks); err != nil {
+		return nil, fmt.Errorf("decode checks for #%d: %w", number, err)
+	}
+	return checks, nil
 }
 
 func (Client) Issues(ctx context.Context, label string) ([]Issue, error) {
@@ -95,11 +129,6 @@ func (Client) MoveStatus(ctx context.Context, number int, from, to string) error
 
 func (Client) CloseIssue(ctx context.Context, number int) error {
 	_, err := run(ctx, "issue", "close", strconv.Itoa(number))
-	return err
-}
-
-func (Client) MergePR(ctx context.Context, number int) error {
-	_, err := run(ctx, "pr", "merge", strconv.Itoa(number), "--squash", "--delete-branch")
 	return err
 }
 
