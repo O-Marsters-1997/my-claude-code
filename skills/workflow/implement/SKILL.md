@@ -94,7 +94,9 @@ independent review and failure path.
 When a fleet dispatch prompt names a `Base:`, the work belongs on the ticket branch
 `issue-<N>/<short-title>`: `<N>` the issue number, `<short-title>` a kebab-case slug of the
 issue title, a few words (`issue-142/stuck-scrape-run`). Dispatch normally creates it; if the
-current branch is anything else, create it off `Base` with `git switch -c` before editing.
+current branch is anything else, create it with `tp new <branch> --base <Base> --current` (see
+`treepad`) and work in that worktree. Never `git switch -c` or `checkout -b` in the current
+checkout: other sessions may share it, and moving its HEAD changes files under them.
 
 Commit your work to the current branch.
 
