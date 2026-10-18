@@ -53,7 +53,7 @@ Before editing, tell the user: what the skill currently does (one sentence), whi
 
 ### 3. Apply the update
 
-Before editing, copy the current skill directory to `<scratchpad>/<name>-baseline/` so the old version can be rerun. Write changes to the skill's own SKILL.md (and its `references/`) only. Never edit `~/.claude/skills/...` or `.agents/skills/...`.
+Before editing, create the worktree for branch `skill-update/<name>-<YYYYMMDD>` off `origin/main` as in [`references/pr-workflow.md`](references/pr-workflow.md), and make every edit, commit and push in `<worktree>`, never in `<source-repo>`, whose checkout other sessions share. Copy the current skill directory to `<scratchpad>/<name>-baseline/` so the old version can be rerun. Write changes to the skill's own SKILL.md (and its `references/`) only. Never edit `~/.claude/skills/...` or `.agents/skills/...`.
 
 - **Preserve voice and style.** Don't rewrite sections the user didn't ask to change.
 - **Keep it lean.** If adding content pushes SKILL.md past 100 lines, split into a `references/` file.
@@ -76,19 +76,18 @@ Append the scenario to `<skill>/evals/evals.json` (create it as `{"skill_name": 
 
 See [`references/pr-workflow.md`](references/pr-workflow.md) for the full git and gh commands.
 
-1. Fetch origin and create branch `skill-update/<name>-<YYYYMMDD>` from `origin/main`.
-2. Stage changed files: the skill's SKILL.md, `evals/evals.json` and any `references/` additions.
-3. Draft commit message: `chore(skills/<name>): <one-line summary>`.
-4. Draft PR body using the template in `references/pr-workflow.md`.
-5. **Show the commit message and PR body to the user. Wait for confirmation.** Then push and open the draft PR.
-6. Return the PR URL.
+1. Stage changed files in `<worktree>`: the skill's SKILL.md, `evals/evals.json` and any `references/` additions.
+2. Draft commit message: `chore(skills/<name>): <one-line summary>`.
+3. Draft PR body using the template in `references/pr-workflow.md`.
+4. **Show the commit message and PR body to the user. Wait for confirmation.** Then push and open the draft PR.
+5. Return the PR URL.
 
 ### 6. Confirm and report
 
 Output the edited file path and the PR URL:
 
 ```
-Updated: <source-repo>/skills/<name>/SKILL.md
+Updated: <worktree>/skills/<name>/SKILL.md
 PR: <url>
 ```
 

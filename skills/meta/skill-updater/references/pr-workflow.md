@@ -1,14 +1,19 @@
 # PR Workflow
 
-Commands and conventions for opening a draft PR after a skill update. All git commands use `-C <source-repo>` so they work regardless of cwd.
+Commands and conventions for opening a draft PR after a skill update. All git commands use `-C <worktree>` so they work regardless of cwd.
 
-## Branch creation
+## Worktree creation
+
+Never `checkout -b` or `switch -c` in `<source-repo>`: other sessions share that checkout, and
+moving its HEAD changes files under them. Create the branch in its own worktree instead:
 
 ```bash
 git -C <source-repo> fetch origin
-git -C <source-repo> checkout -b skill-update/<name>-<YYYYMMDD> origin/main
+(cd <source-repo> && tp new skill-update/<name>-<YYYYMMDD> --base origin/main --current)
+WT=$(cd <source-repo> && tp status --json | jq -r '.[] | select(.branch=="skill-update/<name>-<YYYYMMDD>") | .path')
 ```
 
+Without `tp` on PATH, use `git -C <source-repo> worktree add <path> -b <branch> origin/main` and say so.
 If the branch name already exists (collision), append `-2`, `-3`, etc.
 
 ## Staging and commit
@@ -16,9 +21,9 @@ If the branch name already exists (collision), append `-2`, `-3`, etc.
 Stage only the files that were actually changed:
 
 ```bash
-git -C <source-repo> add <skill-dir>/SKILL.md <skill-dir>/evals/evals.json
+git -C <worktree> add <skill-dir>/SKILL.md <skill-dir>/evals/evals.json
 # if references/ files were added/changed:
-git -C <source-repo> add <skill-dir>/references/
+git -C <worktree> add <skill-dir>/references/
 ```
 
 Commit using conventional commits:
@@ -68,13 +73,12 @@ EOF
 )"
 ```
 
-Run with `cwd` set to `<source-repo>`, or pass `-R <owner>/<repo>` if needed.
+Run with `cwd` set to `<worktree>`, or pass `-R <owner>/<repo>` if needed.
 
 ## Failure modes
 
 Stop and surface a clear error — do not auto-recover — if:
 
-- **Dirty working tree**: `git status` shows uncommitted changes in `<source-repo>`. Ask the user to resolve before proceeding.
 - **No gh auth**: `gh auth status` fails. Prompt the user to run `gh auth login`.
 - **Push rejected**: report the exact error; never force-push.
 - **Branch already exists on remote**: append a suffix (`-2`, `-3`) and retry once; if still blocked, ask the user.
