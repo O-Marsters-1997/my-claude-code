@@ -61,6 +61,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/block-bash-inplace-edits.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-branch-switch.sh"
           }
         ]
       }
