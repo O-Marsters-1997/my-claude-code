@@ -5,13 +5,13 @@
       "source": "O-Marsters-1997/skills",
       "sourceType": "github",
       "skillPath": "skills/code/code-review/SKILL.md",
-      "computedHash": "225fd24c0b2f16af7f5b286e3716321cc27f01803d9e017880ed43813521f905"
+      "computedHash": "caf661529176e5705936f33d37a9859f2c7ce1a4b5351c6b71bf671dd91677e0"
     },
     "go-idiomatic": {
       "source": "O-Marsters-1997/skills",
       "sourceType": "github",
       "skillPath": "skills/code/go-idiomatic/SKILL.md",
-      "computedHash": "ce94a11d11b007145a31851fcecd8c836b7294fb07e1120451b4fc751cdf212a"
+      "computedHash": "28106132a1a646899431b6349a44382c4d53cde5c78dea8947cf50064f4b4d6c"
     }
   }
 }

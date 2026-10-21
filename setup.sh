@@ -29,7 +29,7 @@ install_link() {
   local target="$1" source="$2"
   mkdir -p "$(dirname "$target")"
   if [ -e "$target" ] || [ -L "$target" ]; then
-    if [ "$(readlink "$target")" != "$source" ]; then
+    if [ "$(readlink "$target")" != "$source" ] && [ "$(readlink "$target")" != "${3:-}" ]; then
       echo "setup.sh: keeping existing $target; inspect it before replacing with $source" >&2
       return
     fi
@@ -41,7 +41,7 @@ install_link "$CLAUDE/agents/implementation.md" "$REPO/agents/implementation.md"
 install_link "$CLAUDE/skills/implement" "$REPO/skills/workflow/implement"
 install_link "$CLAUDE/skills/code-review" "$REPO/skills/code/code-review"
 OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
-install_link "$OPENCODE_CONFIG/agents/implementation.md" "$REPO/agents/implementation.md"
+install_link "$OPENCODE_CONFIG/agents/implementation.md" "$REPO/agents/opencode/implementation.md" "$REPO/agents/implementation.md"
 install_link "$OPENCODE_CONFIG/skills/implement" "$REPO/skills/workflow/implement"
 install_link "$OPENCODE_CONFIG/skills/code-review" "$REPO/skills/code/code-review"
 
