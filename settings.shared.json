@@ -69,19 +69,6 @@
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/lint-edited.sh",
-            "timeout": 120,
-            "statusMessage": "Linting edited file"
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
@@ -89,6 +76,12 @@
             "type": "command",
             "command": "~/.claude/hooks/stop-sound.sh",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/lint-changed.sh",
+            "timeout": 180,
+            "statusMessage": "Linting changed files"
           },
           {
             "type": "agent",
