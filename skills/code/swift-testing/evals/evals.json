@@ -1,0 +1,107 @@
+{
+  "skill_name": "swift-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Swift package (swift-tools-version 6.1) named Cart with a library target Cart and a test target CartTests. In Cart, add a @MainActor @Observable final class CartModel that takes a `pricing: Pricing` in init (Pricing is a struct with a taxRate: Decimal). It has items: [LineItem] (LineItem has product: Product, quantity: Int; Product has id: String, name: String, price: Decimal), add(_ product: Product, quantity: Int = 1) which merges quantities for the same product id, remove(_ product: Product), isEmpty, and a total that applies the tax. Write the tests for CartModel.",
+      "expected_output": "Tests are Swift Testing (import Testing, @Test, #expect), not XCTest. The suite is a struct without a bare @Suite. Because CartModel is @MainActor, the suite or tests are @MainActor. A fresh model per test via a stored property or init(), no static shared state. No test prefix on names. No `!` negation inside #expect; uses `== false`. Expected totals are concrete literals, not recomputed with the same formula. Repetitive cases (several totals) are parameterized with an array of tuples rather than zip or copy-paste. #require is used for any optional unwrap instead of force unwrap. Happy path, boundary (empty cart, merge quantities) and removal cases covered. import Testing appears only in the test target.",
+      "files": [],
+      "assertions": [
+        {"id": "swift-testing", "text": "Tests use import Testing with @Test and #expect; no XCTestCase or XCTAssert"},
+        {"id": "struct-no-bare-suite", "text": "The test type is a struct and has no bare @Suite attribute (an @Suite with a display name or traits is fine)"},
+        {"id": "main-actor", "text": "The suite or every test touching CartModel is @MainActor"},
+        {"id": "no-test-prefix", "text": "No test function name starts with `test`"},
+        {"id": "no-bang-in-macro", "text": "No #expect or #require contains a `!` negation"},
+        {"id": "literal-expectations", "text": "Expected totals are literals, not computed with the production formula"},
+        {"id": "no-force-unwrap", "text": "No force unwrap (`!` postfix) in test code; optionals unwrapped with try #require"},
+        {"id": "testing-in-tests-only", "text": "`import Testing` appears only in files under the test target"},
+        {"id": "builds-and-passes", "text": "`swift test` builds and all tests pass"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "These tests in Tests/FormattingTests/DurationFormatterTests.swift are getting out of hand, clean them up:\n\n```swift\nimport Testing\n@testable import Formatting\n\n@Suite\nstruct DurationFormatterTests {\n    @Test func testZero() { #expect(DurationFormatter.format(seconds: 0) == \"0s\") }\n    @Test func testSeconds() { #expect(DurationFormatter.format(seconds: 45) == \"45s\") }\n    @Test func testOneMinute() { #expect(DurationFormatter.format(seconds: 60) == \"1m\") }\n    @Test func testMinutesAndSeconds() { #expect(DurationFormatter.format(seconds: 75) == \"1m 15s\") }\n    @Test func testOneHour() { #expect(DurationFormatter.format(seconds: 3600) == \"1h\") }\n    @Test func testHoursAndMinutes() { #expect(DurationFormatter.format(seconds: 5400) == \"1h 30m\") }\n    @Test func testNegativeIsNil() { #expect(!(DurationFormatter.format(seconds: -1) != nil)) }\n}\n```\n\nThe formatter returns String? and nil for negative input.",
+      "expected_output": "The six formatting tests collapse into one @Test(arguments:) using an array of (input, expected) tuples with literal expected strings, not zip of two arrays. The negative case stays a separate test asserting `== nil` without `!`. The bare @Suite is removed. The `test` prefixes are dropped. Since format returns String?, the parameterized comparison works against an optional, or uses #require; no force unwrap.",
+      "files": [],
+      "assertions": [
+        {"id": "parameterized", "text": "The positive cases are one @Test with arguments:"},
+        {"id": "tuples-not-zip", "text": "Arguments are an array of (input, expected) tuples or a dictionary literal; no zip("},
+        {"id": "negative-separate", "text": "The negative/nil case is its own test, not a branch inside the parameterized test"},
+        {"id": "no-bang-in-macro", "text": "No #expect or #require contains a `!` negation"},
+        {"id": "bare-suite-removed", "text": "The bare @Suite attribute is removed"},
+        {"id": "no-test-prefix", "text": "No test function name starts with `test`"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Migrate this XCTest file to Swift Testing. It's in an iOS app's unit test target, Swift 6.0 toolchain.\n\n```swift\nimport XCTest\n@testable import Notes\n\nfinal class NoteStoreTests: XCTestCase {\n    var store: NoteStore!\n\n    override func setUp() {\n        super.setUp()\n        store = NoteStore(defaults: UserDefaults(suiteName: \"NoteStoreTests\")!)\n    }\n\n    override func tearDown() {\n        UserDefaults().removePersistentDomain(forName: \"NoteStoreTests\")\n        store = nil\n        super.tearDown()\n    }\n\n    func testAddNote() throws {\n        store.add(Note(title: \"Groceries\"))\n        let first = try XCTUnwrap(store.notes.first)\n        XCTAssertEqual(first.title, \"Groceries\")\n    }\n\n    func testEmptyTitleThrows() {\n        XCTAssertThrowsError(try store.validate(Note(title: \"\")))\n    }\n\n    func testStartsEmpty() {\n        XCTAssertTrue(store.notes.isEmpty)\n        XCTAssertFalse(store.hasUnsavedChanges)\n    }\n\n    func testSlowSync() throws {\n        throw XCTSkip(\"Sync server not available\")\n    }\n}\n```\n\nNoteStore.validate throws NoteError.emptyTitle.",
+      "expected_output": "A struct suite with setup moved to init(). The fixed UserDefaults suite name (shared across parallel tests) becomes a unique per-test name such as a UUID, with cleanup; or the shared state is otherwise removed. The answer must not reach for .serialized as the fix. XCTUnwrap becomes try #require. XCTAssertThrowsError becomes #expect(throws: NoteError.emptyTitle). XCTAssertFalse becomes `== false`, not `!`. XCTSkip becomes a .disabled(\"...\") trait. No test prefixes. No Swift 6.2-only features (raw identifiers, exit tests, attachments), since the toolchain is 6.0. The response notes that tests now run in parallel.",
+      "files": [],
+      "assertions": [
+        {"id": "struct-init", "text": "Suite is a struct (or final class only if deinit is used) with setup in init()"},
+        {"id": "unique-defaults", "text": "Each test gets a unique UserDefaults suite name (e.g. UUID) or the shared suite name is otherwise eliminated"},
+        {"id": "no-serialized-fix", "text": "Does not add .serialized to work around the shared UserDefaults"},
+        {"id": "require-unwrap", "text": "XCTUnwrap is replaced with try #require"},
+        {"id": "specific-throw", "text": "Throw check names NoteError.emptyTitle (or NoteError.self then checks the case); not Error.self"},
+        {"id": "no-bang-in-macro", "text": "No #expect or #require contains a `!` negation"},
+        {"id": "skip-to-trait", "text": "XCTSkip becomes a .disabled(...) or .enabled(if:) trait"},
+        {"id": "no-62-features", "text": "No raw-identifier test names, exit tests or Attachment.record"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "This test passes on its own but fails about one run in five on CI. Fix it.\n\n```swift\nimport Testing\n@testable import Session\n\nstruct TokenStoreTests {\n    @Test func savesToken() {\n        TokenStore.shared.token = \"abc\"\n        #expect(TokenStore.shared.token == \"abc\")\n    }\n\n    @Test func clearsToken() {\n        TokenStore.shared.token = \"abc\"\n        TokenStore.shared.clear()\n        #expect(TokenStore.shared.token == nil)\n    }\n\n    @Test func startsLoggedOut() {\n        #expect(TokenStore.shared.token == nil)\n    }\n}\n```\n\nTokenStore is:\n\n```swift\nfinal class TokenStore {\n    static let shared = TokenStore()\n    var token: String?\n    func clear() { token = nil }\n}\n```\n\nSessionManager and two view models read TokenStore.shared.",
+      "expected_output": "Identifies the shared singleton as the cause, given parallel and random order. Fixes it by giving each test its own TokenStore instance (TokenStore() is constructible), and suggests injecting TokenStore into SessionManager and the view models with a default of .shared so production call sites don't change. Does not use .serialized or @MainActor as the fix, and does not reset the singleton at the start of each test. No Task.sleep.",
+      "files": [],
+      "assertions": [
+        {"id": "diagnosis", "text": "Names the shared TokenStore.shared state plus parallel/random execution as the cause"},
+        {"id": "per-test-instance", "text": "Tests create their own TokenStore instead of using .shared"},
+        {"id": "injection-default", "text": "Recommends or applies injecting TokenStore into its consumers with a `.shared` default"},
+        {"id": "no-serialized", "text": "Does not add .serialized as the fix"},
+        {"id": "no-reset-singleton", "text": "Does not fix it by resetting TokenStore.shared before each test"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Write tests for this legacy loader. Don't change the production code.\n\n```swift\nfinal class WeatherLoader: @unchecked Sendable {\n    private let session: URLSession\n    init(session: URLSession = .shared) { self.session = session }\n\n    func load(city: String, completion: @escaping @Sendable (Result<Forecast, Error>) -> Void) {\n        let url = URL(string: \"https://api.example.com/forecast?city=\\(city)\")!\n        session.dataTask(with: url) { data, _, error in\n            if let error { return completion(.failure(error)) }\n            do { completion(.success(try JSONDecoder().decode(Forecast.self, from: data ?? Data()))) }\n            catch { completion(.failure(error)) }\n        }.resume()\n    }\n}\n\nstruct Forecast: Decodable, Equatable { let city: String; let highC: Int }\n```",
+      "expected_output": "Swift Testing async tests that bridge the callback with withCheckedContinuation / withCheckedThrowingContinuation and assert after the callback has fired. No XCTestExpectation, no Task.sleep, no semaphore. No live network: since production can't change and the session is injectable, uses a URLSession built on an ephemeral configuration with a URLProtocol stub, and handles the stub's static handler as shared state (keyed by URL or a serialized suite). Covers success decode, a transport error, and malformed JSON. Does not modify WeatherLoader.",
+      "files": [],
+      "assertions": [
+        {"id": "continuation", "text": "Uses withCheckedContinuation or withCheckedThrowingContinuation to await the completion handler"},
+        {"id": "no-sleep-or-expectation", "text": "No Task.sleep, XCTestExpectation, DispatchSemaphore or wait(for:)"},
+        {"id": "no-live-network", "text": "Network is stubbed (URLProtocol on an injected session); no request to the real host"},
+        {"id": "urlprotocol-shared-state", "text": "The URLProtocol stub's shared handler is keyed per test/URL or its tests are in one .serialized suite"},
+        {"id": "error-paths", "text": "Has tests for a transport error and for undecodable data, not only the success path"},
+        {"id": "production-unchanged", "text": "WeatherLoader's source is not modified"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I've got a SwiftData model in my iOS 18 app:\n\n```swift\n@Model final class Trip {\n    var name: String\n    var start: Date\n    @Relationship(deleteRule: .cascade, inverse: \\Stop.trip) var stops: [Stop] = []\n    init(name: String, start: Date) { self.name = name; self.start = start }\n}\n\n@Model final class Stop {\n    var title: String\n    var trip: Trip?\n    init(title: String) { self.title = title }\n}\n```\n\nand a `TripStore` with `func upcoming(after date: Date) throws -> [Trip]` that fetches trips with start > date sorted by start, using a ModelContext passed into its init. Add tests: deleting a trip removes its stops, and upcoming() filters and sorts correctly.",
+      "expected_output": "Each test gets its own ModelContainer with ModelConfiguration(isStoredInMemoryOnly: true), created per test (in the suite's init or the test), never static or shared. Schema includes both Trip and Stop. The suite is @MainActor if it uses container.mainContext. Dates are fixed values, not Date() / Date.now, so results don't depend on the clock. Calls TripStore.upcoming rather than re-implementing the predicate in the test. Cascade test counts Stops with fetchCount or a fetch after delete and save. Swift Testing, not XCTest.",
+      "files": [],
+      "assertions": [
+        {"id": "in-memory", "text": "Uses ModelConfiguration(isStoredInMemoryOnly: true)"},
+        {"id": "container-per-test", "text": "A new ModelContainer is created per test (suite init or test body); no static/shared container"},
+        {"id": "both-models", "text": "The container schema includes both Trip and Stop"},
+        {"id": "main-actor-if-maincontext", "text": "If container.mainContext is used, the suite or tests are @MainActor"},
+        {"id": "fixed-dates", "text": "Test dates are fixed values, not Date() or Date.now"},
+        {"id": "uses-store", "text": "The filter/sort test calls TripStore.upcoming instead of building its own FetchDescriptor"},
+        {"id": "swift-testing", "text": "Tests use import Testing with @Test and #expect; no XCTestCase"}
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Add a UI test that taps 'Sign in', types an email and password, and checks the home screen title shows up. Our project has NotesTests (Swift Testing) and NotesUITests targets.",
+      "expected_output": "Writes the test with XCTest's XCUIApplication in NotesUITests, and says Swift Testing doesn't drive UI. Doesn't import Testing in the UI test target. Finds elements by accessibility identifier (adding identifiers to the views if needed), waits with waitForExistence(timeout:) rather than sleep, and launches with an argument or environment variable so the app can stub its backend.",
+      "files": [],
+      "assertions": [
+        {"id": "xctest-for-ui", "text": "Uses XCTestCase and XCUIApplication, not Swift Testing @Test"},
+        {"id": "no-testing-import", "text": "The UI test file does not import Testing"},
+        {"id": "accessibility-ids", "text": "Locates elements by accessibilityIdentifier rather than visible label text"},
+        {"id": "wait-for-existence", "text": "Waits with waitForExistence(timeout:) or an equivalent; no sleep"},
+        {"id": "launch-args", "text": "Sets launchArguments or launchEnvironment so the app can run against stubs"}
+      ]
+    }
+  ]
+}

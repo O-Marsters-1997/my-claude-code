@@ -38,6 +38,7 @@ plain feature requests ("add an endpoint", "style this") and stay out of each ot
 |---|---|---|
 | `go-idiomatic` | any `.go`, `go.mod`, Go named in the prompt | `go-testing`, `tdd`, `htmx-go-templates`, `goquery-parsing` |
 | `go-testing` | `_test.go`, `go test`, fakes, golden files, fuzzing, testcontainers | `go-idiomatic`, `tdd` |
+| `swift-testing` | `.swift` under `*Tests/`/`*UITests/`, `*Tests.swift`, `import Testing`/`XCTest`, `@Test`, XCTest migration | `swift-ios`, `tdd` |
 | `htmx-go-templates` | `.tmpl`/`.gohtml`, `hx-*` attributes, `HX-*` headers, a handler calling `ExecuteTemplate` | `go-idiomatic` |
 | `goquery-parsing` | writing a Go HTML parser with goquery | `go-idiomatic` |
 | `frontend-best-practices` | `.tsx`/`.jsx`/`.vue`/`.svelte`, components, hooks | `tailwind-shadcn` |
@@ -58,6 +59,10 @@ Boundaries that keep them from colliding:
   through its `pgtest` helper, and always applies to a `_test.go`. A repo's `testing-policy`
   decides what to test: the kinds of test, what each is worth, and reusable patterns. It never
   restates how a test is written.
+- **Swift code vs Swift tests.** `swift-testing` owns how Swift tests are written: Swift Testing
+  for unit and integration tests, XCTest only for UI automation, `XCTMetric` and Objective-C. It
+  always applies to a Swift test file. `swift-ios` owns the code under test; under MV, views are
+  not unit-tested, their `@Observable` models and services are.
 - **Tokens vs usage.** `tailwind-design-system` owns the theme file; `tailwind-shadcn` owns
   day-to-day classes inside an existing token set.
 
