@@ -32,6 +32,10 @@
           },
           {
             "type": "command",
+            "command": "~/.claude/hooks/require-swift-skills.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/check-written-comments.sh",
             "statusMessage": "Checking added comments"
           }
