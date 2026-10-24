@@ -7,8 +7,8 @@ fails=0
 
 HOME_IN="$TMP/home-in"
 HOME_OUT="$TMP/home-out"
-mkdir -p "$HOME_IN/.claude/skills/swift-ios" "$HOME_OUT"
-touch "$HOME_IN/.claude/skills/swift-ios/SKILL.md"
+mkdir -p "$HOME_IN/.claude/skills/swift-ios" "$HOME_IN/.claude/skills/swift-testing" "$HOME_OUT"
+touch "$HOME_IN/.claude/skills/swift-ios/SKILL.md" "$HOME_IN/.claude/skills/swift-testing/SKILL.md"
 
 mkdir -p "$TMP/pkg/Sources/App" "$TMP/xc/App.xcodeproj" "$TMP/xc/App" "$TMP/ws/App.xcworkspace" "$TMP/noroot"
 touch "$TMP/pkg/Package.swift"
@@ -94,6 +94,37 @@ check "subagent with no transcript fails open" 0 "$(agent_payload "$A" "$T_PAREN
 new_write=$(jq -nc --arg f "$TMP/pkg/Sources/App/New.swift" --arg t "$T_NONE" \
 	'{tool_name: "Write", tool_input: {file_path: $f, content: "// DO NOT EDIT\nenum X {}\n"}, transcript_path: $t}')
 check "new generated file via Write is skipped" 0 "$new_write" X=1
+
+T_BOTH="$TMP/both.jsonl"
+{ skill_call swift-ios; skill_call swift-testing; } >"$T_BOTH"
+mkdir -p "$TMP/pkg/Tests/AppTests" "$TMP/xc/AppTests" "$TMP/xc/AppUITests"
+printf 'import Foundation\nimport Testing\n' >"$TMP/pkg/Sources/App/Imports.swift"
+
+edit_only() {
+	jq -nc --arg f "$1" --arg t "$2" '{tool_name: "Edit", tool_input: {file_path: $f}, transcript_path: $t}'
+}
+write_new() {
+	jq -nc --arg f "$1" --arg t "$2" --arg c "$3" '{tool_name: "Write", tool_input: {file_path: $f, content: $c}, transcript_path: $t}'
+}
+check_names() {
+	local name=$1 input=$2 err
+	err=$(env HOME="$HOME_IN" "$HOOK" <<<"$input" 2>&1 >/dev/null)
+	if [ $? != 2 ] || ! grep -q swift-testing <<<"$err"; then
+		printf 'FAIL %s: want exit 2 naming swift-testing\n%s\n' "$name" "$err"
+		fails=$((fails + 1))
+	fi
+}
+
+check_names "SPM Tests/<X>Tests/ path needs swift-testing" "$(payload "$TMP/pkg/Tests/AppTests/Helpers.swift" "$T_SWIFT")"
+check_names "Xcode <App>Tests/ path needs swift-testing" "$(payload "$TMP/xc/AppTests/Fixtures.swift" "$T_SWIFT")"
+check_names "UITests/ path needs swift-testing" "$(payload "$TMP/xc/AppUITests/Launch.swift" "$T_SWIFT")"
+check_names "filename ending Tests.swift needs swift-testing" "$(payload "$TMP/pkg/Sources/App/CartTests.swift" "$T_SWIFT")"
+check_names "filename ending Test.swift needs swift-testing" "$(payload "$TMP/pkg/Sources/App/CartTest.swift" "$T_SWIFT")"
+check_names "on-disk file importing Testing needs swift-testing" "$(edit_only "$TMP/pkg/Sources/App/Imports.swift" "$T_SWIFT")"
+check_names "new Write importing XCTest needs swift-testing" "$(write_new "$TMP/pkg/Sources/App/New.swift" "$T_SWIFT" $'import XCTest\nfinal class X {}\n')"
+check_names "test file with only swift-ios loaded names swift-testing" "$(payload "$TMP/pkg/Tests/AppTests/CartTests.swift" "$T_SWIFT")"
+check "non-test Swift file does not need swift-testing" 0 "$(payload "$A" "$T_SWIFT")" X=1
+check "test file with both skills loaded passes" 0 "$(payload "$TMP/pkg/Tests/AppTests/CartTests.swift" "$T_BOTH")" X=1
 
 [ "$fails" -eq 0 ] && echo "all hook tests passed"
 exit "$fails"

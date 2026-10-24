@@ -44,7 +44,8 @@ plain feature requests ("add an endpoint", "style this") and stay out of each ot
 | `tailwind-shadcn` | `class=`/`className=` edits, `components/ui/` | `frontend-best-practices` |
 | `tailwind-design-system` | `@theme`, design tokens, Tailwind v4 config | `tailwind-shadcn` |
 | `postgres-best-practices` | `.sql` files, migrations, schema, index, constraint or query changes on Postgres | `go-idiomatic` |
-| `swift-ios` | any `.swift`, `Package.swift`, `.xcodeproj`, SwiftUI or iOS named in the prompt | `tdd` |
+| `swift-ios` | any `.swift`, `Package.swift`, `.xcodeproj`, SwiftUI or iOS named in the prompt | `swift-testing`, `tdd` |
+| `swift-testing` | `.swift` under `*Tests/`/`*UITests/`, `*Tests.swift`, `import Testing`/`XCTest`, `@Test`, XCTest migration | `swift-ios`, `tdd` |
 | `tdd` | any implementation or bug fix | everything |
 
 Install `postgres-best-practices` with `npx skills add O-Marsters-1997/my-claude-code --skill postgres-best-practices -g -y`.
@@ -60,6 +61,10 @@ Boundaries that keep them from colliding:
   through its `pgtest` helper, and always applies to a `_test.go`. A repo's `testing-policy`
   decides what to test: the kinds of test, what each is worth, and reusable patterns. It never
   restates how a test is written.
+- **Swift code vs Swift tests.** `swift-testing` owns how Swift tests are written: Swift Testing
+  for unit and integration tests, XCTest only for UI automation, `XCTMetric` and Objective-C. It
+  always applies to a Swift test file. `swift-ios` owns the code under test; under MV, views are
+  not unit-tested, their `@Observable` models and services are.
 - **Tokens vs usage.** `tailwind-design-system` owns the theme file; `tailwind-shadcn` owns
   day-to-day classes inside an existing token set.
 
