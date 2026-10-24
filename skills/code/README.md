@@ -1,6 +1,6 @@
 # Code skills
 
-Nineteen skills for writing, designing and reviewing code. Unlike the workflow suite they are
+Twenty skills for writing, designing and reviewing code. Unlike the workflow suite they are
 mostly independent: each one loads on its own trigger, and several standards skills are meant to
 load side by side. This file is the map for humans working on them.
 
@@ -44,9 +44,11 @@ plain feature requests ("add an endpoint", "style this") and stay out of each ot
 | `tailwind-shadcn` | `class=`/`className=` edits, `components/ui/` | `frontend-best-practices` |
 | `tailwind-design-system` | `@theme`, design tokens, Tailwind v4 config | `tailwind-shadcn` |
 | `postgres-best-practices` | `.sql` files, migrations, schema, index, constraint or query changes on Postgres | `go-idiomatic` |
+| `swift-ios` | any `.swift`, `Package.swift`, `.xcodeproj`, SwiftUI or iOS named in the prompt | `tdd` |
 | `tdd` | any implementation or bug fix | everything |
 
 Install `postgres-best-practices` with `npx skills add O-Marsters-1997/my-claude-code --skill postgres-best-practices -g -y`.
+Install `swift-ios` with `npx skills add O-Marsters-1997/my-claude-code --skill swift-ios -g -y`.
 
 Boundaries that keep them from colliding:
 

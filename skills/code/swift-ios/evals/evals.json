@@ -1,0 +1,115 @@
+{
+  "skill_name": "swift-ios",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Swift package (iOS 17, Swift 6 language mode, SwiftUI) with a settings screen for a habit-tracker app. It needs: a toggle for daily reminders and a time picker that only shows when reminders are on, a stepper for the weekly goal (1-7), a 'Reset all data' action that asks for confirmation first, and an 'About' row that pushes a detail screen. Settings persist across launches. Put the screen and whatever model it needs in Sources/Habits, plus a preview.",
+      "expected_output": "MV: settings live in an @Observable model (or @AppStorage on the view), not a per-screen SettingsViewModel; no @AppStorage inside the @Observable class. Model is @MainActor because the package has no MainActor default isolation. Built with NavigationStack + Form, navigation via NavigationLink(value:)/navigationDestination or a plain NavigationLink, not NavigationView. Time picker shown conditionally. Reset uses confirmationDialog or alert with a .destructive role Button. @State properties are private. No onTapGesture for actions; no foregroundColor; any .animation has a value:. Preview uses self-contained data. One primary type per file.",
+      "files": [],
+      "expectations": [
+        "No per-screen view model type (e.g. SettingsViewModel) is introduced; state lives in an @Observable model/service or @AppStorage on the view",
+        "No @AppStorage property is declared inside an @Observable class",
+        "The @Observable model (if any) is annotated @MainActor, since the package sets no default isolation",
+        "Uses NavigationStack, not NavigationView",
+        "Reset uses confirmationDialog or alert with a Button whose role is .destructive",
+        "Every @State property is private",
+        "No onTapGesture is used for an action and no foregroundColor( call appears",
+        "A #Preview is present and needs no network or live store"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In evals/fixtures/state-bug, deleting a note sometimes crashes with index out of range, and when I add a new note the pin toggles shift onto the wrong rows. Fix it.",
+      "expected_output": "Root causes fixed: ForEach over .indices replaced with ForEach(store.notes) using Note's stable id (or $store.notes bindings); NoteRow no longer copies note.pinned into @State but binds to the store's note (Binding passed in, or @Bindable/store method), so the toggle writes back. @State var store becomes private. The toolbar's onTapGesture Image becomes a Button with a label (Button(\"Add\", systemImage: \"plus\")). Does not add a view model, does not raise the iOS 17 target, does not rewrite NotesStore beyond what the fix needs.",
+      "files": [
+        "evals/fixtures/state-bug"
+      ],
+      "expectations": [
+        "ForEach no longer iterates store.notes.indices; it iterates notes by their stable id (or $store.notes bindings)",
+        "NoteRow no longer copies note.pinned into its own @State; the toggle writes the pin back to the store's note",
+        "The add action is a Button with a text label (e.g. Button(\"Add\", systemImage: \"plus\")), not Image + onTapGesture",
+        "The store @State property is private",
+        "No view model type is added and the iOS 17 platform in Package.swift is unchanged"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "In evals/fixtures/deprecated-list, add swipe-to-delete and a swipe action that toggles read/unread on the inbox rows.",
+      "expected_output": "Adds .swipeActions (delete with role: .destructive, toggle read) to rows in InboxView. In InboxView, the view the task touches, replaces the hard-deprecated .animation(.default) (removed, or given a value:). Keeps the soft-deprecated NavigationView, navigationBarTitle and foregroundColor as they are and offers their migration in one line at the end. New code it writes uses no deprecated API. Leaves MessageDetail.swift unchanged and does not mention its deprecated calls.",
+      "files": [
+        "evals/fixtures/deprecated-list"
+      ],
+      "expectations": [
+        "Rows have .swipeActions with a delete action using role: .destructive and a read/unread toggle",
+        "The valueless .animation(.default) in InboxView is removed or given a value: parameter",
+        "NavigationView, navigationBarTitle and foregroundColor in InboxView are left in place (soft-deprecated, not migrated unasked)",
+        "The response offers migrating the soft-deprecated APIs in one short line rather than doing it",
+        "MessageDetail.swift is byte-for-byte unchanged and the response does not discuss its deprecated calls"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "evals/fixtures/concurrency-error won't build in Swift 6 mode. Xcode says: \"Sending 'self.cache' risks causing data races\" and \"Capture of 'self' with non-sendable type 'GalleryModel' in a `@Sendable` closure\". Fix it properly, I don't want warnings suppressed.",
+      "expected_output": "Removes DispatchQueue.global().async; loads inside structured concurrency (a Task from the MainActor model, or a task group / async let) with cancellation in mind. ThumbnailCache's mutable dictionary is protected by making it an actor (or by isolating it correctly), not by @unchecked Sendable, nonisolated(unsafe), @preconcurrency or blanket @MainActor on the cache. GalleryModel stays @MainActor (UI state) and writes thumbnails on the main actor. Explains the isolation cause of each error. Does not change the Swift language mode or strict-concurrency setting.",
+      "files": [
+        "evals/fixtures/concurrency-error"
+      ],
+      "expectations": [
+        "DispatchQueue is no longer used in GalleryModel",
+        "ThumbnailCache's mutable state is protected by making it an actor (or equivalent isolation), not by @unchecked Sendable",
+        "No nonisolated(unsafe), @preconcurrency or @unchecked Sendable is added anywhere",
+        "ThumbnailCache is not made @MainActor",
+        "GalleryModel stays @MainActor and thumbnails is mutated on the main actor",
+        "Package.swift's swift-tools-version and settings are unchanged (no language-mode downgrade)",
+        "The response explains the isolation cause behind each of the two errors"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm adding SwiftData to my iOS 18 travel app. I need Trip (name, start date, end date) with many Stops (name, lat/long, arrival date, order index). Deleting a trip deletes its stops. Trips list sorted by start date newest first, with a filter for upcoming trips only. I also import a few thousand stops from a JSON file on first launch and don't want to freeze the UI. Sync to iCloud via CloudKit later is likely. Write the models, the trips list view, and the importer.",
+      "expected_output": "@Model Trip with @Relationship(deleteRule: .cascade, inverse:) to [Stop]; Stop has the inverse. Because CloudKit is planned: no @Attribute(.unique), relationships optional or defaulted, all properties have defaults or are optional, and the answer says why. @Query with SortDescriptor on start date reverse and a #Predicate for upcoming trips that only uses supported operations (date captured into a local constant, not Date.now inside the predicate). Importer runs in a @ModelActor (or background ModelContext created on that actor) with batched saves; it never passes ModelContext or @Model instances across actors, using PersistentIdentifier if handing results back. Preview or test uses ModelConfiguration(isStoredInMemoryOnly: true).",
+      "files": [],
+      "expectations": [
+        "Trip has @Relationship(deleteRule: .cascade) to its stops with an inverse",
+        "No @Attribute(.unique) is used, and the response says it is incompatible with CloudKit",
+        "Every stored model property has a default value or is optional, and relationships are optional or defaulted (CloudKit-ready)",
+        "@Query sorts trips by start date descending",
+        "The upcoming filter's #Predicate compares against a date captured in a local constant, not Date.now inside the predicate",
+        "The importer runs on a @ModelActor (or a ModelContext created inside a non-main actor) and saves in batches",
+        "No ModelContext or @Model instance is passed across actor boundaries",
+        "A preview or sample container uses ModelConfiguration(isStoredInMemoryOnly: true)"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Review evals/fixtures/perf-review/Sources/Feed/FeedView.swift. Scrolling the feed stutters on older phones once there are a few hundred posts.",
+      "expected_output": "Review format: findings grouped by file with line numbers, a named rule, and a short before/after for each, ending in a prioritised summary. Flags: sort and filter recomputed in body (move into the store or a derived property), ForEach id: \\.self on a mutable Hashable struct instead of its id, VStack in ScrollView instead of LazyVStack, DateFormatter built in body (use Text(date, format:) or a static formatter), UIImage(data:) decoded synchronously in body (decode/downsample off the main thread and cache), AnyView wrapping, and PostCard reading store.lastRefresh so every card invalidates when it changes (pass only what the row needs). Does not add @MainActor to FeedStore, because the package sets defaultIsolation(MainActor.self). Does not rewrite the file unasked.",
+      "files": [
+        "evals/fixtures/perf-review"
+      ],
+      "expectations": [
+        "Findings are grouped by file with line numbers, each naming the rule and showing a before/after",
+        "The response ends with a prioritised summary",
+        "Flags sorting/filtering inside body",
+        "Flags ForEach id: \\.self on the mutable Post struct",
+        "Flags VStack inside ScrollView instead of LazyVStack (or List)",
+        "Flags the DateFormatter built inside body",
+        "Flags UIImage(data:) decoding in body",
+        "Flags PostCard reading store.lastRefresh so every row invalidates",
+        "Does not recommend adding @MainActor to FeedStore",
+        "FeedView.swift is not modified"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "My app targets iOS 26. The tab bar and nav bars look flat and dated next to other apps. Here's my root view, can you make the chrome look more modern?\n\n```swift\nstruct RootView: View {\n    var body: some View {\n        TabView {\n            NavigationStack { HomeView().toolbarBackground(Color.white, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar) }\n                .tabItem { Label(\"Home\", systemImage: \"house\") }\n            NavigationStack { ProfileView() }\n                .tabItem { Label(\"Profile\", systemImage: \"person\") }\n        }\n        .toolbarBackground(Color.white, for: .tabBar)\n        .toolbarBackground(.visible, for: .tabBar)\n    }\n}\n```",
+      "expected_output": "Removes the opaque white toolbarBackground and .visible overrides so the system Liquid Glass bars show through. May move to the Tab API (Tab(\"Home\", systemImage:) { ... }), since the user asked for modernisation, and may add tabBarMinimizeBehavior. Does not hand-roll glassEffect or GlassEffectContainer on the bars, since the user didn't ask for custom glass. Mentions that content should scroll under the bars and backgrounds stay out of their way.",
+      "files": [],
+      "expectations": [
+        "The opaque .toolbarBackground(Color.white, ...) and .toolbarBackground(.visible, ...) calls are removed",
+        "No glassEffect, GlassEffectContainer or .buttonStyle(.glass) is added",
+        "The response explains that the system bars provide Liquid Glass and opaque backgrounds were hiding it"
+      ]
+    }
+  ]
+}
