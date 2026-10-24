@@ -53,7 +53,18 @@ installed() {
 	[ -f "$HOME/.claude/skills/$1/SKILL.md" ] || [ -f "$PROJECT/.claude/skills/$1/SKILL.md" ]
 }
 
+is_test_file() {
+	case "$FILE" in
+	*Tests/* | *Tests.swift | *Test.swift) return 0 ;;
+	esac
+	local content
+	content=$(jq -r '.tool_input.content // empty' <<<"$INPUT")
+	[ -z "$content" ] && [ -f "$FILE" ] && content=$(cat "$FILE")
+	head -n 30 <<<"$content" | grep -qE '^import (Testing|XCTest)$'
+}
+
 REQUIRED=(swift-ios)
+is_test_file && REQUIRED+=(swift-testing)
 
 MISSING=()
 UNINSTALLED=()
