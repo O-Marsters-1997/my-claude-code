@@ -1,6 +1,6 @@
 # Code skills
 
-Twenty skills for writing, designing and reviewing code. Unlike the workflow suite they are
+Twenty-one skills for writing, designing and reviewing code. Unlike the workflow suite they are
 mostly independent: each one loads on its own trigger, and several standards skills are meant to
 load side by side. This file is the map for humans working on them.
 
@@ -87,6 +87,7 @@ Boundaries that keep them from colliding:
 | `clean-comments` | staged files | comments removed per `~/.claude/rules/comments.md` |
 | `update-project-docs` | the codebase | synced docs and token-lean codemaps |
 | `readme-generator` | the project | a plain README (slash-only) |
+| `app-performance-testing` | a running app plus its repo's `.claude/perf/` facts | a ranked report of slow endpoints, the layer each loses time in, and fixes |
 
 ## Adding a code skill
 
