@@ -88,10 +88,10 @@
             "statusMessage": "Linting changed files"
           },
           {
-            "type": "agent",
+            "type": "command",
+            "command": "~/.claude/hooks/ponytail-review.sh",
             "timeout": 180,
-            "statusMessage": "Ponytail review",
-            "prompt": "You are the ponytail review gate. Hook input: $ARGUMENTS\n\n1. If stop_hook_active is true, return {\"ok\": true} without doing anything else.\n2. Run `git status --porcelain -- '*.go' '*.ts' '*.tsx' '*.js' '*.jsx' '*.py' '*.rs' '*.sql' '*.sh'` in the hook's cwd. If it fails (not a git repo) or prints nothing, return {\"ok\": true}.\n3. Otherwise read `git diff HEAD` for those files (and any untracked ones in full), then the code they touch. Judge only lines this diff adds or changes, against these rules:\n   - delete: dead code, unused options, speculative features or scaffolding for later\n   - reuse: a helper that already exists in this repo (name its path)\n   - stdlib/native: the standard library, platform or an installed dependency already does it; a new dependency for a few lines\n   - yagni: an interface or abstraction with one implementation, config nobody sets, a factory for one product\n   - merge: near-copies that must change together\n   Every finding needs a concrete case and the smallest fix, preferring a fix that deletes code. Skip style, anything a linter catches, and code the diff did not change. A `ponytail:` or `shortcut:` comment naming its limit is a decision, not a finding.\n4. No findings: return {\"ok\": true}. Otherwise return {\"ok\": false, \"reason\": \"Ponytail review: <file:line - finding - smallest fix>, one per line. Apply the fixes, or say why a finding is wrong.\"}"
+            "statusMessage": "Ponytail review"
           }
         ]
       }
