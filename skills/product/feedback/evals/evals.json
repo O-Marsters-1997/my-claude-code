@@ -1,0 +1,10 @@
+{
+  "skill_name": "feedback",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/feedback https://jam.dev/c/2deb6a12-5958-4da6-a4d6-c08dfa1bae6c\n- 1:07 the profile redraft made my summary longer and pushed the CV onto 2 pages\n- saving bullet changes in the slot picker feels slow\n- 2:04 there are two different overflow messages for the same state\n(Stop after the first play-back; file nothing.)",
+      "expected_output": "Reads the Jam with the jam CLI before verifying. Each point cites Jam facts at its moment (frames read at the user's timestamps; the timestamp-less point tied to its requests). P2 is verified from request timings, and at least one X-Request-Id is looked up in prod Loki and labelled Prod. No point is left Unverified for want of evidence the recording holds. Nothing is filed and no Jam comment is created."
+    }
+  ]
+}

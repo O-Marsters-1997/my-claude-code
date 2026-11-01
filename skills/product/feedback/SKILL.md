@@ -8,7 +8,7 @@ description: >
   /fleet dispatch. Use when the user says "/feedback", "I don't like how X works", "this isn't
   usable because…", "X feels wrong", "this behaviour is annoying", "push back on how Y
   behaves", or otherwise complains about the repo's behaviour or UX without a concrete bug
-  report or spec. Not for feedback on a skill (use skill-feedback-collector), a single
+  report or spec. Also takes a jam.dev screen recording with the points as bullets. Not for feedback on a skill (use skill-feedback-collector), a single
   well-understood bug (triage-issue) or a ready-to-file follow-up (file-issue).
 disable-model-invocation: true
 ---
@@ -26,6 +26,8 @@ it's too slow". Scoping it is the user's job; splitting it is yours.
 
 - Name the **area** in a short slug (`onboarding`). It becomes the label in stage 3.
 - Number the **points** (P1, P2, P3), keeping the user's own words for each.
+- A `jam.dev/c/…` link is a **recording** of the points. Read it before verifying and tie each
+  point to its moment, following [references/recordings.md](references/recordings.md).
 
 Don't ask the user to restructure anything. If something is too vague to verify, that is a
 stage 1 result, not a reason to stop.
@@ -55,7 +57,7 @@ Points can merge ("P2 and P3 share one cause") or split ("P1 is two problems"). 
 now and show it in the play-back.
 
 Label every fact by source: **User** (what they said) or **Code** (what you found, with a
-path). An assumption is labelled as one. This stops an inference being filed as a finding.
+path), plus **Jam** and **Prod** when there is a recording. An assumption is labelled as one. This stops an inference being filed as a finding.
 
 You may disagree. If the evidence says the behaviour is right, say so and show why. Agreeing to
 be agreeable files tickets that the next agent will rightly push back on.
@@ -113,6 +115,8 @@ starts from verified facts instead of re-investigating:
 
 - Code: `path/file.ts` `fn` — <what it does today>
 - Intent: <ADR/commit/doc, or "none recorded">
+- Jam: <link> at <m:ss> — <what the recording shows>   (recording only)
+- Prod: `request_id <id>` — <what the server logged>    (recording only)
 - Agreed in feedback session: <the settled reading, one line>
 
 ## Where to look
@@ -149,3 +153,6 @@ their reason; and the one command that starts the work:
 
 - one ready ticket → `/implement <n>`
 - several → `/fleet dispatch feedback:<area>`
+
+With a recording, first comment each ticket's URL on the Jam at its point's moment
+(`jam create comment <id> "<url>" --at <ms>`), so the recording shows what it became.
