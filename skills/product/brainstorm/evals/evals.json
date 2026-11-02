@@ -1,0 +1,46 @@
+{
+  "skill_name": "brainstorm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Brainstorm with me: my small bakery's weekday afternoon sales are dead and I want ways to fix it. Let's do it together, I'll throw ideas in too.",
+      "expected_output": "A Creative Partner session: framing confirmed, the user asked what they've already tried before any idea is offered, a 3-4 technique batch proposed, one open prompt per message, Claude's ideas followed by a hand-back question, and no convergence offered until a batch is spent.",
+      "files": [],
+      "assertions": [
+        {"text": "Asks what the user has already tried or ruled out before offering any idea"},
+        {"text": "Uses Creative Partner stance and hands back with a question after each idea it offers"},
+        {"text": "Proposes a named batch of 3-4 techniques"},
+        {"text": "Each generating message contains one open prompt, not a multiple-choice menu or stacked questions"},
+        {"text": "Does not rank, score or recommend ideas before a batch is spent"},
+        {"text": "Creates a log at ~/brainstorms/YYYY-MM-DD-<slug>.md with status: active"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Just give me ideas for a team offsite for 12 engineers, one day, London, about £2k budget. You do the brainstorming, I'll look at what you come up with.",
+      "expected_output": "A Generate-for-me session: at most one confirming question, then Claude runs several named techniques itself, rotates between them, produces 30+ ideas grouped by technique with some marked dead, then offers another batch, converge or wrap up, and offers to continue together.",
+      "files": [],
+      "assertions": [
+        {"text": "Asks at most one confirming question before generating"},
+        {"text": "Ideas are grouped under at least 3 named techniques"},
+        {"text": "Produces 30 or more distinct ideas"},
+        {"text": "Marks at least one idea as dead with a reason"},
+        {"text": "Ideas reflect the stated constraints (12 people, one day, London, about £2k)"},
+        {"text": "Ends by offering another batch, converge or wrap up, and offers to continue together"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm stuck on how our mobile app should sync offline edits back to the server without conflicts. I want to come up with the ideas myself, just facilitate, don't give me answers.",
+      "expected_output": "A Facilitator session: Claude never supplies solution ideas, uses questions, provocations and constraints, picks a technique suited to being stuck (e.g. inversion or provocation), and does not look anything up while generating.",
+      "files": [],
+      "assertions": [
+        {"text": "Uses Facilitator stance and does not supply solution ideas of its own"},
+        {"text": "Names the technique it is running"},
+        {"text": "Picks a technique that fits being stuck (e.g. inversion, provocation, first principles)"},
+        {"text": "Does not search the web or read docs while generating"},
+        {"text": "Does not converge or recommend an approach unprompted"}
+      ]
+    }
+  ]
+}
