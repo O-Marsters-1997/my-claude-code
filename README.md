@@ -67,6 +67,12 @@ done
 
 These skills help you think through problems before writing code.
 
+- **brainstorm** — A brainstorming session on any topic. You pick who generates (you, both of you, or Claude alone); it rotates techniques from a curated set, narrows only when you ask, and keeps an append-only log in `~/brainstorms/` so a session can resume.
+
+  ```
+  npx skills add O-Marsters-1997/my-claude-code --skill brainstorm
+  ```
+
 - **grilling** — The interview loop itself: rounds of questions along the frontier of the design tree, each with a recommended answer. Model-invoked; the suite delegates here.
 
   ```
