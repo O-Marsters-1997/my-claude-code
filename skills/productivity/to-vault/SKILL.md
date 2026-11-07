@@ -59,8 +59,8 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
 4. **Pick topics.** List `mocs/` and choose the MOCs each idea belongs to; at least one per Note.
    With a `project`, always include `[[<Project> MOC]]` (Project is the repo name as written,
    e.g. `fleet MOC`). If that MOC doesn't exist, create it in the MOC shape from § MOCs with a
-   one-line synthesis, and add `- [[<Project> MOC]] — <when to open it>`
-   under `## Notes` in `mocs/System Design MOC.md`. Without a project and with no closer MOC, use System Design MOC.
+   one-line synthesis, and add `- [[<Project> MOC]] — <when to open it>` under `## Notes` in
+   `mocs/System Design MOC.md`. Without a project and with no closer MOC, use System Design MOC.
 5. **Write the Notes.**
    - New Note: `notes/<Title>.md`, title a short claim or name, no date. Frontmatter per § Schema
      with `type`, `origin: user`, `status: seedling`, `topics`, `project` (if any) and today's
@@ -86,8 +86,8 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
      reasoning then lives in the other sections.
 6. **Link from MOCs.** In every MOC in a Note's `topics:`, add `- [[<Title>]] — <when to open it>`
    under `## Notes` unless it is already listed. The phrase is short and drawn from the Note's
-   content, so a reader can skip the Note without opening it. Agents can't see Obsidian backlinks, so both directions must be
-   written.
+   content, so a reader can skip the Note without opening it. Agents can't see Obsidian
+   backlinks, so both directions must be written.
 7. **Log.** Append one `## [YYYY-MM-DD] to-vault | <Title>` to `log.md` per Note written or
    appended to, per § Log format. A project MOC created on the way needs none of its own.
 
