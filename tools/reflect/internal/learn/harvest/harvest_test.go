@@ -221,3 +221,17 @@ func TestAfterIgnoresHunksThatDoNotTouchTheTarget(t *testing.T) {
 		t.Errorf("after = %q, want empty: no staged hunk removes the target text", got)
 	}
 }
+
+func TestStagedFileWithSpaceInNameIsHarvested(t *testing.T) {
+	dir := newRepo(t)
+	lp := filepath.Join(t.TempDir(), "l.jsonl")
+	write(t, dir, "b c.go", marked)
+	gitIn(t, dir, "add", "b c.go")
+
+	if res := run(t, dir, lp); res.Recorded != 1 {
+		t.Fatalf("Run = %+v, want one recorded", res)
+	}
+	if strings.Contains(gitOut(t, dir, "show", ":b c.go"), "REFLECT") {
+		t.Error("marker survived in the index")
+	}
+}
