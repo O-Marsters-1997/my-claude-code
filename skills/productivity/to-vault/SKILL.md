@@ -5,9 +5,10 @@ description: >-
   linked into MOCs and logged. Use when the user types /to-vault, or says "save this to my
   vault", "put this in obsidian", "add this to my notes", "file this decision", "record this
   decision in the vault", or asks to keep takeaways from the session in their second brain. Also
-  offer it right after record-decision writes an ADR. Works from any repo. Not for writing ADRs
-  (record-decision), Claude's own memory, or ingesting a source into wiki/.
-argument-hint: "[--inbox | what to capture; \"quoted text\" is kept verbatim]"
+  offer it right after record-decision writes an ADR. Also takes a Notion page link as the
+  capture. Works from any repo. Not for writing ADRs (record-decision), Claude's own memory, or
+  ingesting a source into wiki/.
+argument-hint: "[--inbox | <notion-page-url> | what to capture; \"quoted text\" is kept verbatim]"
 ---
 
 File what the user names into the vault as atomic Notes, then reply with their paths.
@@ -26,11 +27,16 @@ File what the user names into the vault as atomic Notes, then reply with their p
 - **Exact wording**: text the user wrote inside double quotes in the args is theirs verbatim.
   Put it in the Note it belongs to unchanged, without the quote marks, as its own paragraph.
   Everything else you may summarise and reword.
+- **Notion link**: an arg that is a Notion page URL is the Capture, one page per run. Run
+  `ntn pages get <page-id>` (the id is the 32-hex tail of the URL) and treat its markdown as the
+  user's own free-form notes. If `ntn` is missing or `NOTION_API_TOKEN` is unset, stop and say so,
+  writing nothing. Skip the numbered-list prompt: the page is the Capture.
 - **`--inbox`**: opt-in, only when the user typed it. Skip Capture and Steps. Read § Triage in
   the vault's `CLAUDE.md`; if that section is missing, stop and say so, writing nothing.
   Otherwise follow it in full, including showing its plan and writing only after approval.
 - **Project**: `basename "$(git rev-parse --show-toplevel)"`. Omit `project` when that fails (not
-  in a repo) or when the toplevel is the vault itself.
+  in a repo), when the toplevel is the vault itself, or for a Notion link (general study notes,
+  not tied to the repo you ran from).
 
 ## What you may write
 
@@ -55,12 +61,16 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
 2. **Classify each.** `decision` if it is a choice between options (an ADR written this session
    is a strong signal); otherwise `learning`.
 3. **Look for existing Notes.** List `notes/` and read any whose title or body covers the same
-   idea. If one does, append to it (step 5) instead of creating a duplicate.
+   idea. If one does, append to it (step 5) instead of creating a duplicate. For a Notion link,
+   first grep `log.md` for its `Source: <url>` line: a hit means the page was filed before, so
+   append only what those Notes do not already say and create Notes for new ideas.
 4. **Pick topics.** List `mocs/` and choose the MOCs each idea belongs to; at least one per Note.
    With a `project`, always include `[[<Project> MOC]]` (Project is the repo name as written,
    e.g. `fleet MOC`). If that MOC doesn't exist, create it in the MOC shape from § MOCs with a
    one-line synthesis, and add `- [[<Project> MOC]] — <when to open it>` under `## Notes` in
    `mocs/System Design MOC.md`. Without a project and with no closer MOC, use System Design MOC.
+   For a Notion link, a topic with no MOC (caching, consensus) gets a `<Topic> MOC` created the
+   same way. Reuse an existing MOC whenever one fits rather than a near-duplicate name.
 5. **Write the Notes.**
    - New Note: `notes/<Title>.md`, title a short claim or name, no date. Frontmatter per § Schema
      with `type`, `origin: user`, `status: seedling`, `topics`, `project` (if any) and today's
@@ -89,7 +99,9 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
    content, so a reader can skip the Note without opening it. Agents can't see Obsidian
    backlinks, so both directions must be written.
 7. **Log.** Append one `## [YYYY-MM-DD] to-vault | <Title>` to `log.md` per Note written or
-   appended to, per § Log format. A project MOC created on the way needs none of its own.
+   appended to, per § Log format. A project or topic MOC created on the way needs none of its own.
+   For a Notion link, add the line `Source: <url>` under every entry, so step 3 can find the page
+   next time.
 
 ## Reply
 
