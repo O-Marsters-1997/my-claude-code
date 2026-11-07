@@ -149,7 +149,7 @@ func addedLines(diff string) map[string][]int {
 		case !inHunk && strings.HasPrefix(l, "+++ "):
 			file = ""
 			if p, ok := strings.CutPrefix(l, "+++ b/"); ok {
-				file = p
+				file = strings.TrimSuffix(p, "\t")
 			}
 		case file != "":
 			m := hunk.FindStringSubmatch(l)
