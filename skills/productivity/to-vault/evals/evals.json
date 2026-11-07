@@ -1,0 +1,1 @@
+{"skill_name": "to-vault", "evals": [{"id": 1, "prompt": "/to-vault --inbox, run from a non-vault repo, vault CLAUDE.md has no § Triage", "expected_output": "Stops with a clear message that § Triage is missing and writes nothing."}]}
