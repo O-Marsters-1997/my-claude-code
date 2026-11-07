@@ -26,10 +26,9 @@ File what the user names into the vault as atomic Notes, then reply with their p
 - **Exact wording**: text the user wrote inside double quotes in the args is theirs verbatim.
   Put it in the Note it belongs to unchanged, without the quote marks, as its own paragraph.
   Everything else you may summarise and reword.
-- **`--inbox`**: opt-in, only when the user typed it. Skip Capture and Steps 1-7. Read the vault's
-  `CLAUDE.md` § Triage; if that section is missing, stop and say so, writing nothing. Otherwise
-  follow § Triage in full, including showing its plan and writing only after approval. Without
-  the flag, nothing in this skill changes.
+- **`--inbox`**: opt-in, only when the user typed it. Skip Capture and Steps. Read § Triage in
+  the vault's `CLAUDE.md`; if that section is missing, stop and say so, writing nothing.
+  Otherwise follow it in full, including showing its plan and writing only after approval.
 - **Project**: `basename "$(git rev-parse --show-toplevel)"`. Omit `project` when that fails (not
   in a repo) or when the toplevel is the vault itself.
 
