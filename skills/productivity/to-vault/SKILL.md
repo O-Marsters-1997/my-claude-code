@@ -7,7 +7,7 @@ description: >-
   decision in the vault", or asks to keep takeaways from the session in their second brain. Also
   offer it right after record-decision writes an ADR. Works from any repo. Not for writing ADRs
   (record-decision), Claude's own memory, or ingesting a source into wiki/.
-argument-hint: "[what to capture; \"quoted text\" is kept verbatim]"
+argument-hint: "[--inbox | what to capture; \"quoted text\" is kept verbatim]"
 ---
 
 File what the user names into the vault as atomic Notes, then reply with their paths.
@@ -26,6 +26,10 @@ File what the user names into the vault as atomic Notes, then reply with their p
 - **Exact wording**: text the user wrote inside double quotes in the args is theirs verbatim.
   Put it in the Note it belongs to unchanged, without the quote marks, as its own paragraph.
   Everything else you may summarise and reword.
+- **`--inbox`**: opt-in, only when the user typed it. Skip Capture and Steps 1-7. Read the vault's
+  `CLAUDE.md` § Triage; if that section is missing, stop and say so, writing nothing. Otherwise
+  follow § Triage in full, including showing its plan and writing only after approval. Without
+  the flag, nothing in this skill changes.
 - **Project**: `basename "$(git rev-parse --show-toplevel)"`. Omit `project` when that fails (not
   in a repo) or when the toplevel is the vault itself.
 
@@ -37,6 +41,8 @@ Only these, as the vault's Ownership table says:
   included.
 - `mocs/`: add list lines; create a project MOC when missing.
 - `log.md`: append entries.
+
+With `--inbox` only, you may also delete the `inbox/` files that were processed, after approval.
 
 Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you were invoked from
 (an ADR stays exactly as `record-decision` wrote it).
