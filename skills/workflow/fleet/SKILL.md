@@ -11,7 +11,7 @@ description: >
   the feature's PR into main once no tickets are left. A /sweep's `sweep-YYYY-MM-DD` label
   works as a feature label.
   Use for "fan out these tickets", "implement these issues in parallel", "for each ready
-  ticket create a worktree and delegate to a subagent", "reconcile the wave", "what's
+  ticket create a worktree and delegate to a subagent", "reconcile the wave", "reconcile the feature", "what's
   unblocked now", "close out the merged tickets", "set up the next wave". For a single
   ticket, use /implement directly.
 ---
@@ -20,7 +20,7 @@ Orchestration layer above /implement, split by when it runs:
 
 - `dispatch <label>`: start of a wave. Read [dispatch.md](dispatch.md).
 - `land <label>`: optional, when dispatch's `--check` recommends it, before the user merges. Read [land.md](land.md).
-- `reconcile <label>`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
+- `reconcile <label> [--no-journeys]`: after the wave's PRs have merged. Read [reconcile.md](reconcile.md).
 
 All subcommands require a **feature label** as the argument after the subcommand (for example
 `/fleet dispatch cv-tailoring`). If it is missing, ask for it; never run across all issues.

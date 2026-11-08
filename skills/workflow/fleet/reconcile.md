@@ -32,6 +32,10 @@ remove hook, so fleet never names a technology.
 
 Run this before step 4 so a failing journey is filed before the feature PR goes up.
 
+Skip this step if the user's request says to skip journeys in any wording: `--no-journeys`, "no
+journeys", "skip journeys", "without journeys", "don't run the journeys". Still work out
+which slices completed, and list their journeys as not run in the report.
+
 Read the bodies with `gh issue list --label "<label>" --state all --json number,body,state`. A slice is
 complete when every ticket carrying the same `Slice: <n>` line is closed and merged (a
 `closed-unmerged` or `no-pr` ticket keeps it open), and at least one of them merged this run (its
@@ -104,7 +108,7 @@ for a label.
 
 Report to the user in this order: tickets closed, tickets promoted, tickets needing a decision
 (`closed-unmerged`, `no-pr`), slices checked with each journey's result, `journey-fail` tickets
-filed, journeys needing human eyes, worktrees removed, and the feature PR's URL and the metrics row
+filed, journeys needing human eyes, journeys not run, worktrees removed, and the feature PR's URL and the metrics row
 written, if step 4 raised or found a PR.
 
 If the line was `finished`, stop there. Otherwise end by telling them to `/clear` and run
