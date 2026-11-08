@@ -42,18 +42,22 @@ File what the user names into the vault as atomic Notes, then reply with their p
 
 Only these, as the vault's Ownership table says:
 
-- `notes/`: create Notes, or append to existing ones. Never change existing lines, frontmatter
-  included.
+- `raw/`: add one new file per run holding the original capture. Never edit an existing file.
+- `notes/`: create Notes, or merge new material into existing ones and add the new raw file to
+  their `source:`. A Note with `edited: user` only gets an appended `## <YYYY-MM-DD>` section.
 - `mocs/`: add list lines; create a project MOC when missing.
 - `log.md`: append entries.
 
 With `--inbox` only, you may also delete the `inbox/` files that were processed, after approval.
 
-Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you were invoked from
+Never touch existing `raw/` files, `wiki/` page text, `index.md`, or anything in the repo you were invoked from
 (an ADR stays exactly as `record-decision` wrote it).
 
 ## Steps
 
+0. **Save the original.** Write the Capture unchanged to `raw/<Title> (YYYY-MM-DD).md`: the args
+   with quoted text intact, the conversation excerpt the user chose, or the Notion markdown. Notes
+   in the steps below list this file in `source:`.
 1. **Split.** Break the Capture into atomic ideas: one claim, technique or decision per Note,
    each understandable on its own. A capture usually yields one to a few Notes, not one long
    one; never pad it out. Each quoted passage goes with the idea it is about; a quote that stands
@@ -61,7 +65,7 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
 2. **Classify each.** `decision` if it is a choice between options (an ADR written this session
    is a strong signal); otherwise `learning`.
 3. **Look for existing Notes.** List `notes/` and read any whose title or body covers the same
-   idea. If one does, append to it (step 5) instead of creating a duplicate. For a Notion link,
+   idea. If one does, merge into it (step 5) instead of creating a duplicate. For a Notion link,
    first grep `log.md` for its `Source: <url>` line: a hit means the page was filed before, so
    append only what those Notes do not already say and create Notes for new ideas.
 4. **Pick topics.** List `mocs/` and choose the MOCs each idea belongs to; at least one per Note.
@@ -74,8 +78,9 @@ Never touch `raw/`, `wiki/` page text, `index.md`, or anything in the repo you w
 5. **Write the Notes.**
    - New Note: `notes/<Title>.md`, title a short claim or name, no date. Frontmatter per § Schema
      with `type`, `origin: user`, `status: seedling`, `topics`, `project` (if any) and today's
-     `date`.
-   - Existing Note: append a `## <YYYY-MM-DD>` section at the end with the new material.
+     `date`, and `source: ["[[raw/<file from step 0>]]"]`.
+   - Existing Note: merge the new material in, keep quotes and numbers verbatim, and add the raw
+     file to `source:`. If it has `edited: user`, append a `## <YYYY-MM-DD>` section instead.
    - Keep it short and plain. Add no specifics the conversation didn't contain (names, values,
      example code); a filled-in guess reads later as something the user learnt. Link wiki concepts inline as `[[Page]]`, only for pages that exist
      in `wiki/`. Link Notes from the same run to each other where one builds on another.
