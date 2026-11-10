@@ -107,6 +107,10 @@
           {
             "type": "command",
             "command": "~/.claude/bin/reflect marker status --remind 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/vault-digest.sh"
           }
         ]
       }
