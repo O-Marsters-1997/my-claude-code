@@ -4,7 +4,7 @@ description: >-
   File what the user learnt or decided into their Obsidian vault as atomic Notes, one idea each,
   linked into MOCs and logged. Use when the user types /to-vault, or says "save this to my
   vault", "put this in obsidian", "add this to my notes", "file this decision", "record this
-  decision in the vault", or asks to keep takeaways from the session in their second brain. Also
+  decision in the vault", "keep this", "keep that answer", "save that answer", or asks to keep takeaways from the session in their second brain. Also
   offer it right after record-decision writes an ADR. Also takes a Notion page link as the
   capture. Works from any repo. Not for writing ADRs (record-decision), Claude's own memory, or
   ingesting a source into wiki/ (use /ingest).
