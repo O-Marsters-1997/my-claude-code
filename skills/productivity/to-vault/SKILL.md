@@ -7,7 +7,7 @@ description: >-
   decision in the vault", or asks to keep takeaways from the session in their second brain. Also
   offer it right after record-decision writes an ADR. Also takes a Notion page link as the
   capture. Works from any repo. Not for writing ADRs (record-decision), Claude's own memory, or
-  ingesting a source into wiki/.
+  ingesting a source into wiki/ (use /ingest).
 argument-hint: "[--inbox | <notion-page-url> | what to capture; \"quoted text\" is kept verbatim]"
 ---
 
@@ -24,6 +24,9 @@ File what the user names into the vault as atomic Notes, then reply with their p
   detail. With no args, list the candidate learnings and decisions from the conversation in one
   short numbered list and ask which to file; write nothing until they answer. Never widen the
   Capture beyond what they named.
+- **Routing**: if the Capture is a whole file, URL or document someone else wrote (an article,
+  course lesson, docs page), stop and point the user to `/ingest`, writing nothing. The user's
+  own words, Notion notes included, go to `notes/`; someone else's go to `wiki/`.
 - **Exact wording**: text the user wrote inside double quotes in the args is theirs verbatim.
   Put it in the Note it belongs to unchanged, without the quote marks, as its own paragraph.
   Everything else you may summarise and reword.
