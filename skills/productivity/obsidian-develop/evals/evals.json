@@ -1,0 +1,50 @@
+{
+  "skill_name": "obsidian-develop",
+  "evals": [
+    {
+      "id": 0,
+      "name": "todo-sidebar-view",
+      "prompt": "Add a sidebar view that lists all notes tagged #todo with their due date from frontmatter, updating live. The plugin is in the current directory.",
+      "expected_output": "A new ItemView in its own module, registered with registerView and opened via getRightLeaf/setViewState/revealLeaf; data from metadataCache (frontmatter + tags incl. frontmatter tags); live updates via registerEvent on metadataCache changed plus vault delete/rename, debounced; DOM via createEl; no view reference held on the plugin; due field taken from the existing settings; states how it would verify in the running app.",
+      "files": ["evals/fixtures/todo-plugin"],
+      "assertions": [
+        {"text": "Registers the view with registerView and finds it with getLeavesOfType (no view instance stored on the plugin)", "type": "manual"},
+        {"text": "Reads tags and frontmatter via app.metadataCache (getFileCache / getAllTags), covering frontmatter tags as well as inline tags", "type": "manual"},
+        {"text": "Live updates come from this.registerEvent on metadataCache 'changed' and also handle delete/rename", "type": "manual"},
+        {"text": "Builds DOM with createEl/createDiv/empty and no innerHTML or inline style assignment", "type": "manual"},
+        {"text": "Uses the plugin's existing dueDateField setting rather than hardcoding 'due'", "type": "manual"},
+        {"text": "Does not detach leaves in onunload", "type": "manual"},
+        {"text": "States concrete runtime verification steps (build, reload, console check, DOM/screenshot) and says which could not run", "type": "manual"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "blank-settings-tab",
+      "prompt": "My plugin's settings tab renders blank — find out why. The plugin is in the current directory.",
+      "expected_output": "Identifies that the Settings are built into a detached element from the global createDiv() rather than containerEl, fixes it to containerEl (or containerEl.createDiv), and also flags/fixes the un-awaited this.loadSettings() in onload. Explains how it would confirm via runtime inspection (open settings tab by eval, count containerEl children, read console) and that it could not run that here.",
+      "files": ["evals/fixtures/blank-settings-plugin"],
+      "assertions": [
+        {"text": "Identifies the root cause: Settings are attached to a detached element from global createDiv() instead of containerEl", "type": "manual"},
+        {"text": "Fix attaches settings to containerEl (directly or via containerEl.createDiv)", "type": "manual"},
+        {"text": "Flags and fixes the un-awaited this.loadSettings() in onload", "type": "manual"},
+        {"text": "Describes runtime inspection to confirm (open the tab via eval or UI, inspect containerEl children / DOM, read console) or asks the user to report it", "type": "manual"},
+        {"text": "Does not claim to have verified in the running app when it could not", "type": "manual"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "callout-command-review-ready",
+      "prompt": "Add a command that wraps the current selection in a callout, and make it pass review. The plugin is in the current directory.",
+      "expected_output": "An addCommand with editorCheckCallback (or editorCallback) using editor.getSelection/replaceSelection; id/name free of plugin id/name and the word 'command'; no default hotkey; sentence-case name; prefixes every line of a multi-line selection with '> '; sets up or runs eslint-plugin-obsidianmd and checks the manifest description against submission rules.",
+      "files": ["evals/fixtures/todo-plugin"],
+      "assertions": [
+        {"text": "Uses addCommand with editorCallback or editorCheckCallback and the Editor API (not vault.modify)", "type": "manual"},
+        {"text": "Every line of a multi-line selection is prefixed with '> ' under a [!type] header", "type": "manual"},
+        {"text": "Command id/name do not contain the plugin id/name or the word 'command', no default hotkeys, sentence case", "type": "manual"},
+        {"text": "Adds or runs eslint-plugin-obsidianmd (recommended config) as part of making it pass review", "type": "manual"},
+        {"text": "Checks the manifest/description against submission requirements", "type": "manual"},
+        {"text": "Logic for the transform is in a module separate from main.ts", "type": "manual"}
+      ]
+    }
+  ]
+}
