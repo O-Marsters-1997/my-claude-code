@@ -14,8 +14,8 @@ Ingest one source into the vault's `wiki/`, then reply with the paths written.
 
 ## Inputs
 
-- **Vault**: `~/Documents/personal/my-obsidian-notes`. If it or its `CLAUDE.md` is missing, stop
-  and say so; never create a vault.
+- **Vault**: `~/Documents/personal/obsidian/my-obsidian-notes`. If it or its `CLAUDE.md` is
+  missing, stop and say so; never create a vault.
 - **Schema**: read the vault's `CLAUDE.md` every run, at least § Schema, § Ownership, § MOCs,
   § Wiki, § Index format, § Log format and § Ingest. § Ingest is the procedure; follow it over
   anything below if they differ.
@@ -48,5 +48,5 @@ Ingest one source into the vault's `wiki/`, then reply with the paths written.
 ## Reply
 
 One line per file written or changed, as a full path, e.g.
-`~/Documents/personal/my-obsidian-notes/wiki/Capacity estimation.md`, then any `conflict` entries
+`~/Documents/personal/obsidian/my-obsidian-notes/wiki/Capacity estimation.md`, then any `conflict` entries
 logged.
