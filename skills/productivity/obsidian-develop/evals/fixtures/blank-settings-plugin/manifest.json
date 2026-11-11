@@ -1,0 +1,9 @@
+{
+  "id": "link-stats",
+  "name": "Link stats",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Shows link statistics for the active note.",
+  "author": "Example",
+  "isDesktopOnly": false
+}
