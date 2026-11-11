@@ -11,7 +11,7 @@ Answer the question from the vault plus general knowledge, in one reply. Read-on
 
 ## Inputs
 
-- **Vault**: `~/Documents/personal/my-obsidian-notes`. If it is missing, stop and say so.
+- **Vault**: `~/Documents/personal/obsidian/my-obsidian-notes`. If it is missing, stop and say so.
 - **Question**: the user's question as asked. Do not read the vault's `CLAUDE.md`; this skill
   holds the procedure.
 

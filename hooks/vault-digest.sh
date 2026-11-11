@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 export LC_ALL=C
-dir="${VAULT_DIGEST_DIR:-$HOME/Documents/personal/my-obsidian-notes}/mocs"
+dir="${VAULT_DIGEST_DIR:-$HOME/Documents/personal/obsidian/my-obsidian-notes}/mocs"
 names=""
 for f in "$dir"/*\ MOC.md; do
 	[ -f "$f" ] || continue

@@ -15,8 +15,8 @@ File what the user names into the vault as atomic Notes, then reply with their p
 
 ## Inputs
 
-- **Vault**: `~/Documents/personal/my-obsidian-notes`. If it or its `CLAUDE.md` is missing, stop
-  and say so; never create a vault.
+- **Vault**: `~/Documents/personal/obsidian/my-obsidian-notes`. If it or its `CLAUDE.md` is
+  missing, stop and say so; never create a vault.
 - **Schema**: read the vault's `CLAUDE.md` every run, at least § Schema, § Ownership, § MOCs and
   § Log format. It is the only source of truth for frontmatter, MOC shape and log entries, so
   follow it over anything below if they differ.
@@ -114,4 +114,4 @@ Never touch existing `raw/` files, `wiki/` page text, `index.md`, or anything in
 ## Reply
 
 One line per Note: its path, e.g.
-`~/Documents/personal/my-obsidian-notes/notes/Leases beat locks for job claims.md`.
+`~/Documents/personal/obsidian/my-obsidian-notes/notes/Leases beat locks for job claims.md`.
