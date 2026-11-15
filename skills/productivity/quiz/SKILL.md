@@ -14,15 +14,14 @@ never writes questions itself: the CLI makes each model call outside this conver
 
 - **Vault**: `~/Documents/personal/obsidian/my-obsidian-notes`. If it is missing, stop and say so.
 - **CLI**: `vault-questions`. Check `command -v vault-questions` first. If it is not on `PATH`, stop
-  and reply with the install step, `bun link` from the `olly-obsidian-plugin-utils` checkout, and
-  nothing else. Never write questions yourself as a fallback.
+  and reply with the install command, `cd ~/Documents/personal/obsidian/olly-obsidian-plugin-utils && bun link`,
+  and nothing else. Never write questions yourself as a fallback.
 
 ## Steps
 
 1. Run `vault-questions status --vault <vault>` and show the pending pages and count. If the count
    is 0, say so and stop.
-2. Ask what to generate: a page limit, a topic or a single page. Default to a page limit of 5
-   when the user has no preference. Run `vault-questions generate --help` to find the flags for a
+2. Ask what to generate: a page limit, a topic or a single page. Run `vault-questions generate --help` to find the flags for a
    topic or page; use `--max-pages N` for the limit.
 3. Run `vault-questions generate --vault <vault> --pending` plus the chosen flags.
 4. Report the CLI's output as printed, including any failed pages.
