@@ -1,6 +1,11 @@
 #!/bin/sh
 input=$(cat)
 
+cc_bin="$HOME/Documents/coding/ai-development/command-center/bin/cc"
+if [ -x "$cc_bin" ]; then
+  printf '%s' "$input" | "$cc_bin" record-usage >/dev/null 2>&1 &
+fi
+
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // ""')
 dir=$(basename "$cwd")
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // ""')
