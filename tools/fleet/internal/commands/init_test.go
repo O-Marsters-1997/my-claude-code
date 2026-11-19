@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -101,5 +102,33 @@ func TestInitWritesAndRefusesToOverwrite(t *testing.T) {
 	}
 	if _, _, err := runFleet(t, "init", "--force", "--repo", dir); err != nil {
 		t.Errorf("init --force: %v", err)
+	}
+}
+
+func TestInitAdviseAnnotatesEveryKey(t *testing.T) {
+	dir := newRepo(t, map[string]string{
+		"justfile":    "lint:\n    x\nfmt:\n    y\ntest:\n    go test ./...\ncss:\n    tailwindcss -o web/app.css\n",
+		"web/app.css": ".a{}",
+	})
+
+	stdout, _, err := runFleet(t, "init", "--advise", "--dry-run", "--repo", dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var got config.Config
+	if _, err := toml.Decode(stdout, &got); err != nil {
+		t.Fatalf("stdout is not TOML: %v\n%s", err, stdout)
+	}
+	wantPrePush := []string{"just fmt", "just lint", "just test", "just css"}
+	if diff := cmp.Diff(wantPrePush, got.Checks.PrePush); diff != "" {
+		t.Errorf("pre_push (-want +got):\n%s", diff)
+	}
+	lines := strings.Split(stdout, "\n")
+	for _, key := range []string{"ci = ", "pre_push = ", "suite = ", `"web/app.css" = `} {
+		i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, key) })
+		if i < 1 || !strings.HasPrefix(lines[i-1], "# ") {
+			t.Errorf("no # comment directly above %q in:\n%s", key, stdout)
+		}
 	}
 }

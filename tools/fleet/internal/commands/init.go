@@ -29,6 +29,7 @@ func initCommand() *cli.Command {
 			&cli.BoolFlag{Name: "dry-run", Usage: "print the TOML instead of writing it"},
 			&cli.BoolFlag{Name: "force", Usage: "overwrite an existing " + fleetTOML},
 			&cli.BoolFlag{Name: "measure", Usage: "run each candidate check and drop failing or slow ones"},
+			&cli.BoolFlag{Name: "advise", Usage: "choose ci from CI history and comment each key with its evidence"},
 		},
 		Action: runInit,
 	}
@@ -72,7 +73,12 @@ func runInit(ctx context.Context, cmd *cli.Command) error {
 		fmt.Fprintf(d.Log, "Generated paths with no regen command: %s\n", strings.Join(res.Unmapped, ", "))
 	}
 
-	body, err := renderTOML(res.Config)
+	var body []byte
+	if cmd.Bool("advise") {
+		body, err = renderAdvised(detect.Advise(res, ciHistory(ctx, d.Sh, root)))
+	} else {
+		body, err = renderTOML(res.Config)
+	}
 	if err != nil {
 		return err
 	}

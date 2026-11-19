@@ -34,6 +34,7 @@ type Result struct {
 	Notes []string
 	// Unmapped are generated paths for which no regenerating command was found.
 	Unmapped []string
+	Excluded []string
 }
 
 // Scan reads fsys, whose git-tracked files are listed in tracked.
@@ -70,6 +71,7 @@ func Scan(fsys fs.FS, tracked []string, opts Options) Result {
 		res.Notes = append(res.Notes, "CI jobs with no local equivalent: "+strings.Join(jobs, ","))
 	}
 
+	res.Excluded = excluded
 	cfg.Checks.Suite = suite(recipes)
 	cfg.Regen, res.Unmapped = detectRegen(fsys, tracked, recipes)
 	res.Config = cfg
@@ -115,13 +117,17 @@ func unmatchedJobs(fsys fs.FS, picked []string) []string {
 	}
 	sort.Strings(jobs)
 
-	var unmatched []string
+	return jobsWithoutMatch(jobs, picked)
+}
+
+func jobsWithoutMatch(jobs, picked []string) []string {
+	var out []string
 	for _, j := range jobs {
 		stem, _, _ := strings.Cut(strings.ReplaceAll(j, "_", "-"), "-")
 		hit := slices.ContainsFunc(picked, func(p string) bool { return strings.Contains(p, stem) })
 		if !hit {
-			unmatched = append(unmatched, j)
+			out = append(out, j)
 		}
 	}
-	return unmatched
+	return out
 }
